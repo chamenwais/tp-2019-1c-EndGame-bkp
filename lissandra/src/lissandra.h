@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <commons/log.h>
 #include "api.h"
 #include "variablesGlobales.h"

@@ -29,6 +29,7 @@ extern t_configuracionDelFS configuracionDelFS;
 extern t_log* LOGGERFS;
 extern char* directorioConLaMetadata;
 extern char* pathDeMontajeDelPrograma;
+extern pthread_t threadConsola;
 
 void inicializarVariablesGlobales();
 void liberarRecursos();

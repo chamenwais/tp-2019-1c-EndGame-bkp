@@ -12,6 +12,7 @@ t_configuracionDelFS configuracionDelFS;
 t_log* LOGGERFS;
 char* directorioConLaMetadata;
 char* pathDeMontajeDelPrograma;
+pthread_t threadConsola;
 
 void inicializarVariablesGlobales(){
 	configuracionDelFS.puertoEscucha=-1;

@@ -8,8 +8,11 @@
 #ifndef API_H_
 #define API_H_
 
-#include "variablesGlobales.h"
+#include <pthread.h>
+#include <readline/readline.h>
+#include "lissandra.h"
 
 int lanzarConsola();
+void *funcionHiloConsola(void *arg);
 
 #endif /* SRC_API_H_ */
