@@ -8,6 +8,7 @@
 #ifndef FS_H_
 #define FS_H_
 
+#include <stdlib.h>
 #include "variablesGlobales.h"
 #include <commons/config.h>
 #include <commons/string.h>

@@ -14,6 +14,6 @@
 #include <commons/log.h>
 #include "variablesGlobales.h"
 #include "fs.h"
-
+#include "api.h"
 
 #endif /* LISSANDRA_H_ */
