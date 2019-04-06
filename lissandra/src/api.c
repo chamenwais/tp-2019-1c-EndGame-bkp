@@ -7,6 +7,7 @@
 
 #include "api.h"
 
-int iniciarConsola(){
+int lanzarConsola(){
 	return 1;
 }
+

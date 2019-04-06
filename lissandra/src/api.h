@@ -10,6 +10,6 @@
 
 #include "variablesGlobales.h"
 
-int iniciarConsola();
+int lanzarConsola();
 
-#endif /* API_H_ */
+#endif /* SRC_API_H_ */

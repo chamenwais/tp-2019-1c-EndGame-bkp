@@ -6,7 +6,7 @@
  */
 
 #ifndef FS_H_
-#define FS_H_
+#define FS_H_d
 
 #include <stdlib.h>
 #include "variablesGlobales.h"

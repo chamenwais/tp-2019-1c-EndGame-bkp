@@ -18,7 +18,7 @@ int main(int argc,char** argv) {
 	obtenerPathDeMontajeDelPrograma(argc,argv);
 	if(levantarConfiguracionInicialDelFS()==EXIT_SUCCESS){
 	if(levantarMetadataDelFS()==EXIT_SUCCESS){
-	if(iniciarConsola()==EXIT_SUCCESS){
+	if(lanzarConsola()==EXIT_SUCCESS){
 
 	}}}
 

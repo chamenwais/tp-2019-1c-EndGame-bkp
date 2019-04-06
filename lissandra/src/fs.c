@@ -6,7 +6,6 @@
  */
 
 #include "fs.h"
-#include <stdlib.h>
 
 void inicializarLogDelFS(){
 	LOGGERFS = log_create("FileSystem.log","FileSystem",true,LOG_LEVEL_INFO);
