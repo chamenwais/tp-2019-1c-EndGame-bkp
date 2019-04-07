@@ -14,6 +14,12 @@
 
 int lanzarConsola();
 void *funcionHiloConsola(void *arg);
+int esperarAQueTermineLaConsola();
 char** parser_instruccion(char* linea);
+int consolaSelect(char* nombreDeLaTabla,int key);
+int consolaInsert(char* nombreDeLaTabla,int key,char* valor,int timestamp);
+int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDeParticiones,int tiempoDeCompactacion);
+int consolaDescribe(char* nombreDeLaTabla);
+int consolaDrop(char* nombreDeLaTabla);
 
 #endif /* SRC_API_H_ */

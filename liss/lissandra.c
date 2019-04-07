@@ -22,6 +22,7 @@ int main(int argc,char** argv) {
 
 	}}}
 
+	if(esperarAQueTermineLaConsola()==EXIT_FAILURE);
 	liberarRecursos();
 	return EXIT_SUCCESS;
 }
