@@ -9,7 +9,9 @@
 #define FS_H_d
 
 #include <stdlib.h>
+#include "lissandra.h"
 #include "variablesGlobales.h"
+#include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
 
