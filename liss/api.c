@@ -53,4 +53,8 @@ void *funcionHiloConsola(void *arg){
 	return ret;
 }
 
+char** parser_instruccion(char* linea){
+	char** instruccion = string_split(linea, " ");
+	return instruccion;
+}
 

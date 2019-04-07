@@ -14,5 +14,6 @@
 
 int lanzarConsola();
 void *funcionHiloConsola(void *arg);
+char** parser_instruccion(char* linea);
 
 #endif /* SRC_API_H_ */
