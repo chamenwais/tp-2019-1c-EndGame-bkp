@@ -26,7 +26,7 @@ void *funcionHiloConsola(void *arg){
 	char** instruccion;
 	char* ubicacionDelPunteroDeLaConsola;
 	log_info(LOGGERFS,"Consola lista");
-	printf("\n");
+	printf("Si necesita saber las funciones que hay disponibles llame a la funcion \"man\"\n");
 	while(1){
 		ubicacionDelPunteroDeLaConsola=string_new();
 		string_append(&ubicacionDelPunteroDeLaConsola,"$ ");
@@ -87,8 +87,11 @@ void *funcionHiloConsola(void *arg){
 						printf("Faltan parametros para poder hacer un drop\n");
 					}
 			}else{
+				if(strcmp(instruccion[0],"man")==0){
+					man();
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}
+				}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
@@ -108,11 +111,11 @@ char** parser_instruccion(char* linea){
 	return instruccion;
 }
 
-int consolaSelect(char* nombreDeLaTabla,int key){
+int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 	return EXIT_SUCCESS;
 }
 
-int consolaInsert(char* nombreDeLaTabla,int key,char* valor,int timestamp){
+int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,int timestamp){
 	return EXIT_SUCCESS;
 }
 
@@ -125,5 +128,16 @@ int consolaDescribe(char* nombreDeLaTabla){
 }
 
 int consolaDrop(char* nombreDeLaTabla){
+	return EXIT_SUCCESS;
+}
+
+int man(){
+	printf("Mostrando funciones disponibles de la consola:\n");
+	printf("1) \"exit\" fnaliza el programa\n");
+	printf("2) SELECT [NOMBRE_TABLA] [KEY]\n");
+	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
+	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");
+	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
+	printf("6) DROP [NOMBRE_TABLA]\n");
 	return EXIT_SUCCESS;
 }

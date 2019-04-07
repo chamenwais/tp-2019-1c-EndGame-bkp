@@ -30,6 +30,7 @@ extern t_log* LOGGERFS;
 extern char* directorioConLaMetadata;
 extern char* pathDeMontajeDelPrograma;
 extern pthread_t threadConsola;
+extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo;
 
 void inicializarVariablesGlobales();
 void liberarRecursos();

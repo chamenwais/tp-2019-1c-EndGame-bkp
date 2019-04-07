@@ -26,6 +26,13 @@ int obtenerPathDeMontajeDelPrograma(int argc,char** argv){
 	}
 
 int levantarConfiguracionInicialDelFS(){
+	/* Ejemplo de los datos a levantar:
+	 * PUERTO_ESCUCHA=5003
+	 * PUNTO_MONTAJE=/home/utnso/endGame/tp-2019-1c-EndGame/liss/Debug
+	 * RETARDO=500
+	 * TAMAÑO_VALUE=4
+	 * TIEMPO_DUMP=5000*/
+
 	char* pathCompleto;
 	pathCompleto=string_new();
 	string_append(&pathCompleto, pathDeMontajeDelPrograma);
@@ -103,6 +110,45 @@ int levantarConfiguracionInicialDelFS(){
 	return EXIT_SUCCESS;
 	}
 
+int actualizarConfiguracionInicialDelFS(){
+	/* Solamente se pueden actualizar los valores:
+	 * retardo
+	 * tiempo_dump
+	 * en tiempo de ejecucion*/
+	char* pathCompleto;
+	pathCompleto=string_new();
+	string_append(&pathCompleto, pathDeMontajeDelPrograma);
+	string_append(&pathCompleto, "configuracionFS.cfg");
+
+	t_config* configuracion = config_create(pathCompleto);
+
+	if(configuracion!=NULL){
+		log_info(LOGGERFS,"El archivo de configuracion existe");
+	}else{
+		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompleto);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompleto);
+
+	//Recupero el tiempo dump
+	if(!config_has_property(configuracion,"TIEMPO_DUMP")) {
+		log_error(LOGGERFS,"No esta el TIEMPO_DUMP en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	int tiempoDump;
+	tiempoDump = config_get_int_value(configuracion,"TIEMPO_DUMP");
+	log_info(LOGGERFS,"Tiempo dump del archivo de configuracion del FS recuperado: %d", tiempoDump);
+
+	actualizarTiempoDump(tiempoDump);
+
+	config_destroy(configuracion);
+	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");
+	return EXIT_SUCCESS;
+	}
+
 int levantarMetadataDelFS(){
 	/* Ejemplo de los datos a levantar:
 	BLOCK_SIZE=64
@@ -164,3 +210,55 @@ int levantarMetadataDelFS(){
 
 	return EXIT_SUCCESS;
 	}
+
+int actualizarTiempoDump(int tiempoDump){
+	//La variable global "configuracionDelFS.tiempoDump" solo debe ser modificada por medio
+	//de esta funcion
+	pthread_mutex_lock(&mutexVariableTiempoDump);
+	configuracionDelFS.tiempoDump=tiempoDump;
+	pthread_mutex_unlock(&mutexVariableTiempoDump);
+	return EXIT_SUCCESS;
+	}
+
+int obtenerTiempoDump(){
+	//La variable global "configuracionDelFS.tiempoDump" solo debe ser leida por medio
+	//de esta funcion
+	int tiempoDump;
+	pthread_mutex_lock(&mutexVariableTiempoDump);
+	tiempoDump=configuracionDelFS.tiempoDump;
+	pthread_mutex_unlock(&mutexVariableTiempoDump);
+	return tiempoDump;
+	}
+
+int actualizarRetardo(int tiempoDump){
+	//La variable global "configuracionDelFS.tiempoDump" solo debe ser modificada por medio
+	//de esta funcion
+	pthread_mutex_lock(&mutexVariableTiempoDump);
+	configuracionDelFS.tiempoDump=tiempoDump;
+	pthread_mutex_unlock(&mutexVariableTiempoDump);
+	return EXIT_SUCCESS;
+	}
+
+int obtenerRetardo(){
+	//La variable global "configuracionDelFS.tiempoDump" solo debe ser leida por medio
+	//de esta funcion
+	int tiempoDump;
+	pthread_mutex_lock(&mutexVariableTiempoDump);
+	tiempoDump=configuracionDelFS.tiempoDump;
+	pthread_mutex_unlock(&mutexVariableTiempoDump);
+	return tiempoDump;
+	}
+
+int imprimirMetadataDelFS(){
+
+	return EXIT_SUCCESS;
+	}
+
+int imprimirConfiguracionDelFS(){
+	printf("Puerto de escucha: %d\n",configuracionDelFS.puertoEscucha);
+	printf("Punto de montaje: \"%s\"\n",configuracionDelFS.puntoDeMontaje);
+	printf("Retardo: %d\n",obtenerRetardo());
+	printf("Size value: %d\n",configuracionDelFS.sizeValue);
+	printf("Tiempo de dump: %d\n",obtenerTiempoDump());
+	return EXIT_SUCCESS;
+}

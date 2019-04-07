@@ -13,6 +13,7 @@ t_log* LOGGERFS;
 char* directorioConLaMetadata;
 char* pathDeMontajeDelPrograma;
 pthread_t threadConsola;
+pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo;
 
 void inicializarVariablesGlobales(){
 	configuracionDelFS.puertoEscucha=-1;
