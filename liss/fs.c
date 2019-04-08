@@ -33,21 +33,21 @@ int levantarConfiguracionInicialDelFS(){
 	 * TAMAÑO_VALUE=4
 	 * TIEMPO_DUMP=5000*/
 
-	char* pathCompleto;
-	pathCompleto=string_new();
-	string_append(&pathCompleto, pathDeMontajeDelPrograma);
-	string_append(&pathCompleto, "configuracionFS.cfg");
+	char* pathCompletoDelArchivoDeConfiguracion;
+	pathCompletoDelArchivoDeConfiguracion=string_new();
+	string_append(&pathCompletoDelArchivoDeConfiguracion, pathDeMontajeDelPrograma);
+	string_append(&pathCompletoDelArchivoDeConfiguracion, "configuracionFS.cfg");
 
-	t_config* configuracion = config_create(pathCompleto);
+	t_config* configuracion = config_create(pathCompletoDelArchivoDeConfiguracion);
 
 	if(configuracion!=NULL){
 		log_info(LOGGERFS,"El archivo de configuracion existe");
 	}else{
-		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompleto);
+		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompletoDelArchivoDeConfiguracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
 		return EXIT_FAILURE;
 		}
-	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompleto);
+	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompletoDelArchivoDeConfiguracion);
 
 	//Recupero el puerto de escucha
 	if(!config_has_property(configuracion,"PUERTO_ESCUCHA")) {

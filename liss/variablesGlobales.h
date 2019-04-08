@@ -9,6 +9,8 @@
 #define VARIABLESGLOBALES_H_
 
 #include <commons/log.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 typedef struct definicionConfiguracionDelFS {
 	int puertoEscucha;
@@ -32,7 +34,7 @@ extern char* pathDeMontajeDelPrograma;
 extern pthread_t threadConsola;
 extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo;
 
-void inicializarVariablesGlobales();
+int inicializarVariablesGlobales();
 void liberarRecursos();
 
 #endif /* VARIABLESGLOBALES_H_ */

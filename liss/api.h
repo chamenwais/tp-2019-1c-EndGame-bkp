@@ -13,6 +13,7 @@
 #include "lissandra.h"
 
 int lanzarConsola();
+int lanzarCompactador();
 void *funcionHiloConsola(void *arg);
 int esperarAQueTermineLaConsola();
 char** parser_instruccion(char* linea);

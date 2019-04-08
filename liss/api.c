@@ -20,6 +20,11 @@ int lanzarConsola(){
 	return EXIT_SUCCESS;
 }
 
+int lanzarCompactador(){
+
+	return EXIT_SUCCESS;
+	}
+
 void *funcionHiloConsola(void *arg){
 	char * linea;
 	char *ret="Cerrando hilo";
