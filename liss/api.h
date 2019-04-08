@@ -22,5 +22,7 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 int consolaDescribe(char* nombreDeLaTabla);
 int consolaDrop(char* nombreDeLaTabla);
 int man();
+int imprimirConfiguracionDelSistema();
+
 
 #endif /* SRC_API_H_ */

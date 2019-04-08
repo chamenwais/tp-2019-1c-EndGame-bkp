@@ -13,9 +13,9 @@
 typedef struct definicionConfiguracionDelFS {
 	int puertoEscucha;
 	char* puntoDeMontaje;
-	int retardo; //de cada operacion realizada
+	int retardo; //de cada operacion realizada, solo accesible/modificable con funcion
 	int sizeValue; //tamaño maximo de un value en bytes
-	int tiempoDump; //cada cuanto se realiza el proceso dump
+	int tiempoDump; //cada cuanto se realiza el proceso dump, solo accesible/modificable con funcion
 } t_configuracionDelFS;
 
 typedef struct definicionMetadataDelFS {

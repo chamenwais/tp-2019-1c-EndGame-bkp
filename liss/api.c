@@ -87,11 +87,17 @@ void *funcionHiloConsola(void *arg){
 						printf("Faltan parametros para poder hacer un drop\n");
 					}
 			}else{
+				if(strcmp(instruccion[0],"config")==0){
+					imprimirConfiguracionDelSistema();
+			}else{
 				if(strcmp(instruccion[0],"man")==0){
 					man();
 			}else{
+				if(strcmp(instruccion[0],"reloadconfig")==0){
+					reloadConfig();
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}}
+				}}}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
@@ -139,5 +145,74 @@ int man(){
 	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");
 	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
 	printf("6) DROP [NOMBRE_TABLA]\n");
+	printf("7) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
+	printf("7) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	return EXIT_SUCCESS;
+}
+
+int imprimirConfiguracionDelSistema(){
+	printf("Configuracion del sistema:\n");
+	printf("Puerto de escucha: %d\n",configuracionDelFS.puertoEscucha);
+	printf("Punto de montaje: \"%s\"\n",configuracionDelFS.puntoDeMontaje);
+	printf("Retardo: %d\n",obtenerRetardo());
+	printf("Tamaño maximo: %d\n",configuracionDelFS.sizeValue);
+	printf("Tiempo dump: %d\n",obtenerTiempoDump());
+	printf("Tamaño de los bloques: %d\n",metadataDelFS.blockSize);
+	printf("Cantidad de bloques: %d\n",metadataDelFS.blocks);
+	printf("Magic number: %s\n",metadataDelFS.magicNumber);
+	return EXIT_SUCCESS;
+	}
+
+int reloadConfig(){
+	//Actualiza los datos lissandra con las modificaciones que se le hayan hecho a los achivos de configuracion
+	/* Solamente se pueden actualizar los valores:
+	 * retardo
+	 * tiempo_dump
+	 * en tiempo de ejecucion*/
+	char* pathCompleto;
+	pathCompleto=string_new();
+	string_append(&pathCompleto, pathDeMontajeDelPrograma);
+	string_append(&pathCompleto, "configuracionFS.cfg");
+
+	t_config* configuracion = config_create(pathCompleto);
+
+	if(configuracion!=NULL){
+		log_info(LOGGERFS,"El archivo de configuracion existe");
+	}else{
+		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompleto);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompleto);
+
+	//Recupero el tiempo dump
+	if(!config_has_property(configuracion,"TIEMPO_DUMP")) {
+		log_error(LOGGERFS,"No esta el TIEMPO_DUMP en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	int tiempoDump;
+	tiempoDump = config_get_int_value(configuracion,"TIEMPO_DUMP");
+	actualizarTiempoDump(tiempoDump);
+	log_info(LOGGERFS,"Tiempo dump del archivo de configuracion del FS recuperado: %d",
+			obtenerTiempoDump());
+
+	//Recupero el retardo
+	if(!config_has_property(configuracion,"RETARDO")) {
+		log_error(LOGGERFS,"No esta el RETARDO en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	int retardo;
+	retardo = config_get_int_value(configuracion,"RETARDO");
+	actualizarRetardo(retardo);
+	log_info(LOGGERFS,"Retardo del archivo de configuracion del FS recuperado: %d",
+			obtenerRetardo());
+
+	config_destroy(configuracion);
+	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");
+
 	return EXIT_SUCCESS;
 }

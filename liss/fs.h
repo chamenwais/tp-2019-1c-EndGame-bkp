@@ -18,10 +18,11 @@
 void inicializarLogDelFS();
 int obtenerPathDeMontajeDelPrograma(int argc,char** argv);
 int levantarConfiguracionInicialDelFS();
-int actualizarConfiguracionInicialDelFS();
 int levantarMetadataDelFS();
 int actualizarTiempoDump(int tiempoDump);
 int obtenerTiempoDump();
+int actualizarRetardo(int retardo);
+int obtenerRetardo();
 int imprimirMetadataDelFS();
 int imprimirConfiguracionDelFS();
 
