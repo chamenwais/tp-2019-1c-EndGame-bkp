@@ -20,6 +20,13 @@ int obtenerPathDeMontajeDelPrograma(int argc,char** argv){
 		string_append(&pathDeMontajeDelPrograma, argv[1]);
 		string_append(&pathDeMontajeDelPrograma, "/");
 	}else{
+		int indice = (int)(strrchr(argv[0],'/')-argv[0])+1;
+		char* defaultPath = string_substring_until(argv[0],indice);
+
+		string_append(&pathDeMontajeDelPrograma,defaultPath);
+
+		free(defaultPath);
+
 		log_info(LOGGERFS,"El path de trabajo es el local");
 		}
 	return EXIT_SUCCESS;
