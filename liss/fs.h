@@ -13,7 +13,11 @@
 #include "variablesGlobales.h"
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/bitarray.h>
 #include <commons/string.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <errno.h>
 
 void inicializarLogDelFS();
 int obtenerPathDeMontajeDelPrograma(int argc,char** argv);
@@ -23,7 +27,9 @@ int actualizarTiempoDump(int tiempoDump);
 int obtenerTiempoDump();
 int actualizarRetardo(int retardo);
 int obtenerRetardo();
-int imprimirMetadataDelFS();
-int imprimirConfiguracionDelFS();
+int obtenerBloqueLibreDelBitMap();
+int levantarBitMap();
+int bajarADiscoBitmap();
+int imprimirEstadoDelBitmap();
 
 #endif /* FS_H_ */

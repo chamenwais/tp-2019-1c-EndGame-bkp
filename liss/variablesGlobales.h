@@ -9,6 +9,7 @@
 #define VARIABLESGLOBALES_H_
 
 #include <commons/log.h>
+#include <commons/bitarray.h>
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -30,9 +31,15 @@ extern t_metadataDelFS metadataDelFS;
 extern t_configuracionDelFS configuracionDelFS;
 extern t_log* LOGGERFS;
 extern char* directorioConLaMetadata;
+extern char* archivoDeBitmap;
+extern char* archivoDeLaMetadata;
 extern char* pathDeMontajeDelPrograma;
-extern pthread_t threadConsola;
-extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo;
+extern pthread_t threadConsola, threadCompactador;
+extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap;
+extern t_bitarray *bitmap;
+extern int sizeDelBitmap;
+extern char * srcMmap;
+extern char * bufferArchivo;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();

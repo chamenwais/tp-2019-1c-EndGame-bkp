@@ -125,17 +125,23 @@ int levantarMetadataDelFS(){
 
 	directorioConLaMetadata=string_new();
 	string_append(&directorioConLaMetadata, configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioConLaMetadata, "/Metadata/Metadata.bin");
-	t_config* metadataConfig = config_create(directorioConLaMetadata);
+	string_append(&directorioConLaMetadata, "/Metadata");
+	archivoDeLaMetadata=string_new();
+	string_append(&archivoDeLaMetadata, directorioConLaMetadata);
+	archivoDeBitmap=string_new();
+	string_append(&archivoDeBitmap, directorioConLaMetadata);
+	string_append(&archivoDeBitmap, "/Bitmap.bin");
+	string_append(&archivoDeLaMetadata, "/Metadata.bin");
+	t_config* metadataConfig = config_create(archivoDeLaMetadata);
 
 	if(metadataConfig!=NULL){
 		log_info(LOGGERFS,"El archivo de de metadata del FS existe");
 	}else{
-		log_error(LOGGERFS,"No existe el archivo de metadata en: %s",directorioConLaMetadata);
+		log_error(LOGGERFS,"No existe el archivo de metadata en: %s",archivoDeLaMetadata);
 		log_error(LOGGERFS,"No se pudo levantar la metadata del FS, abortando");
 		return EXIT_FAILURE;
 		}
-	log_info(LOGGERFS,"Abriendo el archivo de metadata del FS, su ubicacion es: %s",directorioConLaMetadata);
+	log_info(LOGGERFS,"Abriendo el archivo de metadata del FS, su ubicacion es: %s",archivoDeLaMetadata);
 
 	//Recupero el block size
 	if(!config_has_property(metadataConfig,"BLOCK_SIZE")) {
@@ -217,16 +223,127 @@ int obtenerRetardo(){
 	return retardo;
 	}
 
-int imprimirMetadataDelFS(){
+int obtenerBloqueLibreDelBitMap(){
+	/* Retorna un numero de bloque libre en el bitmap
+	 * Si no hay mas bloques libre retorna -1 */
+	int i;
+	log_info(LOGGERFS,"Obteniendo bloque libre");
+	for(i=0;i<metadataDelFS.blocks;i++){
+		if(!bitarray_test_bit(bitmap,i)){
+			log_info(LOGGERFS,"El bloque %d esta libre", i);
+			return i;
+			}
+		log_info(LOGGERFS,"El bloque: %d esta ocupado",i);
+		}
+	log_info(LOGGERFS,"No hay mas bloques libres");
+	return -1;
+}
 
+int levantarBitMap(){
+	FILE *archivoBitmap;
+	bool estaCreadoElBitmap;
+	bool estaVacioElBitmap=false;
+	sizeDelBitmap=metadataDelFS.blocks * sizeof(char);
+	log_info(LOGGERFS,"Buscando el archivo \"Bitmap.bin\" en el directorio: %s",archivoDeBitmap);
+
+	int FDbitmap = open(archivoDeBitmap, O_RDWR);
+
+	if(FDbitmap==-1){
+		log_error(LOGGERFS,"No se pudo abrir el file descriptor del archivo de bitmap %s",archivoDeBitmap);
+		archivoBitmap=fopen(archivoDeBitmap, "wb");
+		for(int i=0;i<sizeDelBitmap;i++){
+			fprintf(archivoBitmap,"0");
+			}
+		fclose(archivoBitmap);
+		FDbitmap = open(archivoDeBitmap, O_RDWR);
+		estaCreadoElBitmap=false;
+	}else{
+		log_info(LOGGERFS,"Se abrio el file descriptor del archivo de bitmap %s",archivoDeBitmap);
+		estaCreadoElBitmap=true;
+		}
+
+	struct stat mystat;
+
+	if(fstat(FDbitmap, &mystat) < 0) {
+	    log_error(LOGGERFS,"Error al establecer fstat");
+	    close(FDbitmap);
+		}
+
+	if(mystat.st_size==0){
+		estaVacioElBitmap=true;
+		log_error(LOGGERFS,"El archivo esta vacio y no tiene nada para mapearlo a memoria");
+		close(FDbitmap);
+		archivoBitmap=fopen(archivoDeBitmap, "wb");
+		for(int i=0;i<sizeDelBitmap;i++){
+			fprintf(archivoBitmap,"0");
+			}
+		fclose(archivoBitmap);
+		FDbitmap = open(archivoDeBitmap, O_RDWR | O_CREAT, S_IRWXU );
+	}else{
+		estaVacioElBitmap=false;
+		}
+
+	srcMmap = mmap(NULL, mystat.st_size, PROT_WRITE | PROT_READ | PROT_EXEC, MAP_SHARED, FDbitmap, 0);
+
+	if(srcMmap == MAP_FAILED){
+		log_error(LOGGERFS,"Error al mapear a memoria: %s",strerror(errno));
+		log_info(LOGGERFS,"Es probable que no este creado el archivo o este vacio, paso a crearlo y llenarlo con basura");
+	}else{
+		log_info(LOGGERFS,"MAP exitoso");
+		}
+
+	bufferArchivo = malloc(sizeDelBitmap);
+
+	memcpy(bufferArchivo, srcMmap, sizeDelBitmap);
+
+	if(!estaCreadoElBitmap||estaVacioElBitmap){
+		log_info(LOGGERFS,"El archivo de bitmap no existia");
+		log_info(LOGGERFS,"Generando el BITMAP con los datos de \"Bitmap.bin\" en: %s",archivoDeBitmap);
+		bzero(bufferArchivo,metadataDelFS.blocks);
+	}else{
+		log_info(LOGGERFS,"El archivo de bitmap existia");
+		}
+
+	bitmap = bitarray_create_with_mode(bufferArchivo,sizeDelBitmap,MSB_FIRST);
+
+	if(!estaCreadoElBitmap||estaVacioElBitmap){
+		for(int i=0;i<metadataDelFS.blocks;i++){
+			bitarray_clean_bit(bitmap,i);
+			}
+
+		}
+	close(FDbitmap);
 	return EXIT_SUCCESS;
-	}
+}
 
-int imprimirConfiguracionDelFS(){
-	printf("Puerto de escucha: %d\n",configuracionDelFS.puertoEscucha);
-	printf("Punto de montaje: \"%s\"\n",configuracionDelFS.puntoDeMontaje);
-	printf("Retardo: %d\n",obtenerRetardo());
-	printf("Size value: %d\n",configuracionDelFS.sizeValue);
-	printf("Tiempo de dump: %d\n",obtenerTiempoDump());
+int bajarADiscoBitmap(){
+	memcpy(srcMmap,bufferArchivo,sizeDelBitmap);
+	msync(bitmap, sizeDelBitmap, MS_SYNC);
+	return EXIT_SUCCESS;
+}
+
+int imprimirEstadoDelBitmap(){
+	int i;
+	int bloquesLibres=0;
+	int bloquesOcupados=0;
+	printf("Cantidad total de bloques: %d\n",metadataDelFS.blocks);
+	printf("Imprimiendo estado de los bloques\n");
+	printf("Bloques libres:\n");
+	pthread_mutex_lock(&mutexBitmap);
+	for(i=0;i<metadataDelFS.blocks;i++){
+		if(!bitarray_test_bit(bitmap,i)){
+			printf("%d; ",i);
+			bloquesLibres++;
+			}
+		}
+	printf("\nBloques ocupados:\n");
+	for(i=0;i<metadataDelFS.blocks;i++){
+		if(bitarray_test_bit(bitmap,i)){
+			printf("%d; ",i);
+			bloquesOcupados++;
+			}
+		}
+	printf("\n");
+	pthread_mutex_unlock(&mutexBitmap);
 	return EXIT_SUCCESS;
 }

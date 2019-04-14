@@ -9,9 +9,11 @@
 
 int lanzarConsola(){
 	log_info(LOGGERFS,"Iniciando hilo de consola");
-	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL, funcionHiloConsola, "Hilo consola");
+	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
+			funcionHiloConsola, "Hilo consola");
 	if(resultadoDeCrearHilo){
-		log_error(LOGGERFS,"Error al crear el hilo, return code: %d",resultadoDeCrearHilo);
+		log_error(LOGGERFS,"Error al crear el hilo de la consola, return code: %d",
+				resultadoDeCrearHilo);
 		exit(EXIT_FAILURE);
 	}else{
 		log_info(LOGGERFS,"La consola se creo exitosamente");
@@ -21,9 +23,27 @@ int lanzarConsola(){
 }
 
 int lanzarCompactador(){
-
+	log_info(LOGGERFS,"Iniciando hilo de compactador");
+	int resultadoDeCrearHilo = pthread_create( &threadCompactador, NULL,
+			funcionHiloCompactador, "Hilo compactador");
+	if(resultadoDeCrearHilo){
+		log_error(LOGGERFS,"Error al crear el hilo del compactador, return code: %d",
+				resultadoDeCrearHilo);
+		exit(EXIT_FAILURE);
+	}else{
+		log_info(LOGGERFS,"El compactador se creo exitosamente");
+		return EXIT_SUCCESS;
+		}
 	return EXIT_SUCCESS;
 	}
+
+void *funcionHiloCompactador(void *arg){
+	char *ret="Cerrando hilo";
+	log_info(LOGGERFS,"Compactador listo");
+	while(1);
+	log_info(LOGGERFS,"Finalizando compactador");
+	return ret;
+}
 
 void *funcionHiloConsola(void *arg){
 	char * linea;
@@ -101,8 +121,11 @@ void *funcionHiloConsola(void *arg){
 				if(strcmp(instruccion[0],"reloadconfig")==0){
 					reloadConfig();
 			}else{
+				if(strcmp(instruccion[0],"bitmap")==0){
+					imprimirEstadoDelBitmap();
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}}}}
+				}}}}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
@@ -151,7 +174,8 @@ int man(){
 	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
 	printf("6) DROP [NOMBRE_TABLA]\n");
 	printf("7) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
-	printf("7) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("8) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("9) \"bitmap\", imprime el estado de cada bloque del FS\n");
 	return EXIT_SUCCESS;
 }
 
@@ -165,6 +189,9 @@ int imprimirConfiguracionDelSistema(){
 	printf("Tamaño de los bloques: %d\n",metadataDelFS.blockSize);
 	printf("Cantidad de bloques: %d\n",metadataDelFS.blocks);
 	printf("Magic number: %s\n",metadataDelFS.magicNumber);
+	printf("Archivo bitmap: %s\n",archivoDeBitmap);
+	printf("Directorio con la metadata: %s\n",directorioConLaMetadata);
+	printf("Archivo con la metadata: %s\n",archivoDeLaMetadata);
 	return EXIT_SUCCESS;
 	}
 

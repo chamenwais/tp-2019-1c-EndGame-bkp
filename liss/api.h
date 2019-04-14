@@ -14,6 +14,7 @@
 
 int lanzarConsola();
 int lanzarCompactador();
+void *funcionHiloCompactador(void *arg);
 void *funcionHiloConsola(void *arg);
 int esperarAQueTermineLaConsola();
 char** parser_instruccion(char* linea);
@@ -23,6 +24,7 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 int consolaDescribe(char* nombreDeLaTabla);
 int consolaDrop(char* nombreDeLaTabla);
 int man();
+int reloadConfig();
 int imprimirConfiguracionDelSistema();
 
 

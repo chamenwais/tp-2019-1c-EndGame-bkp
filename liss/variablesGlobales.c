@@ -10,10 +10,16 @@
 t_metadataDelFS metadataDelFS;
 t_configuracionDelFS configuracionDelFS;
 t_log* LOGGERFS;
-char* directorioConLaMetadata;
+char* directorioConLaMetadata;//el directorio
+char* archivoDeBitmap;
+char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
-pthread_t threadConsola;
-pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo;
+pthread_t threadConsola, threadCompactador;
+pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap;
+t_bitarray *bitmap;
+int sizeDelBitmap;
+char * srcMmap;
+char * bufferArchivo;
 
 int inicializarVariablesGlobales(){
 	configuracionDelFS.puertoEscucha=-1;
@@ -35,6 +41,15 @@ int inicializarVariablesGlobales(){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexVariableTiempoDump");
 		return EXIT_FAILURE;
 		}
+	if(pthread_mutex_init(&mutexBitmap, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexBitmap");
+		return EXIT_FAILURE;
+		}
+	bitmap=NULL;
+	sizeDelBitmap=-1;
+	bufferArchivo=NULL;
+	archivoDeBitmap=NULL;
+	archivoDeLaMetadata=NULL;
 	return EXIT_SUCCESS;
 }
 
@@ -46,6 +61,13 @@ void liberarRecursos(){
 	if(metadataDelFS.magicNumber!=NULL)free(metadataDelFS.magicNumber);
 	free(pathDeMontajeDelPrograma);
 	free(directorioConLaMetadata);
+	free(archivoDeBitmap);
+	free(archivoDeLaMetadata);
+	bajarADiscoBitmap();
+	log_info(LOGGERFS,"Destruyendo el bitarray");
+	bitarray_destroy(bitmap);
+	//free(srcMmap);
+	free(bufferArchivo);
 	log_destroy(LOGGERFS);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
