@@ -14,6 +14,6 @@ int PUERTO_FILESYSTEM;
 int TAMANIO_MEMORIA;
 int NUMERO_MEMORIA;
 
-
+t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 t_log* g_logger;
 t_config* g_config;

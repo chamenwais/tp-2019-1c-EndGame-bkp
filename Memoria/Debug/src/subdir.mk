@@ -6,16 +6,19 @@
 C_SRCS += \
 ../src/Contexto.c \
 ../src/Memoria.c \
+../src/Consola.c \
 ../src/Utilidades.c 
 
 OBJS += \
 ./src/Contexto.o \
 ./src/Memoria.o \
+./src/Consola.o \
 ./src/Utilidades.o 
 
 C_DEPS += \
 ./src/Contexto.d \
 ./src/Memoria.d \
+./src/Consola.d \
 ./src/Utilidades.d 
 
 

@@ -18,6 +18,16 @@
 #include <commons/string.h> // Para manejo de strings
 #include <signal.h>			// Para manejo de señales
 #include <stdarg.h>
+#include <sys/socket.h>
+#include <pthread.h>
+#include <sys/types.h>      // Para crear los sockets
+#include <netdb.h> 			// Para getaddrinfo
+#include <unistd.h> 		// Para close(socket)
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <fcntl.h>
+#include <errno.h>
+
 
 /* Claves archivo de configuracion*/
 #define CLAVE_CONFIG_PUERTO_ESCUCHA "puerto_escucha"
@@ -25,6 +35,11 @@
 #define CLAVE_CONFIG_PUERTO_FILESYSTEM "puerto_filesystem"
 #define CLAVE_CONFIG_TAMANIO_MEMORIA "tamanio_memoria"
 #define CLAVE_CONFIG_NUMERO_MEMORIA "numero_memoria"
+#define MAX_CLIENTES 20
+#define STDIN 0
+#define TRUE 1
+#define MAX_LINEA 255
+#define NO_SOCKET -1
 
 /* Variables globales*/
 extern int PUERTO_ESCUCHA;
@@ -32,9 +47,6 @@ extern char* IP_FILESYSTEM;
 extern int PUERTO_FILESYSTEM;
 extern int TAMANIO_MEMORIA;
 extern int NUMERO_MEMORIA;
-
-extern t_log* g_logger;
-extern t_config* g_config;
 
 /*** Enums modo de log***/
 enum tipo_logueo {
@@ -48,5 +60,25 @@ enum tipo_logueo {
 	l_error
 };
 
+/*** Enums de la consola***/
+enum comandos {
+	SELECT,
+	INSERT,
+	CREATE,
+	DESCRIBE,
+	DROP,
+	JOURNAL
+};
+
+struct conexion_cliente {
+	int pid;
+	int socket;
+	struct sockaddr_in addres;
+};
+typedef struct conexion_cliente t_conexion_cliente;
+
+extern t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
+extern t_log* g_logger;
+extern t_config* g_config;
 
 #endif /* CONTEXTO_H_ */

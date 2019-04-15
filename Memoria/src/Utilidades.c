@@ -165,3 +165,60 @@ void terminar_programa(){
 	log_destroy(g_logger);
 	config_destroy(g_config);
 }
+
+int iniciar_servidor(char * port){
+	int server_socket = crear_listen_socket(port,MAX_CLIENTES);
+
+	if(server_socket < 0)
+	{
+		logger(escribir_loguear,l_error,"Falló la creación del socket servidor\n");
+		exit(1);
+	}
+	else
+	{
+		logger(escribir_loguear,l_trace,"Socket servidor (%d) escuchando\n", server_socket);
+	}
+
+	return server_socket;
+}
+
+struct addrinfo* crear_addrinfo(){
+	struct addrinfo hints;
+	struct addrinfo *serverInfo;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;		// No importa si uso IPv4 o IPv6
+	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
+	getaddrinfo("127.0.0.1", PUERTO_ESCUCHA, &hints, &serverInfo);
+	return serverInfo;
+}
+
+int crear_listen_socket(char * puerto, int max_conexiones){
+	struct sockaddr_in dir_sock;
+
+	//Convierto el string a INT para htons
+	unsigned int puerto_i = puerto;
+
+	dir_sock.sin_family = AF_INET;
+	dir_sock.sin_addr.s_addr = INADDR_ANY;
+	dir_sock.sin_port = htons(puerto_i);
+
+	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_socket < 0)
+	{
+		return -1;
+	}
+
+	int activado = 1;
+	setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR, &activado, sizeof(activado));
+
+	if(bind(server_socket, (void*)&dir_sock, sizeof(dir_sock)) != 0)
+	{
+		return -1;
+	}
+
+	listen(server_socket, max_conexiones);
+
+	return server_socket;
+
+}
