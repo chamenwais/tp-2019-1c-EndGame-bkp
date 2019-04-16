@@ -26,3 +26,7 @@ int main(int argc,char** argv) {
 	}}}}}}
 	return EXIT_SUCCESS;
 }
+
+
+
+//@if(lanzarServer()==EXIT_SUCCESS)

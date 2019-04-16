@@ -21,6 +21,9 @@ int sizeDelBitmap;
 char * srcMmap;
 char * bufferArchivo;
 
+pthread_t threadServer;//thread para el server de lissandra
+
+
 int inicializarVariablesGlobales(){
 	configuracionDelFS.puertoEscucha=-1;
 	configuracionDelFS.puntoDeMontaje=NULL;

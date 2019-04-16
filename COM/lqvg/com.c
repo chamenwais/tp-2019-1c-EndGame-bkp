@@ -22,7 +22,7 @@ int escucharEn(int puerto){
 		exit(1);
 	}
 
-	if (listen(escucha, 10) == -1) {
+	if (listen(escucha, 30) == -1) {
 		perror("listen");
 		exit(1);
 	}
