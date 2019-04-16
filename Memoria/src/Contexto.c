@@ -8,7 +8,7 @@
 #include "Contexto.h"
 
 /* Variables globales*/
-int PUERTO_ESCUCHA;
+char* PUERTO_ESCUCHA;
 char* IP_FILESYSTEM;
 int PUERTO_FILESYSTEM;
 int TAMANIO_MEMORIA;

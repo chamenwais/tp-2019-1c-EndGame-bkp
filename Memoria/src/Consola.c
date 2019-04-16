@@ -142,20 +142,20 @@ int consola_derivar_comando(char * buffer){
 	}
 
 	//Limpio el parametro 1
-		if(parametro1 != NULL)
-		{
-			free(parametro1);
-			parametro1 = NULL;
-		}
+	if(parametro1 != NULL)
+	{
+		free(parametro1);
+		parametro1 = NULL;
+	}
 
-		//Limpio el parametro 2
-		if(parametro2 != NULL)
-		{
-			free(parametro2);
-			parametro2 = NULL;
-		}
+	//Limpio el parametro 2
+	if(parametro2 != NULL)
+	{
+		free(parametro2);
+		parametro2 = NULL;
+	}
 
-		free(comando);
+	free(comando);
 
 	return res;
 }

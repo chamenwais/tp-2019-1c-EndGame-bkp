@@ -37,9 +37,9 @@ void obtener_valor_configuracion(char* clave, void(*obtener)(void)){
 }
 
 void obtener_puerto_escucha() {
-	PUERTO_ESCUCHA = config_get_int_value(g_config,
+	PUERTO_ESCUCHA = config_get_string_value(g_config,
 			CLAVE_CONFIG_PUERTO_ESCUCHA);
-	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Puerto de escucha': %d",PUERTO_ESCUCHA);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Puerto de escucha': %s",PUERTO_ESCUCHA);
 }
 
 void obtener_ip_filesystem(){
@@ -166,8 +166,8 @@ void terminar_programa(){
 	config_destroy(g_config);
 }
 
-int iniciar_servidor(char * port){
-	int server_socket = crear_listen_socket(port,MAX_CLIENTES);
+int iniciar_servidor(){
+	int server_socket = crear_listen_socket(PUERTO_ESCUCHA,MAX_CLIENTES);
 
 	if(server_socket < 0)
 	{
@@ -197,7 +197,7 @@ int crear_listen_socket(char * puerto, int max_conexiones){
 	struct sockaddr_in dir_sock;
 
 	//Convierto el string a INT para htons
-	unsigned int puerto_i = puerto;
+	unsigned int puerto_i = atoi(puerto);
 
 	dir_sock.sin_family = AF_INET;
 	dir_sock.sin_addr.s_addr = INADDR_ANY;
