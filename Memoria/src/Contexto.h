@@ -42,7 +42,7 @@
 #define NO_SOCKET -1
 
 /* Variables globales*/
-extern int PUERTO_ESCUCHA;
+extern char * PUERTO_ESCUCHA;
 extern char* IP_FILESYSTEM;
 extern int PUERTO_FILESYSTEM;
 extern int TAMANIO_MEMORIA;
