@@ -38,26 +38,26 @@ int consola_obtener_key_comando(char* comando)
 	if(comando == NULL)
 		return key;
 
-	if(!strcmp(comando, "select")){
-		key = SELECT;
+	if(string_equals_ignore_case(comando, "select")){
+		return SELECT;
 	}
-	if(!strcmp(comando, "insert")){
-		key = INSERT;
+	if(string_equals_ignore_case(comando, "insert")){
+		return INSERT;
 	}
-	if(!strcmp(comando, "create")){
-		key = CREATE;
+	if(string_equals_ignore_case(comando, "create")){
+		return CREATE;
 	}
-	if(!strcmp(comando, "describe")){
-		key = DESCRIBE;
+	if(string_equals_ignore_case(comando, "describe")){
+		return DESCRIBE;
 	}
-	if(!strcmp(comando, "drop")){
-		key = DROP;
+	if(string_equals_ignore_case(comando, "drop")){
+		return DROP;
 	}
-	if(!strcmp(comando, "journal")){
-		key = JOURNAL;
-	}else{
-		logger(escribir_loguear, l_error,"No conozco ese comando, proba de nuevo\n");
+	if(string_equals_ignore_case(comando, "journal")){
+		return JOURNAL;
 	}
+
+	logger(escribir_loguear, l_error,"No conozco ese comando, proba de nuevo\n");
 
 	return key;
 }
@@ -142,14 +142,14 @@ int consola_derivar_comando(char * buffer){
 	}
 
 	//Limpio el parametro 1
-	if(parametro1 != NULL)
+	if(parametro1 != NULL && !string_equals_ignore_case(parametro1,"-1"))
 	{
 		free(parametro1);
 		parametro1 = NULL;
 	}
 
 	//Limpio el parametro 2
-	if(parametro2 != NULL)
+	if(parametro2 != NULL && !string_equals_ignore_case(parametro2,"-1"))
 	{
 		free(parametro2);
 		parametro2 = NULL;

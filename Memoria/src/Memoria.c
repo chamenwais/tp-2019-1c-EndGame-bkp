@@ -77,12 +77,12 @@ int main(int argc, char ** argv) {
 
 			//Se ingresó algo a la consola
 			if(FD_ISSET(STDIN_FILENO, &readset)){
+				consola_leer_stdin(read_buffer, MAX_LINEA);
+
 				if(*((char *)read_buffer)== '\0'){
 					//Solo apretaron enter, no hay que interpretar nada
 					continue;
 				}
-				consola_leer_stdin(read_buffer, MAX_LINEA);
-
 				int res = consola_derivar_comando(read_buffer);
 				if(res)	{
 					terminar_programa();
