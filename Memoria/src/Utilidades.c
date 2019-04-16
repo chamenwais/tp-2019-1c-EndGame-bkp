@@ -16,7 +16,7 @@ void iniciar_config(int cantidad_parametros, char ** parametros) {
 	if (cantidad_parametros>1){
 		g_config = config_create(parametros[1]);
 	} else {
-		g_config = config_create("../src/memoria.config");
+		g_config = config_create("../memoria.config");
 	}
 	validar_apertura_archivo_configuracion();
 
