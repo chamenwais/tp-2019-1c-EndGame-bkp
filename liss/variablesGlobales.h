@@ -41,6 +41,8 @@ extern int sizeDelBitmap;
 extern char * srcMmap;
 extern char * bufferArchivo;
 
+extern pthread_t threadServer;
+
 int inicializarVariablesGlobales();
 void liberarRecursos();
 
