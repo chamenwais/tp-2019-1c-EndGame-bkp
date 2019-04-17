@@ -8,8 +8,7 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+
 #include "lissandra.h"
 
 int main(int argc,char** argv) {
