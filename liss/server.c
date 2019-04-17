@@ -58,7 +58,9 @@ void* crearServerLissandra(){
 
 	while(1){//loop del select
 
-		fd_set copia_maestro = maestro;//creo copia para que select no destruya los datos del maestro
+		fd_set copia_maestro;//creo copia para que select no destruya los datos del maestro
+		memcpy(&copia_maestro,&maestro,sizeof(copia_maestro));
+
 		select(list_mayor_int(fd_conocidos->lista),&copia_maestro,NULL,NULL,NULL);
 
 		//@ultimo param es timeout
