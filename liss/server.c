@@ -41,11 +41,9 @@ void fdDestroyer(void * elemento){
 	free((int*)elemento);
 }
 
-//log_info(LOGGERFS,"Iniciando server de lissandra");
-
 //funcion que maneja la creacion y uso del server
 void* crearServerLissandra(){
-	//de momento uso este LOG que es del filesystem
+	//------------------------------@Agregar mensajes de error!!!
 
 	fd_conocidos.lista = list_create();//@no se donde borro esta lista
 
@@ -75,7 +73,6 @@ void* crearServerLissandra(){
 
 		select(list_mayor_int(fd_conocidos.lista)+1,&copia_maestro,NULL,NULL,&tiempo_espera);
 
-		//@ultimo param es timeout
 
 		if(FD_ISSET(escuchador,&copia_maestro)){//aceptar nueva conexion
 
@@ -83,9 +80,14 @@ void* crearServerLissandra(){
 
 			log_info(LOGGERFS,"[LissServer] Recibida request de conexion desde %d",cliente_nuevo);
 
-			//@handshake
-			list_add(fd_conocidos.lista,cliente_nuevo);
-			FD_SET(cliente_nuevo,&maestro);//agrego el nuevo cliente a los fd que conoce el maestro
+			if (recibirHandshake(LISSANDRA,MEMORIA,cliente_nuevo)){//handshake, @de momento lo pongo aca
+				log_info(LOGGERFS,"[LissServer] Handshake con %d realizado, enviando VALUE",cliente_nuevo);
+
+				send(cliente_nuevo,configuracionDelFS.sizeValue,sizeof(int),NULL);
+
+				list_add(fd_conocidos.lista,cliente_nuevo);
+				FD_SET(cliente_nuevo,&maestro);//agrego el nuevo cliente a los fd que conoce el maestro
+			}
 		}
 		else{//recibir mensaje de un cliente
 

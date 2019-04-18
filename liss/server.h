@@ -9,6 +9,7 @@
 #define LISS_SERVER_H_
 
 #include "variablesGlobales.h"
+#include "../COM/lqvg/com.h"
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <sys/types.h>
