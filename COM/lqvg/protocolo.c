@@ -1,5 +1,11 @@
 #include "protocolo.h"
 
-int enviarValueSize(int size,int sock){
-	send(sock,size,sizeof(size),NULL);
+void prot_enviar_int(int i,int sock){
+	enviar(sock,&i,sizeof(i));
+}
+
+int prot_recibir_int(int sock){
+	int i;
+	recibir(sock,&i,sizeof(i));
+	return i;
 }
