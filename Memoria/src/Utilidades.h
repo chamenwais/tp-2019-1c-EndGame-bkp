@@ -30,5 +30,9 @@ void terminar_programa();
 int iniciar_servidor();
 struct addrinfo* crear_addrinfo();
 int crear_listen_socket(char * puerto, int max_conexiones);
+void mostrar_mensaje_previa_conexion_con(char *, char *, int);
+void validar_comunicacion(int, char*);
+void cerrar_socket_y_terminar(int);
+void mandar_handshake_a(char *, int, enum PROCESO);
 
 #endif /* UTILIDADES_H_ */

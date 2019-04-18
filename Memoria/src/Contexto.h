@@ -27,6 +27,7 @@
 #include <readline/history.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <lqvg/com.h>
 
 
 /* Claves archivo de configuracion*/
@@ -47,6 +48,8 @@ extern char* IP_FILESYSTEM;
 extern int PUERTO_FILESYSTEM;
 extern int TAMANIO_MEMORIA;
 extern int NUMERO_MEMORIA;
+
+extern int TAMANIO_VALUE;
 
 /*** Enums modo de log***/
 enum tipo_logueo {

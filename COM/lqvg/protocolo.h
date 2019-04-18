@@ -3,5 +3,7 @@
 
 #include "com.h"
 
+void prot_enviar_int(int,int);
+int prot_recibir_int(int);
 
 #endif
