@@ -37,7 +37,7 @@ int list_mayor_int(t_list *lista){
 }
 
 
-void fdDestroyer(void * elemento){
+void* fdDestroyer(void * elemento){
 	free((int*)elemento);
 }
 
@@ -66,7 +66,7 @@ void* crearServerLissandra(){
 
 	while(1){//loop del select
 
-				fd_set copia_maestro;//creo copia para que select no destruya los datos del maestro
+		fd_set copia_maestro;//creo copia para que select no destruya los datos del maestro
 		memcpy(&copia_maestro,&maestro,sizeof(copia_maestro));
 
 		select(list_mayor_int(fd_conocidos.lista)+1,&copia_maestro,NULL,NULL,&tiempo_espera);
@@ -78,7 +78,10 @@ void* crearServerLissandra(){
 
 			log_info(LOGGERFS,"[LissServer] Recibida request de conexion desde %d",cliente_nuevo);
 
-			if (recibirHandshake(LISSANDRA,MEMORIA,cliente_nuevo)){//handshake, @de momento lo pongo aca
+			if(recibirHandshake(LISSANDRA,MEMORIA,cliente_nuevo)==0){
+				log_error(LOGGERFS,"[LissServer] No se pudo hacer handshake con %d",cliente_nuevo);
+			}
+			else{//handshake, @de momento lo pongo aca
 				log_info(LOGGERFS,"[LissServer] Handshake con %d realizado, enviando VALUE",cliente_nuevo);
 
 				prot_enviar_int(configuracionDelFS.sizeValue,cliente_nuevo);
@@ -102,11 +105,12 @@ void* crearServerLissandra(){
 					log_info(LOGGERFS,"[LissServer] Recibi algo desde %d",cliente);
 
 					if(bytes_recibidos<=0){//remover este cliente
+						log_info(LOGGERFS,"[LissServer] El cliente %d se ha desconectado",cliente);
 						cerrarConexion(cliente);
 						FD_CLR(cliente,&maestro);
 
-						bool _fdID(void * elem){//inner function para remover el fd que cierro
-							return (int)elem == cliente;
+						bool* _fdID(void * elem){//inner function para remover el fd que cierro
+							return (*((int*)elem)) == cliente;
 						}
 
 						list_remove_and_destroy_by_condition(fd_conocidos.lista,_fdID,fdDestroyer);
@@ -127,6 +131,7 @@ void* crearServerLissandra(){
 	}
 
 	//cerrarConexion(servidor); en algun momento
+	//destruir toda la lista
 	//pthread_exit(0);
 }//@Agregar todo al log
 
