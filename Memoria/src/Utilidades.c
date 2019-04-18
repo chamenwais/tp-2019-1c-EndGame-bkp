@@ -224,7 +224,7 @@ int crear_listen_socket(char * puerto, int max_conexiones){
 }
 
 void mostrar_mensaje_previa_conexion_con(char *proceso, char *ip, int puerto){
-	logger(escribir_loguear, l_info, "Se intentara conectar a la ip %s , puerto %d de %s", ip, puerto, proceso);
+	logger(escribir_loguear, l_info, "Se intentara conectar a la ip %s, puerto %d de %s", ip, puerto, proceso);
 }
 
 void validar_comunicacion(int socket, char* proceso){
