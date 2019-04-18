@@ -20,5 +20,6 @@ int atender_nuevo_cliente(int serv_socket);
 void inicializar_conexiones_cliente(void);
 void crear_hilo_conexion(int socket, void*funcion_a_ejecutar(int));
 int comunicarse_con_lissandra(void);
+void escuchar_clientes(int, int);
 
 #endif /* MEMORIA_H_ */
