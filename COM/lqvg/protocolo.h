@@ -3,5 +3,7 @@
 
 #include "com.h"
 
+int enviarValueSize(int,int);
+
 
 #endif
