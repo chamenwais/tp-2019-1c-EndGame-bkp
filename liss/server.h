@@ -10,6 +10,7 @@
 
 #include "variablesGlobales.h"
 #include "../COM/lqvg/com.h"
+#include "../COM/lqvg/protocolo.h"
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <sys/types.h>

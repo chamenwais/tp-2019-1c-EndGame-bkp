@@ -83,7 +83,7 @@ void* crearServerLissandra(){
 			if (recibirHandshake(LISSANDRA,MEMORIA,cliente_nuevo)){//handshake, @de momento lo pongo aca
 				log_info(LOGGERFS,"[LissServer] Handshake con %d realizado, enviando VALUE",cliente_nuevo);
 
-				enviarValueSize(configuracionDelFS.sizeValue,cliente_nuevo);
+				prot_enviar_int(configuracionDelFS.sizeValue,cliente_nuevo);
 
 				list_add(fd_conocidos.lista,cliente_nuevo);
 				FD_SET(cliente_nuevo,&maestro);//agrego el nuevo cliente a los fd que conoce el maestro
