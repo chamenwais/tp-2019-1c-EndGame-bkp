@@ -19,6 +19,7 @@
 
 void* crearServerLissandra();
 int lanzarServer();
+int list_mayor_int(t_list *);
 
 
 
