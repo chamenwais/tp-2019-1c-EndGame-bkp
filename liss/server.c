@@ -69,8 +69,6 @@ void* crearServerLissandra(){
 				fd_set copia_maestro;//creo copia para que select no destruya los datos del maestro
 		memcpy(&copia_maestro,&maestro,sizeof(copia_maestro));
 
-		log_info(LOGGERFS,"[LissServer] Realizo select");
-
 		select(list_mayor_int(fd_conocidos.lista)+1,&copia_maestro,NULL,NULL,&tiempo_espera);
 
 
