@@ -10,10 +10,16 @@
 
 #include "variablesGlobales.h"
 #include "../COM/lqvg/com.h"
+#include "../COM/lqvg/protocolo.h"
 #include <commons/log.h>
+#include <commons/collections/list.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+
+void* crearServerLissandra();
+int lanzarServer();
+
 
 
 #endif /* LISS_SERVER_H_ */
