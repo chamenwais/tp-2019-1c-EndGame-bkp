@@ -19,6 +19,7 @@ int main(int argc, char ** argv) {
 	iniciar_config(argc,argv);
 	leer_config();
 	configurar_signals();
+	int socket_lfs = comunicarse_con_lissandra();
 	stdin_no_bloqueante();
 	inicializar_conexiones_cliente();
 
@@ -173,4 +174,13 @@ void stdin_no_bloqueante(void){
 	  int flag = fcntl(STDIN_FILENO, F_GETFL, 0);
 	  flag |= O_NONBLOCK;
 	  fcntl(STDIN_FILENO, F_SETFL, flag);
+}
+
+int comunicarse_con_lissandra(void){
+	mostrar_mensaje_previa_conexion_con(LFS, IP_FILESYSTEM, PUERTO_FILESYSTEM);
+	int socket_liss = conectarseA(IP_FILESYSTEM, PUERTO_FILESYSTEM);
+	validar_comunicacion(socket_liss, LFS);
+	mandar_handshake_a(LFS, socket_liss, LISSANDRA);
+	TAMANIO_VALUE=prot_recibir_int(socket_liss);
+	return socket_liss;
 }

@@ -222,3 +222,30 @@ int crear_listen_socket(char * puerto, int max_conexiones){
 	return server_socket;
 
 }
+
+void mostrar_mensaje_previa_conexion_con(char *proceso, char *ip, int puerto){
+	logger(escribir_loguear, l_info, "Se intentara conectar a la ip %s , puerto %d de %s", ip, puerto, proceso);
+}
+
+void validar_comunicacion(int socket, char* proceso){
+	if(socket<0){
+		logger(escribir_loguear,l_error, "No se pudo conectar con el proceso %s ", proceso);
+		cerrar_socket_y_terminar(socket);
+	}
+}
+
+void cerrar_socket_y_terminar(int socket){
+	if(socket>2){
+		close(socket);
+		terminar_programa();
+	}
+}
+
+void mandar_handshake_a(char * proceso, int socket, enum PROCESO enumProceso){
+	logger(escribir_loguear, l_info, "Se intentara mandar handshake a %s", proceso);
+	if (enviarHandshake(MEMORIA, enumProceso, socket) == 0) {
+		logger(escribir_loguear,l_error, "No se pudo hacer handshake con el proceso %s ", proceso);
+		cerrar_socket_y_terminar(socket);
+	}
+	logger(escribir_loguear, l_info, "Se realizo el handshake con %s en el socket %d", proceso, socket);
+}

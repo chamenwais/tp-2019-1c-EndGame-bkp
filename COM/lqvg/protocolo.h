@@ -3,7 +3,7 @@
 
 #include "com.h"
 
-int enviarValueSize(int,int);
-
+void prot_enviar_int(int,int);
+int prot_recibir_int(int);
 
 #endif
