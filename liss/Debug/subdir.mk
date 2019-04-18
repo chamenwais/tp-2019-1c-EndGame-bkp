@@ -7,19 +7,22 @@ C_SRCS += \
 ../api.c \
 ../fs.c \
 ../lissandra.c \
-../variablesGlobales.c 
+../variablesGlobales.c \
+../server.c 
 
 OBJS += \
 ./api.o \
 ./fs.o \
 ./lissandra.o \
-./variablesGlobales.o 
+./variablesGlobales.o \
+./server.o 
 
 C_DEPS += \
 ./api.d \
 ./fs.d \
 ./lissandra.d \
-./variablesGlobales.d 
+./variablesGlobales.d \
+./server.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
