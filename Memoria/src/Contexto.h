@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <lqvg/com.h>
+#include <lqvg/protocolo.h>
 
 
 /* Claves archivo de configuracion*/

@@ -176,11 +176,17 @@ void stdin_no_bloqueante(void){
 	  fcntl(STDIN_FILENO, F_SETFL, flag);
 }
 
+void obtener_tamanio_value(int socket_liss) {
+	TAMANIO_VALUE = prot_recibir_int(socket_liss);
+	logger(escribir_loguear, l_debug, "El tamaño máximo de un value es de %d",
+			TAMANIO_VALUE);
+}
+
 int comunicarse_con_lissandra(void){
 	mostrar_mensaje_previa_conexion_con(LFS, IP_FILESYSTEM, PUERTO_FILESYSTEM);
 	int socket_liss = conectarseA(IP_FILESYSTEM, PUERTO_FILESYSTEM);
 	validar_comunicacion(socket_liss, LFS);
 	mandar_handshake_a(LFS, socket_liss, LISSANDRA);
-	TAMANIO_VALUE=prot_recibir_int(socket_liss);
+	obtener_tamanio_value(socket_liss);
 	return socket_liss;
 }
