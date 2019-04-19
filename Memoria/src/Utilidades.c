@@ -211,11 +211,30 @@ void cerrar_socket_y_terminar(int socket){
 	}
 }
 
+void loguear_handshake_erroneo(char* proceso) {
+	logger(escribir_loguear, l_error,
+			"No se pudo hacer handshake con el proceso %s ", proceso);
+}
+
+void loguear_handshake_exitoso(int socket, char* proceso) {
+	logger(escribir_loguear, l_info,
+			"Se realizo el handshake con %s en el socket %d", proceso, socket);
+}
+
 void mandar_handshake_a(char * proceso, int socket, enum PROCESO enumProceso){
 	logger(escribir_loguear, l_info, "Se intentara mandar handshake a %s", proceso);
 	if (enviarHandshake(MEMORIA, enumProceso, socket) == 0) {
-		logger(escribir_loguear,l_error, "No se pudo hacer handshake con el proceso %s ", proceso);
+		loguear_handshake_erroneo(proceso);
 		cerrar_socket_y_terminar(socket);
 	}
-	logger(escribir_loguear, l_info, "Se realizo el handshake con %s en el socket %d", proceso, socket);
+	loguear_handshake_exitoso(socket, proceso);
+}
+
+void recibir_handshake_kernel(int socket){
+	logger(escribir_loguear, l_info, "Se esperará handshake del %s", _KERNEL);
+	if(recibirHandshake(MEMORIA, KERNEL, socket)==0){
+		loguear_handshake_erroneo(_KERNEL);
+		cerrar_socket_y_terminar(socket);
+	}
+	loguear_handshake_exitoso(socket, _KERNEL);
 }

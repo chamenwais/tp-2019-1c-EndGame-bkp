@@ -33,5 +33,6 @@ void mostrar_mensaje_previa_conexion_con(char *, char *, int);
 void validar_comunicacion(int, char*);
 void cerrar_socket_y_terminar(int);
 void mandar_handshake_a(char *, int, enum PROCESO);
+void recibir_handshake_kernel(int);
 
 #endif /* UTILIDADES_H_ */

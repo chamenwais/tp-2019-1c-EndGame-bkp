@@ -52,6 +52,9 @@ extern int NUMERO_MEMORIA;
 
 extern int TAMANIO_VALUE;
 
+#define LFS "LFS"
+#define _KERNEL "KERNEL"
+
 /*** Enums modo de log***/
 enum tipo_logueo {
 	escribir,
