@@ -9,6 +9,7 @@
 
 t_configuracionDelKernel configKernel;
 t_log* LOG_KERNEL;
+pthread_t threadConsola;
 
 int inicializarVariablesGlobales(){
 

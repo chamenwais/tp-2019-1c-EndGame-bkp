@@ -20,7 +20,8 @@ enum PROCESO {
 };
 
 enum MENSAJES {
-	ASD
+	TABLA_YA_EXISTIA,
+	TABLA_CREADA
 };
 
 typedef struct {
