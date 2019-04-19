@@ -13,10 +13,8 @@
 #include "Utilidades.h"
 #include "Consola.h"
 
-#define LFS "LFS"
-
 void stdin_no_bloqueante(void);
-int atender_nuevo_cliente(int serv_socket);
+int atender_al_kernel(int serv_socket);
 void inicializar_conexiones_cliente(void);
 void crear_hilo_conexion(int socket, void*funcion_a_ejecutar(int));
 int comunicarse_con_lissandra(void);

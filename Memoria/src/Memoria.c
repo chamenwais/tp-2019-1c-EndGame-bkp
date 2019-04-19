@@ -38,7 +38,7 @@ void inicializar_conexiones_cliente(void){
 	}
 }
 
-int atender_nuevo_cliente(int serv_socket){
+int atender_al_kernel(int serv_socket){
 	struct sockaddr_in client_addr;
 
 	//Setea la direccion en 0
@@ -46,27 +46,29 @@ int atender_nuevo_cliente(int serv_socket){
 	socklen_t client_len = sizeof(client_addr);
 
 	//Acepta la nueva conexion
-	int new_client_sock = accept(serv_socket, (struct sockaddr *)&client_addr, &client_len);
-	if (new_client_sock < 0) {
-		logger(escribir_loguear,l_error,"Error al aceptar un nuevo cliente :(\n");
+	int socket_kernel = accept(serv_socket, (struct sockaddr *)&client_addr, &client_len);
+	if (socket_kernel < 0) {
+		logger(escribir_loguear,l_error,"Error al aceptar al kernel :(");
 		return -1;
 	}
 
-	logger(escribir_loguear,l_trace,"\nSe aceptó un nuevo cliente, conexión (%d)\n", new_client_sock);
+	logger(escribir_loguear,l_trace,"\nSe aceptó al kernel, conexión (%d)", socket_kernel);
+
+	recibir_handshake_kernel(socket_kernel);
 
 	//Lo agrego a la lista de conexiones con clientes actuales
 	for (int i = 0; i < MAX_CLIENTES; ++i) {
 
 		if (conexiones_cliente[i].socket == NO_SOCKET) {
-			conexiones_cliente[i].socket = new_client_sock;
+			conexiones_cliente[i].socket = socket_kernel;
 			conexiones_cliente[i].addres = client_addr;
 
-	        return 0;
+	        return socket_kernel;
 	    }
 	}
 
 	logger(escribir_loguear,l_error,"Demasiadas conexiones. Cerrando nueva conexion\n");
-	close(new_client_sock);
+	close(socket_kernel);
 
 	return -1;
 }
@@ -133,9 +135,9 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 			break;
 		} else if (result > 0) //Hubo un cambio en algun fd
 				{
-			//Aceptar nuevas conexiones de clientes
+			//Acepta la conexión del kernel
 			if (FD_ISSET(server_memoria, &readset)) {
-				atender_nuevo_cliente(server_memoria);
+				int socket_kernel= atender_al_kernel(server_memoria);
 			}
 			//Se ingresó algo a la consola
 			if (FD_ISSET(STDIN_FILENO, &readset)) {
