@@ -18,6 +18,7 @@
 void inicializarLogKernel();
 int inicializarVariablesGlobales();
 int levantarConfiguracionInicialDelKernel();
+int conectarse_con_memoria(void);
 
 
 

@@ -16,5 +16,6 @@
 #include "variablesGlobales.h"
 #include "funcionesKernel.h"
 #include "api.h"
+#include <lqvg/com.h>
 
 #endif /* KERNEL_H_ */

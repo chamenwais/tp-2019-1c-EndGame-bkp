@@ -101,3 +101,12 @@ int levantarConfiguracionInicialDelKernel(){
 	return EXIT_SUCCESS;
 	}
 
+int conectarse_con_memoria(void){
+	log_info(LOG_KERNEL, "Conectandose a la primera memoria en ip %s y puerto %i", configKernel.ipMemoria, configKernel.puertoMemoria);
+	int socket_mem = conectarseA(configKernel.ipMemoria, configKernel.puertoMemoria);
+	//validar que el socket sea <0
+	enviarHandshake(KERNEL, MEMORIA, socket_mem);
+
+	return socket_mem;
+}
+
