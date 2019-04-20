@@ -239,6 +239,18 @@ int obtenerBloqueLibreDelBitMap(){
 	return -1;
 }
 
+int ocuparBloqueDelBitmap(int numeroDeBloque){
+	if(!bitarray_test_bit(bitmap,numeroDeBloque)){
+		log_info(LOGGERFS,"El bloque %d esta libre y lo voy a ocupar", numeroDeBloque);
+		bitarray_set_bit(bitmap,numeroDeBloque);
+		log_info(LOGGERFS,"Bloque %d ocupado",numeroDeBloque);
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"El bloque %d ya estaba ocupado",numeroDeBloque);
+		return EXIT_FAILURE;
+		}
+}
+
 int levantarBitMap(){
 	FILE *archivoBitmap;
 	bool estaCreadoElBitmap;

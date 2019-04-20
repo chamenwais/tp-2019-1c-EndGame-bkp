@@ -124,8 +124,11 @@ void *funcionHiloConsola(void *arg){
 				if(strcmp(instruccion[0],"bitmap")==0){
 					imprimirEstadoDelBitmap();
 			}else{
+				if(strcmp(instruccion[0],"existeLaTabla")==0){
+					exiteLaTabla(instruccion[1]);
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}}}}}
+				}}}}}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
@@ -154,7 +157,10 @@ int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,int timestamp){
 }
 
 int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDeParticiones,int tiempoDeCompactacion){
-	return EXIT_SUCCESS;
+	log_info(LOGGERFS,"Haciendo un create por consola");
+	int resultado = (create(nombreDeLaTabla, tipoDeConsistencia, numeroDeParticiones, tiempoDeCompactacion));
+	log_info(LOGGERFS,"Create de consola finalizado con el valor: %d", resultado);
+	return resultado;
 }
 
 int consolaDescribe(char* nombreDeLaTabla){
