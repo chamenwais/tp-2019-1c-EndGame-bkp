@@ -8,27 +8,33 @@
 #include "Consola.h"
 
 void consola_select(){
-	//hacer
+	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia SELECT");
+	//TODO hacer
 }
 
 void consola_insert(){
-	//hacer
+	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia INSERT");
+	//TODO hacer
 }
 
 void consola_create(){
-	//hacer
+	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia CREATE");
+	//TODO hacer
 }
 
 void consola_describe(){
-	//hacer
+	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia DESCRIBE");
+	//TODO hacer
 }
 
 void consola_drop(){
-	//hacer
+	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia DROP");
+	//TODO hacer
 }
 
 void consola_journal(){
-	//hacer
+	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia JOURNAL");
+	//TODO hacer
 }
 
 int consola_obtener_key_comando(char* comando)

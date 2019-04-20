@@ -9,7 +9,7 @@
 void iniciar_logger(void) {
 	g_logger = log_create("/home/utnso/memoria.log", "Memoria", false , LOG_LEVEL_DEBUG);
 
-	logger(escribir_loguear, l_info,"Se comenzo a iniciar el proceso memoria");
+	logger(escribir_loguear, l_info,"Se comenzó a iniciar el proceso memoria");
 }
 
 void iniciar_config(int cantidad_parametros, char ** parametros) {
@@ -96,8 +96,7 @@ void captura_signal(int signo){
     if(signo == SIGINT)
     {
     	logger(escribir_loguear, l_warning,"Finalizando proceso memoria...");
-    	terminar_programa();
-    	exit(EXIT_FAILURE);
+    	terminar_programa(EXIT_SUCCESS);
     }
     else if(signo == SIGPIPE)
     {
@@ -160,10 +159,11 @@ void logger(int tipo_esc, int tipo_log, const char* mensaje, ...){
 	return;
 }
 
-void terminar_programa(){
-	logger(escribir_loguear, l_warning,"Has elegido finalizar la memoria %d. Bye.", NUMERO_MEMORIA);
+void terminar_programa(int codigo_finalizacion){
+	logger(escribir_loguear, l_warning,"Se va a finalizar la memoria %d. Bye.", NUMERO_MEMORIA);
 	log_destroy(g_logger);
 	config_destroy(g_config);
+	exit(codigo_finalizacion);
 }
 
 int iniciar_servidor(){
@@ -176,7 +176,7 @@ int iniciar_servidor(){
 	}
 	else
 	{
-		logger(escribir_loguear,l_trace,"Socket servidor (%d) escuchando\n", server_socket);
+		logger(escribir_loguear,l_trace,"Socket servidor (%d) escuchando", server_socket);
 	}
 
 	return server_socket;
@@ -205,10 +205,8 @@ void validar_comunicacion(int socket, char* proceso){
 }
 
 void cerrar_socket_y_terminar(int socket){
-	if(socket>2){
-		close(socket);
-		terminar_programa();
-	}
+	close(socket);
+	terminar_programa(EXIT_FAILURE);
 }
 
 void loguear_handshake_erroneo(char* proceso) {
