@@ -26,7 +26,7 @@ void obtener_numero_memoria();
 void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 		char* log_colors[8], char* msj_salida);
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida);
-void terminar_programa();
+void terminar_programa(int);
 int iniciar_servidor();
 struct addrinfo* crear_addrinfo();
 void mostrar_mensaje_previa_conexion_con(char *, char *, int);

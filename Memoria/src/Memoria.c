@@ -26,23 +26,21 @@ int main(int argc, char ** argv) {
 	return EXIT_SUCCESS;
 }
 
-void crear_hilo_conexion(int socket, void*funcion_a_ejecutar(int)){
-	pthread_t hilo;
-	pthread_create(&hilo,NULL,(void*)funcion_a_ejecutar,(void*)socket);
-	pthread_detach(hilo);
-}
-
 void inicializar_conexiones_cliente(void){
 	for (int i = 0; i < MAX_CLIENTES; ++i){
 		conexiones_cliente[i].socket = NO_SOCKET;
 	}
 }
 
-int atender_al_kernel(int serv_socket){
+struct sockaddr_in crear_direccion_cliente() {
 	struct sockaddr_in client_addr;
-
 	//Setea la direccion en 0
 	memset(&client_addr, 0, sizeof(client_addr));
+	return client_addr;
+}
+
+int atender_al_kernel(int serv_socket){
+	struct sockaddr_in client_addr = crear_direccion_cliente();
 	socklen_t client_len = sizeof(client_addr);
 
 	//Acepta la nueva conexion
@@ -52,23 +50,30 @@ int atender_al_kernel(int serv_socket){
 		return -1;
 	}
 
-	logger(escribir_loguear,l_trace,"\nSe aceptó al kernel, conexión (%d)", socket_kernel);
+	logger(escribir_loguear,l_trace,"Se aceptó al kernel, conexión (%d)", socket_kernel);
 
 	recibir_handshake_kernel(socket_kernel);
 
+	int cliente_aceptado=agregar_conexion_lista_clientes(socket_kernel, client_addr);
+
+	if(cliente_aceptado==-1){
+		logger(escribir_loguear,l_error,"Demasiadas conexiones. Cerrando nueva conexion\n");
+		close(socket_kernel);
+	}
+	return cliente_aceptado;
+}
+
+int agregar_conexion_lista_clientes(int socket_conexion,struct sockaddr_in direccion_cliente){
 	//Lo agrego a la lista de conexiones con clientes actuales
 	for (int i = 0; i < MAX_CLIENTES; ++i) {
 
 		if (conexiones_cliente[i].socket == NO_SOCKET) {
-			conexiones_cliente[i].socket = socket_kernel;
-			conexiones_cliente[i].addres = client_addr;
+			conexiones_cliente[i].socket = socket_conexion;
+			conexiones_cliente[i].addres = direccion_cliente;
 
-	        return socket_kernel;
-	    }
+			return socket_conexion;
+		}
 	}
-
-	logger(escribir_loguear,l_error,"Demasiadas conexiones. Cerrando nueva conexion\n");
-	close(socket_kernel);
 
 	return -1;
 }
@@ -97,9 +102,13 @@ int comunicarse_con_lissandra(void){
 
 void escuchar_clientes(int server_memoria, int socket_lfs) {
 	fd_set readset, writeset, exepset;
-	int max_fd;
+	int max_fd, socket_kernel;
 	char read_buffer[MAX_LINEA];
 	struct timeval tv = { 0, 500 };
+
+	//Agrego el socket del lfs a la lista de clientes
+	agregar_conexion_lista_clientes(socket_lfs, crear_direccion_cliente());
+
 	logger(escribir_loguear, l_debug, "Se pone a escuchar clientes...");
 	while (true) {
 		//Inicializa los file descriptor
@@ -137,10 +146,10 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 				{
 			//Acepta la conexión del kernel
 			if (FD_ISSET(server_memoria, &readset)) {
-				int socket_kernel= atender_al_kernel(server_memoria);
+				socket_kernel = atender_al_kernel(server_memoria);
 			}
 			//Se ingresó algo a la consola
-			if (FD_ISSET(STDIN_FILENO, &readset)) {
+			else if (FD_ISSET(STDIN_FILENO, &readset)) {
 				consola_leer_stdin(read_buffer, MAX_LINEA);
 				if (*((char*) read_buffer) == '\0') {
 					//Solo apretaron enter, no hay que interpretar nada
@@ -148,36 +157,63 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 				}
 				int res = consola_derivar_comando(read_buffer);
 				if (res) {
-					terminar_programa();
+					terminar_programa(EXIT_FAILURE);
 					break;
 				}
-			}
-			/*				//Manejo de conexiones ya existentes
-			 for(int i = 0; i < MAX_CLIENTES; ++i){
-			 if(conexiones_cliente[i].socket != NO_SOCKET ){
-			 //Mensajes nuevos de algun cliente
-			 if (FD_ISSET(conexiones_cliente[i].socket, &readset)) {
-			 if(hay un error al recibir un mensaje)
-			 {
-			 logger(escribir_loguear,l_trace,"Conexión con cliente %d cerrada\n",conexiones_cliente[i].pid);
-			 close(conexiones_cliente[i].socket);
-			 conexiones_cliente[i].socket = NO_SOCKET;
-			 continue;
-			 }
-			 }
+			} else {
+				//Manejo de conexiones ya existentes
+				for(int i = 0; i < MAX_CLIENTES; ++i){
+					if(conexiones_cliente[i].socket != NO_SOCKET ){
+						//Mensajes nuevos de algun cliente
+						if (FD_ISSET(conexiones_cliente[i].socket, &readset)) {
+							int socket_llamador=conexiones_cliente[i].socket;
+							t_cabecera cabecera=recibirCabecera(socket_llamador);
+							if(cabecera.tamanio<=0)
+							{
+								loguear_cerrar_conexion(socket_llamador,
+										socket_kernel, socket_lfs, i);
+								continue;
+							}
 
-			 //Excepciones del cliente, para la desconexion
-			 if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
-			 if(hay un error al recibir un mensaje)
-			 {
-			 logger(escribir_loguear,l_trace,"Conexión con cliente %d cerrada\n",conexiones_cliente[i].pid);
-			 close(conexiones_cliente[i].socket);
-			 conexiones_cliente[i].socket = NO_SOCKET;
-			 continue;
-			 }
-			 }//if isset
-			 }// if NO_SOCKET
-			 }//for conexiones_cliente */
+							//TODO clasificar y atender cabecera del mensaje
+
+						} else if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
+								//Excepciones del cliente, para la desconexion
+								loguear_cerrar_conexion(conexiones_cliente[i].socket,
+										socket_kernel, socket_lfs, i);
+								continue;
+						}
+					}// if != NO_SOCKET
+				}//for conexiones_cliente */
+			}
 		}
+	}
+}
+
+int clasificar_conexion_cerrada(int socket_cerrado, int sock_kernel, int sock_lfs){
+	int es_lfs=0;
+	//loguea un mensaje acertado de qué proceso se desconectó
+	if(socket_cerrado==sock_kernel){
+		logger(escribir_loguear,l_warning,"Conexión con el kernel cerrada en socket %d", sock_kernel);
+	} else if(socket_cerrado==sock_lfs){
+		logger(escribir_loguear,l_warning,"Conexión con lissandra fs cerrada en socket %d", sock_lfs);
+		return 1;
+	} else {
+		logger(escribir_loguear,l_warning,"Conexión con cliente %d cerrada", socket_cerrado);
+	}
+	return es_lfs;
+}
+
+void loguear_cerrar_conexion(int socket_llamador, int socket_kernel,
+		int socket_lfs, int i) {
+	int conexion_con_lfs=clasificar_conexion_cerrada(socket_llamador, socket_kernel, socket_lfs);
+	close(socket_llamador);
+	conexiones_cliente[i].socket = NO_SOCKET;
+	validar_conexion_con_lissandra(conexion_con_lfs);
+}
+
+void validar_conexion_con_lissandra(int cerrada){
+	if(cerrada){
+		terminar_programa(EXIT_FAILURE);
 	}
 }
