@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <readline/readline.h>
 #include "lissandra.h"
+#include "funcionesComunes.h"
 
 int lanzarConsola();
 int lanzarCompactador();
