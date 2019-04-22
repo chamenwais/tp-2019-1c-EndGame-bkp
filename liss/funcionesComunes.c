@@ -126,11 +126,42 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		crearDirectorioParaLaTabla(nombreDeLaTabla);
 		crearMetadataParaLaTabla(nombreDeLaTabla,tipoDeConsistencia,
 				numeroDeParticiones,tiempoDeCompactacion);
-		crearArchivosBinariosYAsignarBloques(nombreDeLaTabla,numeroDeParticiones);
+		if(crearArchivosBinariosYAsignarBloques(nombreDeLaTabla,numeroDeParticiones)==EXIT_SUCCESS){
+			log_info(LOGGERFS,"La tabla %s se creo correctamente", nombreDeLaTabla);
+		}else{
+			log_error(LOGGERFS,"No se puedo crear la tabla %s", nombreDeLaTabla);
+			}
+		return TABLA_CREADA;
 	}else{
 		log_error(LOGGERFS,"Se esta intentando crear una tabla con un nombre que ya existia: %s", nombreDeLaTabla);
 		printf("Se esta intentando crear una tabla con un nombre que ya existia: %s\n", nombreDeLaTabla);
 		return TABLA_YA_EXISTIA;
 		}
-	return TABLA_CREADA;
+}
+
+
+int drop(char* nombreDeLaTabla){
+	// Pasos para hacerlo:
+	// Verificar que la tabla exista en el file system.
+	// Eliminar directorio y todos los archivos de dicha tabla.
+
+	if(exiteLaTabla(nombreDeLaTabla)==false){
+		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe %s", nombreDeLaTabla);
+		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
+		return TABLA_NO_EXISTIA;
+	}else{
+		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
+		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
+		return TABLA_BORRADA;
+		}
+}
+
+int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
+	char* directorioDeLaTabla=string_new();
+	string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeLaTabla, "/Tables/");
+	string_append(&directorioDeLaTabla, nombreDeLaTabla);
+	mkdir(directorioDeLaTabla,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	log_info(LOGGERFS,"Directorio %s creado", directorioDeLaTabla);
+	return EXIT_SUCCESS;
 }

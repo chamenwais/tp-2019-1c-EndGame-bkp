@@ -18,6 +18,9 @@ int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		int numeroDeParticiones);
-int create();
+int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
+		int numeroDeParticiones, int tiempoDeCompactacion);
+int drop(char* nombreDeLaTabla);
+int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
 
 #endif /* FUNCIONESCOMUNES_H_ */
