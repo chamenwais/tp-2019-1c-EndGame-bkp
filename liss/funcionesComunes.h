@@ -22,5 +22,7 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
+int bloquearTabla(char* nombreDeLaTabla);
+int desbloquearTabla(char* nombreDeLaTabla);
 
 #endif /* FUNCIONESCOMUNES_H_ */

@@ -161,7 +161,24 @@ int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
 	string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeLaTabla, "/Tables/");
 	string_append(&directorioDeLaTabla, nombreDeLaTabla);
-	mkdir(directorioDeLaTabla,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	char* directorioABorrar=string_duplicate(directorioDeLaTabla);
+
+
+	bloquearTabla(nombreDeLaTabla);
+	rmdir(directorioABorrar);
 	log_info(LOGGERFS,"Directorio %s creado", directorioDeLaTabla);
+	free(directorioABorrar);
+	free(directorioDeLaTabla);
+	return EXIT_SUCCESS;
+}
+
+int bloquearTabla(char* nombreDeLaTabla){
+	// Esta funcion bloquea la tabla para q no sea utilizada por multiples hilos simultaneamente
+
+	return EXIT_SUCCESS;
+}
+
+int desbloquearTabla(char* nombreDeLaTabla){
+	// Esta funcion desbloquea la tabla para q la pueda usar algun hilo
 	return EXIT_SUCCESS;
 }
