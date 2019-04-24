@@ -157,19 +157,53 @@ int drop(char* nombreDeLaTabla){
 }
 
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
-	char* directorioDeLaTabla=string_new();
-	string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioDeLaTabla, "/Tables/");
-	string_append(&directorioDeLaTabla, nombreDeLaTabla);
-	char* directorioABorrar=string_duplicate(directorioDeLaTabla);
-
-
 	bloquearTabla(nombreDeLaTabla);
-	rmdir(directorioABorrar);
-	log_info(LOGGERFS,"Directorio %s creado", directorioDeLaTabla);
-	free(directorioABorrar);
-	free(directorioDeLaTabla);
-	return EXIT_SUCCESS;
+	if((liberarBloquesYpaticiones(nombreDeLaTabla)==EXIT_SUCCESS) &&
+			(eliminarArchivoDeMetada(nombreDeLaTabla)==EXIT_SUCCESS) &&
+			(eliminarDirectorio(nombreDeLaTabla)==EXIT_SUCCESS)){
+		log_info(LOGGERFS,"La tabla %s se borro correctamente", nombreDeLaTabla);
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"Hubo algun error al borrar la tabla %s", nombreDeLaTabla);
+		return EXIT_FAILURE;
+		}
+}
+
+int eliminarDirectorio(char* nombreDeLaTabla){
+	char* directorioABorrar=string_new();
+	string_append(&directorioABorrar, configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioABorrar, "/Tables/");
+	string_append(&directorioABorrar, nombreDeLaTabla);
+	int resultado=rmdir(directorioABorrar);
+
+	if(resultado==0){
+		log_info(LOGGERFS,"Se borro el directorio %s", directorioABorrar);
+		free(directorioABorrar);
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"No se borro el directorio %s", directorioABorrar);
+		free(directorioABorrar);
+		return EXIT_FAILURE;
+		}
+}
+
+int eliminarArchivoDeMetada(char* nombreDeLaTabla){
+	char* nombreDelArchivoDeMetaData=string_new();
+	string_append(&nombreDelArchivoDeMetaData, configuracionDelFS.puntoDeMontaje);
+	string_append(&nombreDelArchivoDeMetaData, "/Tables/");
+	string_append(&nombreDelArchivoDeMetaData, nombreDeLaTabla);
+	string_append(&nombreDelArchivoDeMetaData, "/Metadata");
+	int resultado=remove(nombreDelArchivoDeMetaData);
+	if(resultado==0){
+		//Archivo removido
+		log_info(LOGGERFS,"Archivo %s borrado", nombreDeLaTabla);
+		free(nombreDelArchivoDeMetaData);
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"El archivo %s no se pudo borrar", nombreDeLaTabla);
+		free(nombreDelArchivoDeMetaData);
+		return EXIT_FAILURE;
+	}
 }
 
 int bloquearTabla(char* nombreDeLaTabla){
