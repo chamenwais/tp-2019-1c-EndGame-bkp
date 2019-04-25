@@ -166,6 +166,19 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 }
 
 int consolaDescribe(char* nombreDeLaTabla){
+	log_info(LOGGERFS,"Haciendo un describe por consola de la tabla %s", nombreDeLaTabla);
+	t_metadataDeLaTabla metadataDeLaTabla = describe(nombreDeLaTabla);
+
+	if((metadataDeLaTabla.particiones!=-1)&&
+			(metadataDeLaTabla.tiempoDeCompactacion!=-1)&&
+			(metadataDeLaTabla.consistencia!=NULL)){
+		log_info(LOGGERFS,"Info de la tabla recuperada");
+		printf("Info de la tabla: %s\n",nombreDeLaTabla);
+		printf("Numero de particiones: %d\n",metadataDeLaTabla.particiones);
+		printf("Tipo de consistencia: %s\n",metadataDeLaTabla.consistencia);
+		printf("Tiempo de compactacion: %d\n",metadataDeLaTabla.tiempoDeCompactacion);
+		}
+
 	return EXIT_SUCCESS;
 }
 

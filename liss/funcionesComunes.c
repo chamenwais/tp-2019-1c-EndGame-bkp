@@ -63,4 +63,7 @@ int drop(char* nombreDeLaTabla){
 		}
 }
 
-
+t_metadataDeLaTabla describe(char* nombreDeLaTabla){
+	t_metadataDeLaTabla metadata=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+	return metadata;
+}

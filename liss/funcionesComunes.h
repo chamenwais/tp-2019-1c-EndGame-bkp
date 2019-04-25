@@ -18,6 +18,6 @@ bool exiteLaTabla(char* nombreDeLaTabla);
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);
-
+t_metadataDeLaTabla describe(char* nombreDeLaTabla);
 
 #endif /* FUNCIONESCOMUNES_H_ */
