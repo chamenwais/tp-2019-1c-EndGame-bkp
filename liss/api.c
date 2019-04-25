@@ -99,9 +99,10 @@ void *funcionHiloConsola(void *arg){
 				if((strcmp(instruccion[0],"describe")==0) || (strcmp(instruccion[0],"DESCRIBE")==0)){
 					if((instruccion[1]!=NULL)){
 						printf("Voy a hacer un describe por consola de la tabla %s\n", instruccion[1]);
-						consolaDescribe(instruccion[1]);
+						consolaDescribeDeTabla(instruccion[1]);
 					}else{
-						printf("Faltan parametros para poder hacer un describe\n");
+						printf("Voy a hacer un describe por consola de todas las tablas\n");
+						consolaDescribe();
 						}
 			}else{
 				if((strcmp(instruccion[0],"drop")==0) || (strcmp(instruccion[0],"DROP")==0)){
@@ -165,7 +166,11 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 	return resultado;
 }
 
-int consolaDescribe(char* nombreDeLaTabla){
+int consolaDescribe(){
+	return EXIT_SUCCESS;
+}
+
+int consolaDescribeDeTabla(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Haciendo un describe por consola de la tabla %s", nombreDeLaTabla);
 	t_metadataDeLaTabla metadataDeLaTabla = describe(nombreDeLaTabla);
 
@@ -200,11 +205,12 @@ int man(){
 	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
 	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");
 	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
-	printf("6) DROP [NOMBRE_TABLA]\n");
-	printf("7) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
-	printf("8) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
-	printf("9) \"bitmap\", imprime el estado de cada bloque del FS\n");
-	printf("10) \"existeLaTabla\", te dice si la tabla existe o no\n");
+	printf("6) DESCRIBE, da la info de todas las tablas\n");
+	printf("7) DROP [NOMBRE_TABLA]\n");
+	printf("8) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
+	printf("9) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
+	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
 	return EXIT_SUCCESS;
 }
 
