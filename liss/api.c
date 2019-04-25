@@ -160,6 +160,8 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 	log_info(LOGGERFS,"Haciendo un create por consola");
 	int resultado = (create(nombreDeLaTabla, tipoDeConsistencia, numeroDeParticiones, tiempoDeCompactacion));
 	log_info(LOGGERFS,"Create de consola finalizado con el valor: %d", resultado);
+	if(resultado==TABLA_CREADA)
+		log_info(LOGGERFS,"Tabla creada exitosamente");
 	return resultado;
 }
 
@@ -168,7 +170,14 @@ int consolaDescribe(char* nombreDeLaTabla){
 }
 
 int consolaDrop(char* nombreDeLaTabla){
-	return EXIT_SUCCESS;
+	log_info(LOGGERFS,"Haciendo un create por consola");
+	if(drop(nombreDeLaTabla)==TABLA_BORRADA){
+		log_info(LOGGERFS,"Tabla %s borrada exitosamente", nombreDeLaTabla);
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"No se pudo borrar la tabla %s", nombreDeLaTabla);
+		return EXIT_FAILURE;
+		}
 }
 
 int man(){
@@ -182,6 +191,7 @@ int man(){
 	printf("7) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
 	printf("8) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
 	printf("9) \"bitmap\", imprime el estado de cada bloque del FS\n");
+	printf("10) \"existeLaTabla\", te dice si la tabla existe o no\n");
 	return EXIT_SUCCESS;
 }
 
