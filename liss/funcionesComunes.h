@@ -13,11 +13,13 @@
 #include "../COM/lqvg/com.h"
 #include "variablesGlobales.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 bool exiteLaTabla(char* nombreDeLaTabla);
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);
 t_metadataDeLaTabla describe(char* nombreDeLaTabla);
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
 
 #endif /* FUNCIONESCOMUNES_H_ */

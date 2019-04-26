@@ -49,8 +49,8 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 
 int drop(char* nombreDeLaTabla){
 	// Pasos para hacerlo:
-	// Verificar que la tabla exista en el file system.
-	// Eliminar directorio y todos los archivos de dicha tabla.
+	// 1) Verificar que la tabla exista en el file system.
+	// 2) Eliminar directorio y todos los archivos de dicha tabla.
 
 	if(exiteLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe %s", nombreDeLaTabla);
@@ -65,13 +65,15 @@ int drop(char* nombreDeLaTabla){
 
 t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 	/* La operación Describe permite obtener la Metadata de una tabla en particular.
-
-	*/
+	 *	1) Verificar que la tabla exista en el file system.
+	 *	2) Leer el archivo Metadata de dicha tabla.
+	 *	3) Retornar el contenido del archivo.
+	 */
 	t_metadataDeLaTabla metadata=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 	return metadata;
 }
 
-insert(char* nombreDeLaTabla, [KEY] “[VALUE]” [Timestamp]){
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp){
 	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
 	 * Pasos:
 	 * 1) Verificar que la tabla exista en el file system. En caso que no exista,
@@ -85,8 +87,16 @@ insert(char* nombreDeLaTabla, [KEY] “[VALUE]” [Timestamp]){
 	 * 5)Insertar en la memoria temporal del punto anterior una nueva entrada que
 	 * contenga los datos enviados en la request.
 	 */
+	if(exiteLaTabla(nombreDeLaTabla)==false){
+		log_error(LOGGERFS,"Se esta intentando hace un insert de una tabla que no existe %s", nombreDeLaTabla);
+		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
+		return TABLA_NO_EXISTIA;
+	}else{
+		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
+		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
+		return TABLA_BORRADA;
+		}
 
 
-
-
+	return EXIT_SUCCESS;
 }
