@@ -64,6 +64,29 @@ int drop(char* nombreDeLaTabla){
 }
 
 t_metadataDeLaTabla describe(char* nombreDeLaTabla){
+	/* La operación Describe permite obtener la Metadata de una tabla en particular.
+
+	*/
 	t_metadataDeLaTabla metadata=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 	return metadata;
+}
+
+insert(char* nombreDeLaTabla, [KEY] “[VALUE]” [Timestamp]){
+	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
+	 * Pasos:
+	 * 1) Verificar que la tabla exista en el file system. En caso que no exista,
+	 * informa el error y continúa su ejecución.
+	 * 2) Obtener la metadata asociada a dicha tabla.
+	 * 3) Verificar si existe en memoria una lista de datos a dumpear.
+	 * De no existir, alocar dicha memoria.
+	 * 4) El parámetro Timestamp es opcional. En caso que un request no lo
+	 * provea (por ejemplo insertando un valor desde la consola), se usará
+	 * el valor actual del Epoch UNIX.
+	 * 5)Insertar en la memoria temporal del punto anterior una nueva entrada que
+	 * contenga los datos enviados en la request.
+	 */
+
+
+
+
 }
