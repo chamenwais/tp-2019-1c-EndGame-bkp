@@ -9,15 +9,17 @@
 #define FUNCIONESCOMUNES_H_
 
 #include "lissandra.h"
+#include "funcionesAuxiliares.h"
 #include "../COM/lqvg/com.h"
+#include "variablesGlobales.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 bool exiteLaTabla(char* nombreDeLaTabla);
-int crearDirectorioParaLaTabla(char* nombreDeLaTabla);
-int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
+int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
-int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
-		int numeroDeParticiones);
-int create();
+int drop(char* nombreDeLaTabla);
+t_metadataDeLaTabla describe(char* nombreDeLaTabla);
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
 
 #endif /* FUNCIONESCOMUNES_H_ */

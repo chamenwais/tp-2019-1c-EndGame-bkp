@@ -21,6 +21,12 @@ typedef struct definicionConfiguracionDelFS {
 	int tiempoDump; //cada cuanto se realiza el proceso dump, solo accesible/modificable con funcion
 } t_configuracionDelFS;
 
+typedef struct definicionMetadataDeTabla {
+	int particiones;
+	char* consistencia;
+	int tiempoDeCompactacion;
+} t_metadataDeLaTabla;
+
 typedef struct definicionMetadataDelFS {
 	int blockSize;
 	int blocks;

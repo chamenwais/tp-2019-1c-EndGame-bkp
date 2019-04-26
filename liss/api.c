@@ -99,9 +99,10 @@ void *funcionHiloConsola(void *arg){
 				if((strcmp(instruccion[0],"describe")==0) || (strcmp(instruccion[0],"DESCRIBE")==0)){
 					if((instruccion[1]!=NULL)){
 						printf("Voy a hacer un describe por consola de la tabla %s\n", instruccion[1]);
-						consolaDescribe(instruccion[1]);
+						consolaDescribeDeTabla(instruccion[1]);
 					}else{
-						printf("Faltan parametros para poder hacer un describe\n");
+						printf("Voy a hacer un describe por consola de todas las tablas\n");
+						consolaDescribe();
 						}
 			}else{
 				if((strcmp(instruccion[0],"drop")==0) || (strcmp(instruccion[0],"DROP")==0)){
@@ -160,15 +161,41 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 	log_info(LOGGERFS,"Haciendo un create por consola");
 	int resultado = (create(nombreDeLaTabla, tipoDeConsistencia, numeroDeParticiones, tiempoDeCompactacion));
 	log_info(LOGGERFS,"Create de consola finalizado con el valor: %d", resultado);
+	if(resultado==TABLA_CREADA)
+		log_info(LOGGERFS,"Tabla creada exitosamente");
 	return resultado;
 }
 
-int consolaDescribe(char* nombreDeLaTabla){
+int consolaDescribe(){
+	return EXIT_SUCCESS;
+}
+
+int consolaDescribeDeTabla(char* nombreDeLaTabla){
+	log_info(LOGGERFS,"Haciendo un describe por consola de la tabla %s", nombreDeLaTabla);
+	t_metadataDeLaTabla metadataDeLaTabla = describe(nombreDeLaTabla);
+
+	if((metadataDeLaTabla.particiones!=-1)&&
+			(metadataDeLaTabla.tiempoDeCompactacion!=-1)&&
+			(metadataDeLaTabla.consistencia!=NULL)){
+		log_info(LOGGERFS,"Info de la tabla recuperada");
+		printf("Info de la tabla: %s\n",nombreDeLaTabla);
+		printf("Numero de particiones: %d\n",metadataDeLaTabla.particiones);
+		printf("Tipo de consistencia: %s\n",metadataDeLaTabla.consistencia);
+		printf("Tiempo de compactacion: %d\n",metadataDeLaTabla.tiempoDeCompactacion);
+		}
+
 	return EXIT_SUCCESS;
 }
 
 int consolaDrop(char* nombreDeLaTabla){
-	return EXIT_SUCCESS;
+	log_info(LOGGERFS,"Haciendo un create por consola");
+	if(drop(nombreDeLaTabla)==TABLA_BORRADA){
+		log_info(LOGGERFS,"Tabla %s borrada exitosamente", nombreDeLaTabla);
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"No se pudo borrar la tabla %s", nombreDeLaTabla);
+		return EXIT_FAILURE;
+		}
 }
 
 int man(){
@@ -178,10 +205,12 @@ int man(){
 	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
 	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");
 	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
-	printf("6) DROP [NOMBRE_TABLA]\n");
-	printf("7) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
-	printf("8) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
-	printf("9) \"bitmap\", imprime el estado de cada bloque del FS\n");
+	printf("6) DESCRIBE, da la info de todas las tablas\n");
+	printf("7) DROP [NOMBRE_TABLA]\n");
+	printf("8) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
+	printf("9) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
+	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
 	return EXIT_SUCCESS;
 }
 

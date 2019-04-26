@@ -17,7 +17,7 @@ bool exiteLaTabla(char* nombreDeLaTabla){
 	string_append(&directorioDeLaTabla, "/Tables/");
 	string_append(&directorioDeLaTabla, nombreDeLaTabla);
 	struct stat st = {0};
-	if (stat(directorioDeLaTabla, &st) == -1){
+	if(stat(directorioDeLaTabla, &st) == -1){
 		log_info(LOGGERFS,"La tabla %s no existe", directorioDeLaTabla);
 		resultado=false;
 	}else{
@@ -27,110 +27,76 @@ bool exiteLaTabla(char* nombreDeLaTabla){
 	return resultado;
 }
 
-int crearDirectorioParaLaTabla(char* nombreDeLaTabla){
-	// Crear el directorio para dicha tabla.
-	char* directorioDeLaTabla=string_new();
-	string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioDeLaTabla, "/Tables");
-	mkdir(directorioDeLaTabla,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	string_append(&directorioDeLaTabla, "/");
-	string_append(&directorioDeLaTabla, nombreDeLaTabla);
-	mkdir(directorioDeLaTabla,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	log_info(LOGGERFS,"Directorio %s creado", directorioDeLaTabla);
-	return EXIT_SUCCESS;
-}
-
-int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
-		int numeroDeParticiones, int tiempoDeCompactacion){
-	// Crear el archivo Metadata asociado al mismo.
-	// Grabar en dicho archivo los parámetros pasados por el request.
-	// Ejemplo de archivo de metadata:
-	// CONSISTENCY=SC
-	// PARTITIONS=4
-	// COMPACTION_TIME=60000
-	char* nombreDelArchivo=string_new();
-	string_append(&nombreDelArchivo, configuracionDelFS.puntoDeMontaje);
-	string_append(&nombreDelArchivo, "/Tables/");
-	string_append(&nombreDelArchivo, nombreDeLaTabla);
-	string_append(&nombreDelArchivo, "/Metadata");
-	log_info(LOGGERFS,"Voy a crear el archivo %s con la metadata", nombreDelArchivo);
-
-	FILE * archivoTemp = fopen(nombreDelArchivo,"w");
-	fclose(archivoTemp);
-
-	t_config* configuracion = config_create(nombreDelArchivo);
-	config_set_value(configuracion, "CONSISTENCY", tipoDeConsistencia);
-	config_set_value(configuracion, "PARTITIONS", string_itoa(numeroDeParticiones));
-	config_set_value(configuracion, "COMPACTION_TIME", string_itoa(tiempoDeCompactacion));
-	config_save(configuracion);
-	config_destroy(configuracion);
-	log_info(LOGGERFS,"Archivo %s con la metadata creado", nombreDelArchivo);
-	free(nombreDelArchivo);
-	return EXIT_SUCCESS;
-}
-
-int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
-		int numeroDeParticiones){
-	// Crear los archivos binarios asociados a cada partición de la tabla
-	// y asignar a cada uno un bloque
-	FILE * archivoTemp;
-	char* nombreDelBinario;
-	int bloqueLibre;
-	t_config* configuracion;
-	char* cadenaTemp;
-
-	for(int i=1;i<=numeroDeParticiones;i++){
-		nombreDelBinario=string_new();
-		string_append(&nombreDelBinario, configuracionDelFS.puntoDeMontaje);
-		string_append(&nombreDelBinario, "/Tables/");
-		string_append(&nombreDelBinario, nombreDeLaTabla);
-		string_append(&nombreDelBinario, "/");
-		string_append(&nombreDelBinario, string_itoa(i));
-		string_append(&nombreDelBinario, ".bin");
-		log_info(LOGGERFS,"Creando el archivo binario %s", nombreDelBinario);
-		archivoTemp = fopen(nombreDelBinario,"w");
-		fclose(archivoTemp);
-		log_info(LOGGERFS,"Escribiendo en el archivo binario %s", nombreDelBinario);
-
-		bloqueLibre=obtenerBloqueLibreDelBitMap();
-
-		if(bloqueLibre!=-1){
-			ocuparBloqueDelBitmap(bloqueLibre);
-			// ejemplo del formato de cada bin
-			// SIZE=250
-			// BLOCKS=[40,21,82,3]
-			configuracion = config_create(nombreDelBinario);
-			config_set_value(configuracion, "SIZE", string_itoa(0));
-			cadenaTemp=string_new();
-			string_append(&cadenaTemp, "[");
-			string_append(&cadenaTemp, string_itoa(bloqueLibre));
-			string_append(&cadenaTemp, "]");
-			config_set_value(configuracion, "PARTITIONS", cadenaTemp);
-			config_save(configuracion);
-			log_info(LOGGERFS,"Archivo %s binario creado", nombreDelBinario);
-			config_destroy(configuracion);
-			free(cadenaTemp);
-			free(nombreDelBinario);
-		}else{
-			log_error(LOGGERFS,"No hay mas bloques libres");
-			return EXIT_FAILURE;
-			}
-
-		}
-	return EXIT_SUCCESS;
-}
-
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion){
 	if(exiteLaTabla(nombreDeLaTabla)==false){
 		crearDirectorioParaLaTabla(nombreDeLaTabla);
 		crearMetadataParaLaTabla(nombreDeLaTabla,tipoDeConsistencia,
 				numeroDeParticiones,tiempoDeCompactacion);
-		crearArchivosBinariosYAsignarBloques(nombreDeLaTabla,numeroDeParticiones);
+		if(crearArchivosBinariosYAsignarBloques(nombreDeLaTabla,numeroDeParticiones)==EXIT_SUCCESS){
+			log_info(LOGGERFS,"La tabla %s se creo correctamente", nombreDeLaTabla);
+		}else{
+			log_error(LOGGERFS,"No se puedo crear la tabla %s", nombreDeLaTabla);
+			}
+		return TABLA_CREADA;
 	}else{
 		log_error(LOGGERFS,"Se esta intentando crear una tabla con un nombre que ya existia: %s", nombreDeLaTabla);
 		printf("Se esta intentando crear una tabla con un nombre que ya existia: %s\n", nombreDeLaTabla);
 		return TABLA_YA_EXISTIA;
 		}
-	return TABLA_CREADA;
+}
+
+
+int drop(char* nombreDeLaTabla){
+	// Pasos para hacerlo:
+	// 1) Verificar que la tabla exista en el file system.
+	// 2) Eliminar directorio y todos los archivos de dicha tabla.
+
+	if(exiteLaTabla(nombreDeLaTabla)==false){
+		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe %s", nombreDeLaTabla);
+		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
+		return TABLA_NO_EXISTIA;
+	}else{
+		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
+		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
+		return TABLA_BORRADA;
+		}
+}
+
+t_metadataDeLaTabla describe(char* nombreDeLaTabla){
+	/* La operación Describe permite obtener la Metadata de una tabla en particular.
+	 *	1) Verificar que la tabla exista en el file system.
+	 *	2) Leer el archivo Metadata de dicha tabla.
+	 *	3) Retornar el contenido del archivo.
+	 */
+	t_metadataDeLaTabla metadata=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+	return metadata;
+}
+
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp){
+	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
+	 * Pasos:
+	 * 1) Verificar que la tabla exista en el file system. En caso que no exista,
+	 * informa el error y continúa su ejecución.
+	 * 2) Obtener la metadata asociada a dicha tabla.
+	 * 3) Verificar si existe en memoria una lista de datos a dumpear.
+	 * De no existir, alocar dicha memoria.
+	 * 4) El parámetro Timestamp es opcional. En caso que un request no lo
+	 * provea (por ejemplo insertando un valor desde la consola), se usará
+	 * el valor actual del Epoch UNIX.
+	 * 5)Insertar en la memoria temporal del punto anterior una nueva entrada que
+	 * contenga los datos enviados en la request.
+	 */
+	if(exiteLaTabla(nombreDeLaTabla)==false){
+		log_error(LOGGERFS,"Se esta intentando hace un insert de una tabla que no existe %s", nombreDeLaTabla);
+		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
+		return TABLA_NO_EXISTIA;
+	}else{
+		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
+		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
+		return TABLA_BORRADA;
+		}
+
+
+	return EXIT_SUCCESS;
 }
