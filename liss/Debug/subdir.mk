@@ -6,23 +6,29 @@
 C_SRCS += \
 ../api.c \
 ../fs.c \
+../funcionesAuxiliares.c \
+../funcionesComunes.c \
 ../lissandra.c \
-../variablesGlobales.c \
-../server.c 
+../server.c \
+../variablesGlobales.c 
 
 OBJS += \
 ./api.o \
 ./fs.o \
+./funcionesAuxiliares.o \
+./funcionesComunes.o \
 ./lissandra.o \
-./variablesGlobales.o \
-./server.o 
+./server.o \
+./variablesGlobales.o 
 
 C_DEPS += \
 ./api.d \
 ./fs.d \
+./funcionesAuxiliares.d \
+./funcionesComunes.d \
 ./lissandra.d \
-./variablesGlobales.d \
-./server.d 
+./server.d \
+./variablesGlobales.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
