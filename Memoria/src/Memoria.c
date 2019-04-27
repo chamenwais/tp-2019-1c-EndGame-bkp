@@ -102,7 +102,8 @@ int comunicarse_con_lissandra(void){
 
 void escuchar_clientes(int server_memoria, int socket_lfs) {
 	fd_set readset, writeset, exepset;
-	int max_fd, socket_kernel;
+	int max_fd;
+	int socket_kernel=-1;
 	char read_buffer[MAX_LINEA];
 	struct timeval tv = { 0, 500 };
 

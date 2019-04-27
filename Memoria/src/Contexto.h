@@ -67,16 +67,6 @@ enum tipo_logueo {
 	l_error
 };
 
-/*** Enums de la consola***/
-enum comandos {
-	SELECT,
-	INSERT,
-	CREATE,
-	DESCRIBE,
-	DROP,
-	JOURNAL
-};
-
 struct conexion_cliente {
 	int pid;
 	int socket;

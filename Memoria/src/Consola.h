@@ -11,19 +11,28 @@
 #include "Contexto.h"
 #include "Utilidades.h"
 
-void consola_select();
-void consola_insert();
-void consola_create();
-void consola_describe();
-void consola_drop();
+#define _SELECT "SELECT"
+#define _INSERT "INSERT"
+#define _CREATE "CREATE"
+#define _DESCRIBE "DESCRIBE"
+#define _DROP "DROP"
+#define _JOURNAL "JOURNAL"
+
+void consola_select(char**);
+void consola_insert(char**);
+void consola_create(char**);
+void consola_describe(char**);
+void consola_drop(char**);
 void consola_journal();
-int consola_obtener_key_comando(char* comando);
-void consola_obtener_parametros(char* buffer, char** comando, char** parametro1, char** parametro2);
-void validar_parametro_consola(char ** parametro);
-void limpiar_token_consola(char* token);
-int consola_derivar_comando(char * buffer);
+int consola_obtener_key_comando(char**);
+void obtener_un_parametro(char** , char** );
+void obtener_dos_parametros(char** , char** , char** );
+void obtener_cuatro_parametros(char** , char** ,char** , char** , char** );
+int validar_parametro_consola(char ** );
+int consola_derivar_comando(char * );
 void *consola();
-int consola_leer_stdin(char *read_buffer, size_t max_len);
+int consola_leer_stdin(char *, size_t );
+void limpiar_parametro(char* );
 
 
 #endif /* MEMORIA_SRC_CONSOLA_H_ */

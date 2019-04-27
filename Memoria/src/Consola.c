@@ -7,189 +7,297 @@
 
 #include "Consola.h"
 
-void consola_select(){
-	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia SELECT");
-	//TODO hacer
+void loguear_cant_incorrecta_params(char *nombre_comando) {
+	logger(escribir_loguear, l_error,
+			"La cantidad de parámetros es incorrecta para el comando %s",nombre_comando);
 }
 
-void consola_insert(){
-	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia INSERT");
-	//TODO hacer
+void loguear_comienzo_ejecucion_sentencia(char *nombre_comando) {
+	logger(escribir_loguear, l_trace, "Se ejecutará la sentencia %s",nombre_comando);
 }
 
-void consola_create(){
-	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia CREATE");
-	//TODO hacer
+void consola_select(char** comandos){
+	int cant_param_correcta = 0;
+	char *nombre_tabla = NULL;
+	char *key = NULL;
+	obtener_dos_parametros(comandos, &nombre_tabla, &key);
+	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
+	cant_param_correcta=validar_parametro_consola(&key);
+	if(cant_param_correcta<0){
+		loguear_cant_incorrecta_params(_SELECT);
+		return;
+	}
+
+	loguear_comienzo_ejecucion_sentencia(_SELECT);
+	//TODO hacer algo
+
+	//Limpio el nombre_tabla
+	limpiar_parametro(nombre_tabla);
+
+	//Limpio la key
+	limpiar_parametro(key);
+
 }
 
-void consola_describe(){
-	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia DESCRIBE");
-	//TODO hacer
+void consola_insert(char** comandos){
+	int cant_param_correcta = 0;
+	char *nombre_tabla = NULL;
+	char *key = NULL;
+	char *value = NULL;
+	char *timestamp = NULL;
+	obtener_cuatro_parametros(comandos, &nombre_tabla, &key, &value, &timestamp);
+	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
+	cant_param_correcta=validar_parametro_consola(&key);
+	cant_param_correcta=validar_parametro_consola(&value);
+	cant_param_correcta=validar_parametro_consola(&timestamp);
+	if(cant_param_correcta<0){
+		loguear_cant_incorrecta_params(_INSERT);
+		return;
+	}
+
+	loguear_comienzo_ejecucion_sentencia(_INSERT);
+	//TODO hacer algo
+
+	//Limpio el nombre_tabla
+	limpiar_parametro(nombre_tabla);
+
+	//Limpio la key
+	limpiar_parametro(key);
+
+	//Limpio la value
+	limpiar_parametro(value);
+
+	//Limpio la timestamp
+	limpiar_parametro(timestamp);
+
 }
 
-void consola_drop(){
-	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia DROP");
-	//TODO hacer
+void consola_create(char** comandos){
+	int cant_param_correcta = 0;
+	char *nombre_tabla = NULL;
+	char *tipo_consistencia = NULL;
+	char *numero_particiones = NULL;
+	char *compaction_time = NULL;
+	obtener_cuatro_parametros(comandos, &nombre_tabla, &tipo_consistencia, &numero_particiones, &compaction_time);
+	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
+	cant_param_correcta=validar_parametro_consola(&tipo_consistencia);
+	cant_param_correcta=validar_parametro_consola(&numero_particiones);
+	cant_param_correcta=validar_parametro_consola(&compaction_time);
+	if(cant_param_correcta<0){
+		loguear_cant_incorrecta_params(_CREATE);
+		return;
+	}
+
+	loguear_comienzo_ejecucion_sentencia(_CREATE);
+	//TODO hacer algo
+
+	//Limpio el nombre_tabla
+	limpiar_parametro(nombre_tabla);
+
+	//Limpio la tipo_consistencia
+	limpiar_parametro(tipo_consistencia);
+
+	//Limpio la numero_particiones
+	limpiar_parametro(numero_particiones);
+
+	//Limpio la compaction_time
+	limpiar_parametro(compaction_time);
+
+}
+
+void consola_describe(char** comandos){
+	int cant_param_correcta = 0;
+	char *nombre_tabla = NULL;
+	obtener_un_parametro(comandos, &nombre_tabla);
+	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
+	if(cant_param_correcta<0){
+		loguear_cant_incorrecta_params(_DESCRIBE);
+		return;
+	}
+
+	loguear_comienzo_ejecucion_sentencia(_DESCRIBE);
+	//TODO hacer algo
+
+	//Limpio el nombre_tabla
+	limpiar_parametro(nombre_tabla);
+
+}
+
+void consola_drop(char** comandos){
+	int cant_param_correcta = 0;
+	char *nombre_tabla = NULL;
+	obtener_un_parametro(comandos, &nombre_tabla);
+	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
+	if(cant_param_correcta<0){
+		loguear_cant_incorrecta_params(_DROP);
+		return;
+	}
+
+	loguear_comienzo_ejecucion_sentencia(_DROP);
+	//TODO hacer algo
+
+	//Limpio el nombre_tabla
+	limpiar_parametro(nombre_tabla);
+
 }
 
 void consola_journal(){
-	logger(escribir_loguear,l_trace,"Se ejecutó la sentencia JOURNAL");
-	//TODO hacer
+
+	loguear_comienzo_ejecucion_sentencia(_JOURNAL);
+	//TODO hacer algo
+
 }
 
-int consola_obtener_key_comando(char* comando)
+int consola_obtener_key_comando(char** comandos)
 {
 	int key = -1;
+	char *comando=comandos[0];
 
 	if(comando == NULL)
 		return key;
 
 	if(string_equals_ignore_case(comando, "select")){
-		return SELECT;
+		consola_select(comandos);
+		return 0;
 	}
 	if(string_equals_ignore_case(comando, "insert")){
-		return INSERT;
+		consola_insert(comandos);
+		return 0;
 	}
 	if(string_equals_ignore_case(comando, "create")){
-		return CREATE;
+		consola_create(comandos);
+		return 0;
 	}
 	if(string_equals_ignore_case(comando, "describe")){
-		return DESCRIBE;
+		consola_describe(comandos);
+		return 0;
 	}
 	if(string_equals_ignore_case(comando, "drop")){
-		return DROP;
+		consola_drop(comandos);
+		return 0;
 	}
 	if(string_equals_ignore_case(comando, "journal")){
-		return JOURNAL;
+		consola_journal();
+		return 0;
 	}
-
-	logger(escribir_loguear, l_error,"No conozco ese comando, proba de nuevo\n");
 
 	return key;
 }
 
-void consola_obtener_parametros(char* buffer, char** comando, char** parametro1, char** parametro2){
-	char** comandos;
-	int i,j=0;
+void limpiar_elementos_comando(int cant_parametros, char** elementos) {
+	for (int i = 0; i > cant_parametros; i++) {
+		free(elementos[i]);
+	}
+}
 
-	comandos = string_n_split(buffer,3," ");
+void obtener_un_parametro(char** comandos, char** parametro1){
+	int j=0;
 
 	while(comandos[j])
 	{
 		switch(j)
 		{
-			case 0:
-				*comando = comandos[j];
-				break;
 			case 1:
-				*parametro1 = comandos[j];
-				break;
-			case 2:
-				*parametro2 = comandos[j];
+				*parametro1 = string_duplicate(comandos[j]);
 				break;
 		}
 
 		j++;
 	}
 
-	for(i=0;i>j;i++)
-	{
-		//log_info(logger,"parte %d: %s\n", j,comandos[j]);
-		free(comandos[j]);
-	}
+	limpiar_elementos_comando(j, comandos);
 
 	free(comandos);
 }
 
+void obtener_dos_parametros(char** comandos, char** parametro1, char** parametro2){
+	int j=0;
 
-void validar_parametro_consola(char ** parametro){
+	while(comandos[j])
+	{
+		switch(j)
+		{
+			case 1:
+				*parametro1 = string_duplicate(comandos[j]);
+				break;
+			case 2:
+				*parametro2 = string_duplicate(comandos[j]);
+				break;
+		}
+
+		j++;
+	}
+
+	limpiar_elementos_comando(j, comandos);
+
+	free(comandos);
+}
+
+void obtener_cuatro_parametros(char** comandos, char** parametro1,
+		char** parametro2, char** parametro3, char** parametro4){
+	int j=0;
+
+	while(comandos[j])
+	{
+		switch(j)
+		{
+			case 1:
+				*parametro1 = string_duplicate(comandos[j]);
+				break;
+			case 2:
+				*parametro2 = string_duplicate(comandos[j]);
+				break;
+			case 3:
+				*parametro3 = string_duplicate(comandos[j]);
+				break;
+			case 4:
+				*parametro4 = string_duplicate(comandos[j]);
+				break;
+		}
+
+		j++;
+	}
+
+	limpiar_elementos_comando(j, comandos);
+
+	free(comandos);
+}
+
+int validar_parametro_consola(char ** parametro){
 	if(*parametro!=NULL){
-		return;
+		return 0;
 	}
 	*parametro="-1";
+	return -1;
+}
+
+void limpiar_parametro(char* parametro) {
+	//Limpio el parametro
+	if (parametro != NULL && !string_equals_ignore_case(parametro, "-1")) {
+		free(parametro);
+		parametro = NULL;
+	}
 }
 
 int consola_derivar_comando(char * buffer){
 
 	int comando_key;
-	char *comando = NULL;
-	char *parametro1 = NULL;
-	char *parametro2 = NULL;
 	int res = 0;
-
-	// Separa la linea de consola en comando y sus parametros
-	consola_obtener_parametros(buffer, &comando, &parametro1, &parametro2);
-
-	// Obtiene la clave del comando a ejecutar para el switch
-	comando_key = consola_obtener_key_comando(comando);
-
-	validar_parametro_consola(&parametro1);
-	validar_parametro_consola(&parametro2);
-
-	switch(comando_key){
-		case SELECT:
-			consola_select();
-			break;
-		case INSERT:
-			consola_insert();
-			break;
-		case CREATE:
-			consola_create();
-			break;
-		case DESCRIBE:
-			consola_describe();
-			break;
-		case DROP:
-			consola_drop();
-			break;
-		case JOURNAL:
-			consola_journal();
-			break;
+	char** comandos = string_n_split(buffer,10," ");
+	if(comandos[0]==NULL){
+		logger(escribir_loguear, l_error,"No pude interpretar el comando, proba de nuevo");
+		return res;
 	}
 
-	//Limpio el parametro 1
-	if(parametro1 != NULL && !string_equals_ignore_case(parametro1,"-1"))
-	{
-		free(parametro1);
-		parametro1 = NULL;
-	}
+	// Obtiene la clave del comando a ejecutar y manda a ejecutarlo
+	comando_key = consola_obtener_key_comando(comandos);
 
-	//Limpio el parametro 2
-	if(parametro2 != NULL && !string_equals_ignore_case(parametro2,"-1"))
-	{
-		free(parametro2);
-		parametro2 = NULL;
+	if(comando_key<0){
+		logger(escribir_loguear, l_error,"No conozco ese comando, proba de nuevo");
+		return res;
 	}
-
-	free(comando);
 
 	return res;
-}
-
-void *consola() {
-
-	int res = 0;
-	char *buffer = NULL;
-
-	logger(escribir_loguear,l_info,"\nAbriendo consola...\n");
-
-	while(TRUE){
-
-		//Trae la linea de consola
-		buffer = readline(">");
-		//consola_leer_stdin(buffer, MAX_LINEA);
-
-		res = consola_derivar_comando(buffer);
-
-		free(buffer);
-
-		//Sale de la consola con exit
-		if(res)
-			break;
-	}
-
-	pthread_exit(0);
-	return 0;
 }
 
 int consola_leer_stdin(char *read_buffer, size_t max_len)
