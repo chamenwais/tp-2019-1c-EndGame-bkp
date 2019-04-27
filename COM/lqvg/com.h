@@ -26,6 +26,18 @@ enum MENSAJES {
 	TABLA_BORRADA
 };
 
+enum COMANDOS {
+	SELECT,
+	INSERT,
+	CREATE,
+	DESCRIBE,
+	DROP,
+	JOURNAL,
+	RUN,
+	ADD,
+	METRICS
+};
+
 typedef struct {
 	enum MENSAJES tipoDeMensaje;
 	int tamanio;
