@@ -9,7 +9,8 @@
 
 t_configuracionDelKernel configKernel;
 t_log* LOG_KERNEL;
-pthread_t threadConsola;
+pthread_t threadConsola, threadPlanif;
+t_list* listaNew, listaReady, listaExec, listaExit;
 
 int inicializarVariablesGlobales(){
 
