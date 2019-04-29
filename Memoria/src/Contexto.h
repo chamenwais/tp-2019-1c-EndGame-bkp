@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <lqvg/com.h>
 #include <lqvg/protocolo.h>
-
+#include <time.h>
 
 /* Claves archivo de configuracion*/
 #define CLAVE_CONFIG_PUERTO_ESCUCHA "puerto_escucha"
