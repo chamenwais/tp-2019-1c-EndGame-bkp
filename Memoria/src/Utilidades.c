@@ -63,12 +63,12 @@ void obtener_numero_memoria(){
 }
 
 void obtener_ip_seeds(){
-	IP_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
+	IPS_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
 	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'IP de Seeds'");
 }
 
 void obtener_puerto_seeds(){
-	PUERTO_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
+	PUERTOS_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
 	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Puerto de Seeds'");
 }
 
