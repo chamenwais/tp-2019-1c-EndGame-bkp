@@ -60,3 +60,4 @@ dkms.conf
 */Debug/Kernel.log
 *.cproject
 *.project
+/.metadata/

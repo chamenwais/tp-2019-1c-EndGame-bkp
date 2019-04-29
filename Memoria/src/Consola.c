@@ -7,68 +7,76 @@
 
 #include "Consola.h"
 
-void loguear_cant_incorrecta_params(char *nombre_comando) {
+void loguear_cant_menor_params(char *nombre_comando) {
 	logger(escribir_loguear, l_error,
-			"La cantidad de parámetros es incorrecta para el comando %s",nombre_comando);
+			"La cantidad de parámetros es menor a las necesarias para el comando %s",nombre_comando);
 }
 
 void loguear_comienzo_ejecucion_sentencia(char *nombre_comando) {
 	logger(escribir_loguear, l_trace, "Se ejecutará la sentencia %s",nombre_comando);
 }
 
+void loguear_cant_mayor_params(char *nombre_comando) {
+	logger(escribir_loguear, l_warning
+			, "La cantidad de parámetros es mayor a las necesarias para el comando %s",nombre_comando);
+}
+
 void consola_select(char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
-	char *key = NULL;
-	obtener_dos_parametros(comandos, &nombre_tabla, &key);
+	char *string_key = NULL;
+	obtener_dos_parametros(comandos, &nombre_tabla, &string_key, _SELECT);
 	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
-	cant_param_correcta=validar_parametro_consola(&key);
+	cant_param_correcta=validar_parametro_consola(&string_key);
 	if(cant_param_correcta<0){
-		loguear_cant_incorrecta_params(_SELECT);
+		loguear_cant_menor_params(_SELECT);
 		return;
 	}
 
 	loguear_comienzo_ejecucion_sentencia(_SELECT);
+	loguear_dos_parametros_recibidos(nombre_tabla,string_key);
+	int key=atoi(string_key);
 	//TODO hacer algo
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);
 
 	//Limpio la key
-	limpiar_parametro(key);
+	limpiar_parametro(string_key);
 
 }
 
 void consola_insert(char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
-	char *key = NULL;
-	char *value = NULL;
-	char *timestamp = NULL;
-	obtener_cuatro_parametros(comandos, &nombre_tabla, &key, &value, &timestamp);
+	char *string_key = NULL;
+	char *string_value = NULL;
+	char *string_timestamp = NULL;
+	obtener_cuatro_parametros(comandos, &nombre_tabla, &string_key, &string_value, &string_timestamp, _INSERT);
 	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
-	cant_param_correcta=validar_parametro_consola(&key);
-	cant_param_correcta=validar_parametro_consola(&value);
-	cant_param_correcta=validar_parametro_consola(&timestamp);
+	cant_param_correcta=validar_parametro_consola(&string_key);
+	cant_param_correcta=validar_parametro_consola(&string_value);
+	cant_param_correcta=validar_parametro_consola(&string_timestamp);
 	if(cant_param_correcta<0){
-		loguear_cant_incorrecta_params(_INSERT);
+		loguear_cant_menor_params(_INSERT);
 		return;
 	}
 
 	loguear_comienzo_ejecucion_sentencia(_INSERT);
+	loguear_cuatro_parametros_recibidos(nombre_tabla, string_key, string_value, string_timestamp);
 	//TODO hacer algo
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);
 
 	//Limpio la key
-	limpiar_parametro(key);
+	limpiar_parametro(string_key);
 
 	//Limpio la value
-	limpiar_parametro(value);
+	limpiar_parametro(string_value);
 
 	//Limpio la timestamp
-	limpiar_parametro(timestamp);
+	limpiar_parametro(string_timestamp);
 
 }
 
@@ -76,19 +84,21 @@ void consola_create(char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
 	char *tipo_consistencia = NULL;
-	char *numero_particiones = NULL;
-	char *compaction_time = NULL;
-	obtener_cuatro_parametros(comandos, &nombre_tabla, &tipo_consistencia, &numero_particiones, &compaction_time);
+	char *string_numero_particiones = NULL;
+	char *string_compaction_time = NULL;
+	obtener_cuatro_parametros(comandos, &nombre_tabla, &tipo_consistencia
+			, &string_numero_particiones, &string_compaction_time, _CREATE);
 	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
 	cant_param_correcta=validar_parametro_consola(&tipo_consistencia);
-	cant_param_correcta=validar_parametro_consola(&numero_particiones);
-	cant_param_correcta=validar_parametro_consola(&compaction_time);
+	cant_param_correcta=validar_parametro_consola(&string_numero_particiones);
+	cant_param_correcta=validar_parametro_consola(&string_compaction_time);
 	if(cant_param_correcta<0){
-		loguear_cant_incorrecta_params(_CREATE);
+		loguear_cant_menor_params(_CREATE);
 		return;
 	}
 
 	loguear_comienzo_ejecucion_sentencia(_CREATE);
+	loguear_cuatro_parametros_recibidos(nombre_tabla, tipo_consistencia, string_numero_particiones, string_compaction_time);
 	//TODO hacer algo
 
 	//Limpio el nombre_tabla
@@ -97,25 +107,26 @@ void consola_create(char** comandos){
 	//Limpio la tipo_consistencia
 	limpiar_parametro(tipo_consistencia);
 
-	//Limpio la numero_particiones
-	limpiar_parametro(numero_particiones);
+	//Limpio la string_numero_particiones
+	limpiar_parametro(string_numero_particiones);
 
-	//Limpio la compaction_time
-	limpiar_parametro(compaction_time);
+	//Limpio la string_compaction_time
+	limpiar_parametro(string_compaction_time);
 
 }
 
 void consola_describe(char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
-	obtener_un_parametro(comandos, &nombre_tabla);
+	obtener_un_parametro(comandos, &nombre_tabla, _DESCRIBE);
 	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
 	if(cant_param_correcta<0){
-		loguear_cant_incorrecta_params(_DESCRIBE);
+		loguear_cant_menor_params(_DESCRIBE);
 		return;
 	}
 
 	loguear_comienzo_ejecucion_sentencia(_DESCRIBE);
+	loguear_un_parametros_recibido(nombre_tabla);
 	//TODO hacer algo
 
 	//Limpio el nombre_tabla
@@ -126,14 +137,15 @@ void consola_describe(char** comandos){
 void consola_drop(char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
-	obtener_un_parametro(comandos, &nombre_tabla);
+	obtener_un_parametro(comandos, &nombre_tabla, _DROP);
 	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
 	if(cant_param_correcta<0){
-		loguear_cant_incorrecta_params(_DROP);
+		loguear_cant_menor_params(_DROP);
 		return;
 	}
 
 	loguear_comienzo_ejecucion_sentencia(_DROP);
+	loguear_un_parametros_recibido(nombre_tabla);
 	//TODO hacer algo
 
 	//Limpio el nombre_tabla
@@ -190,7 +202,7 @@ void limpiar_elementos_comando(int cant_parametros, char** elementos) {
 	}
 }
 
-void obtener_un_parametro(char** comandos, char** parametro1){
+void obtener_un_parametro(char** comandos, char** parametro1, char * proceso){
 	int j=0;
 
 	while(comandos[j])
@@ -200,6 +212,8 @@ void obtener_un_parametro(char** comandos, char** parametro1){
 			case 1:
 				*parametro1 = string_duplicate(comandos[j]);
 				break;
+			case 2:
+				loguear_cant_mayor_params(proceso);
 		}
 
 		j++;
@@ -210,7 +224,11 @@ void obtener_un_parametro(char** comandos, char** parametro1){
 	free(comandos);
 }
 
-void obtener_dos_parametros(char** comandos, char** parametro1, char** parametro2){
+void loguear_un_parametros_recibido(char * param1){
+	logger(escribir_loguear, l_debug,"El parámetro fue '%s'", param1);
+}
+
+void obtener_dos_parametros(char** comandos, char** parametro1, char** parametro2, char * proceso){
 	int j=0;
 
 	while(comandos[j])
@@ -223,6 +241,8 @@ void obtener_dos_parametros(char** comandos, char** parametro1, char** parametro
 			case 2:
 				*parametro2 = string_duplicate(comandos[j]);
 				break;
+			case 3:
+				loguear_cant_mayor_params(proceso);
 		}
 
 		j++;
@@ -233,8 +253,12 @@ void obtener_dos_parametros(char** comandos, char** parametro1, char** parametro
 	free(comandos);
 }
 
+void loguear_dos_parametros_recibidos(char * param1, char * param2){
+	logger(escribir_loguear, l_debug,"Los parámetros fueron '%s' y '%s'", param1, param2);
+}
+
 void obtener_cuatro_parametros(char** comandos, char** parametro1,
-		char** parametro2, char** parametro3, char** parametro4){
+		char** parametro2, char** parametro3, char** parametro4, char * proceso){
 	int j=0;
 
 	while(comandos[j])
@@ -253,6 +277,8 @@ void obtener_cuatro_parametros(char** comandos, char** parametro1,
 			case 4:
 				*parametro4 = string_duplicate(comandos[j]);
 				break;
+			case 5:
+				loguear_cant_mayor_params(proceso);
 		}
 
 		j++;
@@ -261,6 +287,11 @@ void obtener_cuatro_parametros(char** comandos, char** parametro1,
 	limpiar_elementos_comando(j, comandos);
 
 	free(comandos);
+}
+
+void loguear_cuatro_parametros_recibidos(char * param1, char * param2, char * param3, char* param4){
+	logger(escribir_loguear, l_debug,"Los parámetros fueron '%s', '%s', '%s' y '%s'"
+			, param1, param2, param3, param4);
 }
 
 int validar_parametro_consola(char ** parametro){
