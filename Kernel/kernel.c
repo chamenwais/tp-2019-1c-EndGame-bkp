@@ -10,7 +10,9 @@
 int main(int argc,char** argv) {
 	if(inicializarVariablesGlobales()==EXIT_SUCCESS){
 	inicializarLogKernel();
+	inicializarListas();
 	if(levantarConfiguracionInicialDelKernel()==EXIT_SUCCESS){
+	configurar_signals();
 	int socket_memoria = conectarse_con_memoria();
 	if(lanzarConsola()==EXIT_SUCCESS){
 	if(esperarAQueTermineLaConsola()==EXIT_FAILURE){
