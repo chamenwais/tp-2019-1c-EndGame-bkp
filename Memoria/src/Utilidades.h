@@ -23,6 +23,12 @@ void obtener_ip_filesystem();
 void obtener_puerto_filesystem();
 void obtener_tamanio_memoria();
 void obtener_numero_memoria();
+void obtener_ip_seeds();
+void obtener_puerto_seeds();
+void obtener_retardo_acceso_memoria();
+void obtener_retardo_acceso_filesystem();
+void obtener_tiempo_journal();
+void obtener_tiempo_gossiping();
 void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 		char* log_colors[8], char* msj_salida);
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida);

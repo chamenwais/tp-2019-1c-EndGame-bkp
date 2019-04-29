@@ -62,6 +62,36 @@ void obtener_numero_memoria(){
 	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Numero de memoria': %d",NUMERO_MEMORIA);
 }
 
+void obtener_ip_seeds(){
+	IP_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'IP de Seeds'");
+}
+
+void obtener_puerto_seeds(){
+	PUERTO_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Puerto de Seeds'");
+}
+
+void obtener_retardo_acceso_memoria(){
+	RETARDO_ACCESO_MEMORIA=config_get_int_value(g_config, CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Retardo de acceso a memoria principal': %d",RETARDO_ACCESO_MEMORIA);
+}
+
+void obtener_retardo_acceso_filesystem(){
+	RETARDO_ACCESO_FILESYSTEM=config_get_int_value(g_config, CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Retardo de acceso a filesystem': %d",RETARDO_ACCESO_FILESYSTEM);
+}
+
+void obtener_tiempo_journal(){
+	TIEMPO_JOURNAL=config_get_long_value(g_config, CLAVE_CONFIG_TIEMPO_JOURNAL);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Tiempo de journal': %d",TIEMPO_JOURNAL);
+}
+
+void obtener_tiempo_gossiping(){
+	TIEMPO_GOSSIPING=config_get_long_value(g_config, CLAVE_CONFIG_TIEMPO_GOSSIPING);
+	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Tiempo de gossiping': %d",TIEMPO_GOSSIPING);
+}
+
 void leer_config(void) {
 	logger(escribir_loguear, l_info,"Cargando archivo de configuración...");
 	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_ESCUCHA, obtener_puerto_escucha);
@@ -69,6 +99,12 @@ void leer_config(void) {
 	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_FILESYSTEM, obtener_puerto_filesystem);
 	obtener_valor_configuracion(CLAVE_CONFIG_TAMANIO_MEMORIA, obtener_tamanio_memoria);
 	obtener_valor_configuracion(CLAVE_CONFIG_NUMERO_MEMORIA, obtener_numero_memoria);
+	obtener_valor_configuracion(CLAVE_CONFIG_IP_SEEDS, obtener_ip_seeds);
+	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_SEEDS, obtener_puerto_seeds);
+	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA, obtener_retardo_acceso_memoria);
+	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM, obtener_retardo_acceso_filesystem);
+	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_JOURNAL, obtener_tiempo_journal);
+	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_GOSSIPING, obtener_tiempo_gossiping);
 	logger(escribir_loguear, l_info,"Se cargó  archivo de configuración exitosamente");
 }
 
@@ -163,6 +199,7 @@ void terminar_programa(int codigo_finalizacion){
 	logger(escribir_loguear, l_warning,"Se va a finalizar la memoria %d. Bye.", NUMERO_MEMORIA);
 	log_destroy(g_logger);
 	config_destroy(g_config);
+	free(MEMORIA_PRINCIPAL);
 	exit(codigo_finalizacion);
 }
 

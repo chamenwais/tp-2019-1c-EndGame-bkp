@@ -20,10 +20,52 @@ int main(int argc, char ** argv) {
 	stdin_no_bloqueante();
 	inicializar_conexiones_cliente();
 
+	iniciar_la_memoria_principal();
+	iniciar_el_proceso_de_gossiping();
+	iniciar_el_proceso_de_journaling();
+
 	int server_memoria = iniciar_servidor();
 
 	escuchar_clientes(server_memoria, socket_lfs);
 	return EXIT_SUCCESS;
+}
+
+void iniciar_la_memoria_principal(){
+	MEMORIA_PRINCIPAL = reservar_total_memoria();
+}
+
+char *reservar_total_memoria(){
+	return malloc(TAMANIO_MEMORIA);
+}
+
+void iniciar_el_proceso_de_gossiping(){
+	pthread_t idHilo;
+	int resultado_de_hacer_el_hilo = pthread_create (&idHilo, NULL, realizar_gossiping, "Hilo de gossiping");
+	if(resultado_de_hacer_el_hilo!=0){
+		logger(escribir_loguear,l_error,"Error al crear el hilo de gossiping, vas a tener que levantar la memoria de nuevo");
+		terminar_programa(EXIT_FAILURE);
+	}
+}
+
+void *realizar_gossiping(){
+	logger(escribir_loguear, l_info, "Procedo a realizar el gossiping...");
+	sleep(TIEMPO_GOSSIPING);
+	//Hacer el gossiping
+}
+
+void iniciar_el_proceso_de_journaling(){
+	pthread_t idHilo;
+	int resultado_de_hacer_el_hilo = pthread_create (&idHilo, NULL, realizar_journaling, "Hilo de journaling");
+	if(resultado_de_hacer_el_hilo!=0){
+		logger(escribir_loguear,l_error,"Error al crear el hilo de journal, vas a tener que levantar la memoria de nuevo");
+		terminar_programa(EXIT_FAILURE);
+	}
+}
+
+void *realizar_journaling(){
+	logger(escribir_loguear, l_info, "Procedo a realizar el journal...");
+	sleep(TIEMPO_JOURNAL);
+	//Hacer el gossiping
 }
 
 void inicializar_conexiones_cliente(void){

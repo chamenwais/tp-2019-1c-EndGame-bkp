@@ -23,5 +23,11 @@ void loguear_cerrar_conexion(int, int, int, int);
 void validar_conexion_con_lissandra(int);
 int agregar_conexion_lista_clientes(int,struct sockaddr_in);
 struct sockaddr_in crear_direccion_cliente();
+void iniciar_el_proceso_de_gossiping();
+void iniciar_el_proceso_de_journaling();
+void iniciar_la_memoria_principal();
+char *reservar_total_memoria();
+void *realizar_gossiping();
+void *realizar_journaling();
 
 #endif /* MEMORIA_H_ */
