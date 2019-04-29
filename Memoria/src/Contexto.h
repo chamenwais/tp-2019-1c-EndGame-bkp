@@ -37,6 +37,12 @@
 #define CLAVE_CONFIG_PUERTO_FILESYSTEM "puerto_filesystem"
 #define CLAVE_CONFIG_TAMANIO_MEMORIA "tamanio_memoria"
 #define CLAVE_CONFIG_NUMERO_MEMORIA "numero_memoria"
+#define CLAVE_CONFIG_IP_SEEDS "ip_seeds"
+#define CLAVE_CONFIG_PUERTO_SEEDS "puerto_seeds"
+#define CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA "retardo_acceso_memoria"
+#define CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM "retardo_acceso_filesystem"
+#define CLAVE_CONFIG_TIEMPO_JOURNAL "tiempo_journal"
+#define CLAVE_CONFIG_TIEMPO_GOSSIPING "tiempo_gossiping"
 #define MAX_CLIENTES 20
 #define STDIN 0
 #define TRUE 1
@@ -49,6 +55,13 @@ extern char* IP_FILESYSTEM;
 extern int PUERTO_FILESYSTEM;
 extern int TAMANIO_MEMORIA;
 extern int NUMERO_MEMORIA;
+extern char* IP_SEEDS;
+extern char* PUERTO_SEEDS;
+extern int RETARDO_ACCESO_MEMORIA;
+extern int RETARDO_ACCESO_FILESYSTEM;
+extern long TIEMPO_JOURNAL;
+extern long TIEMPO_GOSSIPING;
+extern char* MEMORIA_PRINCIPAL;
 
 extern int TAMANIO_VALUE;
 
