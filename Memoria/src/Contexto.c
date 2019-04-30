@@ -21,6 +21,7 @@ int RETARDO_ACCESO_FILESYSTEM;
 long TIEMPO_JOURNAL;
 long TIEMPO_GOSSIPING;
 char * MEMORIA_PRINCIPAL;
+t_list * seeds=NULL;
 
 t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 t_log* g_logger;

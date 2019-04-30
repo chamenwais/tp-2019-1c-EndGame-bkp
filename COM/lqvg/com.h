@@ -38,6 +38,12 @@ enum COMANDOS {
 	METRICS
 };
 
+struct memo_del_pool {
+	char * ip;
+	char * puerto;
+};
+typedef struct memo_del_pool t_memo_del_pool;
+
 typedef struct {
 	enum MENSAJES tipoDeMensaje;
 	int tamanio;

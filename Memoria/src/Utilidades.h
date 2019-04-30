@@ -40,5 +40,6 @@ void validar_comunicacion(int, char*);
 void cerrar_socket_y_terminar(int);
 void mandar_handshake_a(char *, int, enum PROCESO);
 void recibir_handshake_kernel(int);
+void construir_lista_seeds();
 
 #endif /* UTILIDADES_H_ */

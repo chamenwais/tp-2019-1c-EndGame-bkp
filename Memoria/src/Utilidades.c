@@ -99,13 +99,28 @@ void leer_config(void) {
 	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_FILESYSTEM, obtener_puerto_filesystem);
 	obtener_valor_configuracion(CLAVE_CONFIG_TAMANIO_MEMORIA, obtener_tamanio_memoria);
 	obtener_valor_configuracion(CLAVE_CONFIG_NUMERO_MEMORIA, obtener_numero_memoria);
+
 	obtener_valor_configuracion(CLAVE_CONFIG_IP_SEEDS, obtener_ip_seeds);
 	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_SEEDS, obtener_puerto_seeds);
+	construir_lista_seeds();
+
 	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA, obtener_retardo_acceso_memoria);
 	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM, obtener_retardo_acceso_filesystem);
 	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_JOURNAL, obtener_tiempo_journal);
 	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_GOSSIPING, obtener_tiempo_gossiping);
-	logger(escribir_loguear, l_info,"Se cargó  archivo de configuración exitosamente");
+	logger(escribir_loguear, l_info,"Se cargó archivo de configuración exitosamente");
+}
+
+void construir_lista_seeds(){
+	seeds=list_create();
+	for(int i=0;IPS_SEEDS[i]!=NULL;i++){
+		for(int j=0;PUERTOS_SEEDS[j]!=NULL;j++){
+			t_memo_del_pool memoria_del_pool;
+			memoria_del_pool.ip=IPS_SEEDS[i];
+			memoria_del_pool.puerto=PUERTOS_SEEDS[j];
+			list_add(seeds, &memoria_del_pool);
+		}
+	}
 }
 
 void configurar_signals(void) {
@@ -200,6 +215,7 @@ void terminar_programa(int codigo_finalizacion){
 	log_destroy(g_logger);
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
+	list_destroy(seeds);
 	exit(codigo_finalizacion);
 }
 

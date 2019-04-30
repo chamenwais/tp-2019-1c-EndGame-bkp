@@ -253,7 +253,7 @@ int consola_obtener_key_comando(char** comandos)
 }
 
 void limpiar_elementos_comando(int cant_parametros, char** elementos) {
-	for (int i = 0; i > cant_parametros; i++) {
+	for (int i = 0; i < cant_parametros; i++) {
 		free(elementos[i]);
 	}
 }

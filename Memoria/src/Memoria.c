@@ -45,6 +45,7 @@ void iniciar_el_proceso_de_gossiping(){
 		logger(escribir_loguear,l_error,"Error al crear el hilo de gossiping, vas a tener que levantar la memoria de nuevo");
 		terminar_programa(EXIT_FAILURE);
 	}
+	pthread_detach(idHilo);
 }
 
 void *realizar_gossiping(){
@@ -63,6 +64,7 @@ void iniciar_el_proceso_de_journaling(){
 		logger(escribir_loguear,l_error,"Error al crear el hilo de journal, vas a tener que levantar la memoria de nuevo");
 		terminar_programa(EXIT_FAILURE);
 	}
+	pthread_detach(idHilo);
 }
 
 void *realizar_journaling(){
