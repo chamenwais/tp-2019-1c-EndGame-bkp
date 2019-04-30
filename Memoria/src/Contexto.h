@@ -62,6 +62,7 @@ extern int RETARDO_ACCESO_FILESYSTEM;
 extern long TIEMPO_JOURNAL;
 extern long TIEMPO_GOSSIPING;
 extern char* MEMORIA_PRINCIPAL;
+extern t_list * seeds;
 
 extern int TAMANIO_VALUE;
 
