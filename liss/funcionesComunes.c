@@ -89,12 +89,12 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp)
 	 */
 	if(exiteLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando hace un insert de una tabla que no existe %s", nombreDeLaTabla);
-		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
+		printf("Se esta intentando insertar una tabla que no existe %s\n", nombreDeLaTabla);
 		return TABLA_NO_EXISTIA;
 	}else{
-		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
-		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
-		return TABLA_BORRADA;
+		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+
+		return ;
 		}
 
 
