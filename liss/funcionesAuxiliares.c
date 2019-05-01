@@ -250,3 +250,17 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 	free(nombreDelArchivoDeMetaData);
 	return metadataDeLaTabla;
 }
+
+
+bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
+	return false;
+}
+
+int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
+	return EXIT_SUCCESS;
+}
+
+int hacerElInsertPosta(char* nombreDeLaTabla, uint16_t key, char* value,
+		unsigned timeStamp){
+	return EXIT_SUCCESS;
+}

@@ -10,8 +10,10 @@
 
 #include <commons/log.h>
 #include <commons/bitarray.h>
+#include <commons/collections/list.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdint.h>
 
 typedef struct definicionConfiguracionDelFS {
 	int puertoEscucha;
@@ -33,6 +35,17 @@ typedef struct definicionMetadataDelFS {
 	char* magicNumber;
 } t_metadataDelFS;
 
+typedef struct definicionNodoDeLaMemTable {
+	t_list* listaDeDatosDeLaTabla;
+	char* nombreDeLaTabla;
+} t_nodoDeLaMemTable;
+
+typedef struct definicionNodoDeLaTabla {
+	uint16_t key;
+	char* value;
+	unsigned timeStamp;
+} t_nodoDeLaTabla;
+
 extern t_metadataDelFS metadataDelFS;
 extern t_configuracionDelFS configuracionDelFS;
 extern t_log* LOGGERFS;
@@ -46,8 +59,8 @@ extern t_bitarray *bitmap;
 extern int sizeDelBitmap;
 extern char * srcMmap;
 extern char * bufferArchivo;
-
 extern pthread_t threadServer;
+extern t_list* memTable;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();

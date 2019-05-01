@@ -25,5 +25,8 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla);
 int bloquearTabla(char* nombreDeLaTabla);
 int desbloquearTabla(char* nombreDeLaTabla);
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla);
+bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla);
+int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla);
+int hacerElInsertPosta(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
 
 #endif /* FUNCIONESAUXILIARES_H_ */

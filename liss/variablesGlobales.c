@@ -20,6 +20,7 @@ t_bitarray *bitmap;
 int sizeDelBitmap;
 char * srcMmap;
 char * bufferArchivo;
+t_list* memTable;
 
 pthread_t threadServer;//thread para el server de lissandra
 
@@ -53,6 +54,7 @@ int inicializarVariablesGlobales(){
 	bufferArchivo=NULL;
 	archivoDeBitmap=NULL;
 	archivoDeLaMetadata=NULL;
+	memTable=list_create();;
 	return EXIT_SUCCESS;
 }
 
@@ -71,6 +73,7 @@ void liberarRecursos(){
 	bitarray_destroy(bitmap);
 	//free(srcMmap);
 	free(bufferArchivo);
+	list_destroy(memTable);
 	log_destroy(LOGGERFS);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
