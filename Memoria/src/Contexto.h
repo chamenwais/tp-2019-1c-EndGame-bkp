@@ -19,8 +19,9 @@
 #include <signal.h>			// Para manejo de señales
 #include <stdarg.h>
 #include <sys/socket.h>
-#include <pthread.h>
 #include <sys/types.h>      // Para crear los sockets
+#include <sys/inotify.h>
+#include <pthread.h>
 #include <netdb.h> 			// Para getaddrinfo
 #include <unistd.h> 		// Para close(socket)
 #include <readline/readline.h>
@@ -43,6 +44,9 @@
 #define CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM "retardo_acceso_filesystem"
 #define CLAVE_CONFIG_TIEMPO_JOURNAL "tiempo_journal"
 #define CLAVE_CONFIG_TIEMPO_GOSSIPING "tiempo_gossiping"
+#define PATH_LOG "/home/utnso/memoria.log"
+#define DIRECTORIO_CONFIG_DEFAULT "../"
+#define NOMBRE_ARCH_CONFIG_DEFAULT "memoria.config"
 #define MAX_CLIENTES 20
 #define STDIN 0
 #define TRUE 1
@@ -87,6 +91,12 @@ struct conexion_cliente {
 	struct sockaddr_in addres;
 };
 typedef struct conexion_cliente t_conexion_cliente;
+
+struct path_archivo_conf {
+	char * directorio;
+	char * nombre_archivo;
+};
+typedef struct path_archivo_conf t_path_archivo_conf;
 
 extern t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 extern t_log* g_logger;

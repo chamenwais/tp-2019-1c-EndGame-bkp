@@ -7,19 +7,32 @@
 #include "Utilidades.h"
 
 void iniciar_logger(void) {
-	g_logger = log_create("/home/utnso/memoria.log", "Memoria", false , LOG_LEVEL_DEBUG);
+	g_logger = log_create(PATH_LOG, "Memoria", false, LOG_LEVEL_DEBUG);
 
 	logger(escribir_loguear, l_info,"Se comenzó a iniciar el proceso memoria");
 }
 
+char* reconstruir_path_archivo(char* directorio, char* nombre_archivo) {
+	char* path = string_new();
+	string_append(&path, directorio);
+	string_append(&path, nombre_archivo);
+	return path;
+}
+
 void iniciar_config(int cantidad_parametros, char ** parametros) {
+	char * directorio;
+	char * nombre_archivo;
 	if (cantidad_parametros>1){
 		g_config = config_create(parametros[1]);
 	} else {
-		g_config = config_create("../memoria.config");
+		directorio=DIRECTORIO_CONFIG_DEFAULT;
+		nombre_archivo=NOMBRE_ARCH_CONFIG_DEFAULT;
+		char* path = reconstruir_path_archivo(directorio, nombre_archivo);
+		g_config = config_create(path);
+		free(path);
 	}
 	validar_apertura_archivo_configuracion();
-
+	iniciar_escucha_cambios_conf(directorio, nombre_archivo);
 }
 
 void validar_apertura_archivo_configuracion() {
@@ -30,8 +43,71 @@ void validar_apertura_archivo_configuracion() {
 	}
 }
 
-void obtener_valor_configuracion(char* clave, void(*obtener)(void)){
-	if (config_has_property(g_config, clave)){
+void iniciar_escucha_cambios_conf(char * directorio, char * nombre_archivo){
+	pthread_t hilo_cambios_conf;
+	t_path_archivo_conf *ruta_archivo_conf=malloc(sizeof(t_path_archivo_conf));
+	ruta_archivo_conf->directorio=directorio;
+	ruta_archivo_conf->nombre_archivo=nombre_archivo;
+	int resultado_de_hacer_el_hilo = pthread_create (&hilo_cambios_conf, NULL
+			, escuchar_cambios_conf, ruta_archivo_conf);
+	if(resultado_de_hacer_el_hilo!=0){
+		if(resultado_de_hacer_el_hilo!=0){
+			logger(escribir_loguear,l_error
+					,"Error al crear el hilo de escucha de cambios de conf, levantá la memoria de nuevo");
+			free(ruta_archivo_conf);
+			terminar_programa(EXIT_FAILURE);
+		}
+	}
+	pthread_detach(hilo_cambios_conf);
+}
+
+void *escuchar_cambios_conf(void * estructura_path){
+	ruta_archivo_conf=estructura_path;
+	char buffer[BUF_LEN];
+	conf_fd = inotify_init();
+	if (conf_fd < 0) {
+		logger(escribir_loguear,l_error, "No se van a poder escuchar cambios en el archivo de configuración");
+		free(ruta_archivo_conf);
+		return EXIT_SUCCESS;
+	}
+	watch_descriptor = inotify_add_watch(conf_fd, ruta_archivo_conf->directorio, IN_MODIFY);
+	int length = read(conf_fd, buffer, BUF_LEN);
+	if (length < 0) {
+		logger(escribir_loguear,l_error, "No se van a poder escuchar cambios en el archivo de configuración");
+		free(ruta_archivo_conf);
+		return EXIT_SUCCESS;
+	}
+	path_archivo_configuracion=reconstruir_path_archivo(ruta_archivo_conf->directorio, ruta_archivo_conf->nombre_archivo);
+	while (length>0) {
+		struct inotify_event *event = (struct inotify_event *) &buffer[0];
+		if (event->len>0 && (event->mask & IN_MODIFY)
+				&& string_equals_ignore_case(event->name, ruta_archivo_conf->nombre_archivo)) {
+			logger(escribir_loguear, l_trace
+					, "\nEl archivo de configuración %s fue modificado\n", event->name);
+
+			//Vuelve a abrir el archivo de conf para leer los nuevos valores de retardo
+			t_config* l_config = config_create(path_archivo_configuracion);
+			RETARDO_ACCESO_MEMORIA=config_get_int_value(l_config, CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA);
+			logger(escribir_loguear, l_debug
+					, "Nuevo valor de retardo de acceso a memoria principal: %d",RETARDO_ACCESO_MEMORIA);
+			RETARDO_ACCESO_FILESYSTEM=config_get_int_value(l_config, CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM);
+			logger(escribir_loguear, l_debug
+					, "Nuevo valor de retardo de acceso a filesystem: %d",RETARDO_ACCESO_FILESYSTEM);
+			config_destroy(l_config);
+
+			length = read(conf_fd, buffer, BUF_LEN);
+			if (conf_fd < 0) {
+				logger(escribir_loguear,l_error, "No se van a escuchar más cambios en el archivo de configuración");
+				return EXIT_SUCCESS;
+			}
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
+
+void obtener_valor_configuracion(char* clave, t_config* archivo, void(*obtener)(void)){
+	if (config_has_property(archivo, clave)){
 		obtener();
 	}
 }
@@ -94,20 +170,20 @@ void obtener_tiempo_gossiping(){
 
 void leer_config(void) {
 	logger(escribir_loguear, l_info,"Cargando archivo de configuración...");
-	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_ESCUCHA, obtener_puerto_escucha);
-	obtener_valor_configuracion(CLAVE_CONFIG_IP_FILESYSTEM, obtener_ip_filesystem);
-	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_FILESYSTEM, obtener_puerto_filesystem);
-	obtener_valor_configuracion(CLAVE_CONFIG_TAMANIO_MEMORIA, obtener_tamanio_memoria);
-	obtener_valor_configuracion(CLAVE_CONFIG_NUMERO_MEMORIA, obtener_numero_memoria);
+	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_ESCUCHA, g_config, obtener_puerto_escucha);
+	obtener_valor_configuracion(CLAVE_CONFIG_IP_FILESYSTEM, g_config, obtener_ip_filesystem);
+	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_FILESYSTEM, g_config, obtener_puerto_filesystem);
+	obtener_valor_configuracion(CLAVE_CONFIG_TAMANIO_MEMORIA, g_config, obtener_tamanio_memoria);
+	obtener_valor_configuracion(CLAVE_CONFIG_NUMERO_MEMORIA, g_config, obtener_numero_memoria);
 
-	obtener_valor_configuracion(CLAVE_CONFIG_IP_SEEDS, obtener_ip_seeds);
-	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_SEEDS, obtener_puerto_seeds);
+	obtener_valor_configuracion(CLAVE_CONFIG_IP_SEEDS, g_config, obtener_ip_seeds);
+	obtener_valor_configuracion(CLAVE_CONFIG_PUERTO_SEEDS, g_config, obtener_puerto_seeds);
 	construir_lista_seeds();
 
-	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA, obtener_retardo_acceso_memoria);
-	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM, obtener_retardo_acceso_filesystem);
-	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_JOURNAL, obtener_tiempo_journal);
-	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_GOSSIPING, obtener_tiempo_gossiping);
+	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA, g_config, obtener_retardo_acceso_memoria);
+	obtener_valor_configuracion(CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM, g_config, obtener_retardo_acceso_filesystem);
+	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_JOURNAL, g_config, obtener_tiempo_journal);
+	obtener_valor_configuracion(CLAVE_CONFIG_TIEMPO_GOSSIPING, g_config, obtener_tiempo_gossiping);
 	logger(escribir_loguear, l_info,"Se cargó archivo de configuración exitosamente");
 }
 
@@ -216,6 +292,10 @@ void terminar_programa(int codigo_finalizacion){
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
 	list_destroy(seeds);
+	inotify_rm_watch(conf_fd, watch_descriptor);
+	close(conf_fd);
+	free(path_archivo_configuracion);
+	free(ruta_archivo_conf);
 	exit(codigo_finalizacion);
 }
 
