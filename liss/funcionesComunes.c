@@ -93,10 +93,10 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp)
 		return TABLA_NO_EXISTIA;
 	}else{
 		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
-
-		return ;
+		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
+			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
+			}
+		int resultadoDelInsert = hacerElInsertPosta(nombreDeLaTabla, key, value, timeStamp);
+		return resultadoDelInsert;
 		}
-
-
-	return EXIT_SUCCESS;
 }
