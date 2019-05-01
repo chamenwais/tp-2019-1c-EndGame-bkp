@@ -10,14 +10,19 @@
 
 #include "Contexto.h"
 
+#define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
+#define BUF_LEN     ( 1024 * EVENT_SIZE )
+
 void iniciar_logger(void);
 void iniciar_config(int, char **);
 void leer_config(void);
 void configurar_signals(void);
 void captura_signal(int);
-void logger(int tipo_esc, int tipo_log, const char* mensaje, ...);
+void logger(int , int , const char* , ...);
 void validar_apertura_archivo_configuracion();
-void obtener_valor_configuracion(char*, void(*f)(void));
+void iniciar_escucha_cambios_conf(char *, char *);
+void *escuchar_cambios_conf(void * );
+void obtener_valor_configuracion(char*, t_config*, void(*f)(void));
 void obtener_puerto_escucha();
 void obtener_ip_filesystem();
 void obtener_puerto_filesystem();
@@ -41,5 +46,10 @@ void cerrar_socket_y_terminar(int);
 void mandar_handshake_a(char *, int, enum PROCESO);
 void recibir_handshake_kernel(int);
 void construir_lista_seeds();
+
+/*Globales inotify para liberar recursos*/
+int watch_descriptor,conf_fd;
+char * path_archivo_configuracion;
+t_path_archivo_conf *ruta_archivo_conf;
 
 #endif /* UTILIDADES_H_ */
