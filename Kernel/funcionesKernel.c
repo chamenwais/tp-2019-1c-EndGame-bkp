@@ -206,5 +206,70 @@ int conectarse_con_memoria(void){
 	return socket_mem;
 }
 
+t_operacion parsear(char * linea){
+
+	t_operacion resultado_de_parsear;
+	char* linea_auxiliar = string_duplicate(linea);
+	string_trim(&linea_auxiliar);
+
+	char** split = string_n_split(linea_auxiliar, 4, " ");
+
+	char* tipo_de_operacion = split[0];
+	char* parametros = split[1];
+
+	if(linea == NULL || string_equals_ignore_case(linea, "")){
+		//TODO ver que hacer aca
+	}
+
+	if(string_equals_ignore_case(tipo_de_operacion, "#")){
+		logger(LOG_KERNEL, escribir_loguear, l_warning,"Es un comentario, sera ignorado");
+		//no se hace nada...
+	}
+
+	if(tipo_de_operacion[0]=='#'){
+		logger(LOG_KERNEL, escribir_loguear, l_warning,"Es un comentario, sera ignorado");
+		//no se hace nada...
+	}
+
+	if(string_equals_ignore_case(tipo_de_operacion, "select")){
+		resultado_de_parsear.tipo_de_operacion = SELECT;
+		resultado_de_parsear.parametros.select.nombre_tabla = split[1];
+		resultado_de_parsear.parametros.select.key = split[2];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "insert")){
+		resultado_de_parsear.tipo_de_operacion = INSERT;
+		resultado_de_parsear.parametros.insert.nombre_tabla = split[1];
+		resultado_de_parsear.parametros.insert.key = split[2];
+		resultado_de_parsear.parametros.insert.value = split[3];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "create")){
+		resultado_de_parsear.tipo_de_operacion = CREATE;
+		resultado_de_parsear.parametros.create.nombre_tabla = split[1];
+		resultado_de_parsear.parametros.create.tipo_consistencia = split[2];
+		resultado_de_parsear.parametros.create.num_particiones = split[3];
+		resultado_de_parsear.parametros.create.compaction_time = split[4];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
+		resultado_de_parsear.tipo_de_operacion = DESCRIBE;
+		resultado_de_parsear.parametros.describe.nombre_tabla = split[1];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "drop")){
+		resultado_de_parsear.tipo_de_operacion = DROP;
+		resultado_de_parsear.parametros.drop.nombre_tabla = split[1];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "journal")){
+		resultado_de_parsear.tipo_de_operacion = JOURNAL;
+	} else if(string_equals_ignore_case(tipo_de_operacion, "add")){
+		resultado_de_parsear.tipo_de_operacion = ADD;
+		resultado_de_parsear.parametros.add.memory = split[1];
+		resultado_de_parsear.parametros.add.num_memoria = split[2];
+		resultado_de_parsear.parametros.add.to = split[3];
+		resultado_de_parsear.parametros.add.tipo_consistencia = split[4];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "run")){
+		resultado_de_parsear.tipo_de_operacion = RUN;
+		resultado_de_parsear.parametros.run.path = split[1];
+	} else if(string_equals_ignore_case(tipo_de_operacion, "metrics")){
+		resultado_de_parsear.tipo_de_operacion = METRICS;
+	}
+
+	free(linea_auxiliar);
+	return resultado_de_parsear;
+}
+
 
 
