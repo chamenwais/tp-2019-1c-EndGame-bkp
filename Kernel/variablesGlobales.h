@@ -37,6 +37,63 @@ typedef struct definicionConfiguracionDelKernel {
 	int retardoCiclo;
 } t_configuracionDelKernel;
 
+enum tipo_consistencia {
+	SC,
+	HC,
+	EC
+};
+
+typedef struct {
+	enum {
+		SELECT,
+		INSERT,
+		CREATE,
+		DESCRIBE,
+		DROP,
+		JOURNAL,
+		ADD,
+		RUN,
+		METRICS,
+		MEMORY, //ver si memory y to sirven desde aca, sino sacarlos en otro enum TODO
+		TO
+	} tipo_de_operacion;
+	union {
+		struct {
+			char* nombre_tabla;
+			int key;
+		} select;
+		struct {
+			char* nombre_tabla;
+			int key;
+			char* value;
+		} insert;
+		struct {
+			char* nombre_tabla;
+			int tipo_consistencia; //es un tipo_consistencia del enum anterior
+			int num_particiones;
+			int compaction_time;
+		} create;
+		struct {
+			char* nombre_tabla; //TODO puede ser NULL
+		} describe;
+		struct {
+			char* nombre_tabla;
+		} drop;
+		//JOURNAL no aparece porque no lleva parametros
+		struct {
+			int memory; //enum
+			int num_memoria;
+			int to; //enum
+			int tipo_consistencia; //es un tipo_consistencia del enum anterior
+		} add;
+		struct {
+			char* path;
+		} run;
+		//METRICS no aparece porque no lleva parametros
+
+	} parametros;
+} t_operacion;
+
 
 extern t_configuracionDelKernel configKernel;
 extern t_log* LOG_KERNEL;

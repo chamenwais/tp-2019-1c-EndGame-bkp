@@ -26,6 +26,7 @@ void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 		char* log_colors[8], char* msj_salida);
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida);
 int inicializarListas();
+t_operacion parsear(char * linea);
 
 
 
