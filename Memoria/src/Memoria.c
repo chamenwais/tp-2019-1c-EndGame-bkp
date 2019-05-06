@@ -3,7 +3,7 @@
  Name        : Memoria.c
  Author      : Tamara-Francisco
  Version     :
- Copyright   : Your copyright notice
+ Copyright   : UTN-FRBA-2019
  Description : Proceso memoria
  ============================================================================
  */
@@ -13,6 +13,7 @@
 int main(int argc, char ** argv) {
 
 	iniciar_logger();
+	inicializar_semaforos();
 	iniciar_config(argc,argv);
 	leer_config();
 	configurar_signals();
@@ -224,7 +225,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 							if(cabecera.tamanio<=0)
 							{
 								loguear_cerrar_conexion(socket_llamador,
-										socket_kernel, socket_lfs, i);
+										socket_kernel, socket_lfs, i, readset);
 								continue;
 							}
 
@@ -233,7 +234,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 						} else if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
 								//Excepciones del cliente, para la desconexion
 								loguear_cerrar_conexion(conexiones_cliente[i].socket,
-										socket_kernel, socket_lfs, i);
+										socket_kernel, socket_lfs, i, readset);
 								continue;
 						}
 					}// if != NO_SOCKET
@@ -258,10 +259,11 @@ int clasificar_conexion_cerrada(int socket_cerrado, int sock_kernel, int sock_lf
 }
 
 void loguear_cerrar_conexion(int socket_llamador, int socket_kernel,
-		int socket_lfs, int i) {
+		int socket_lfs, int i, fd_set bolsa_de_sockets) {
 	int conexion_con_lfs=clasificar_conexion_cerrada(socket_llamador, socket_kernel, socket_lfs);
 	close(socket_llamador);
 	conexiones_cliente[i].socket = NO_SOCKET;
+	FD_CLR(socket_llamador,&bolsa_de_sockets);
 	validar_conexion_con_lissandra(conexion_con_lfs);
 }
 

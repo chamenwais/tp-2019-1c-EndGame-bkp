@@ -70,6 +70,15 @@ extern t_list * seeds;
 
 extern int TAMANIO_VALUE;
 
+/* Semáforos mutex de variables globales */
+extern pthread_mutex_t M_RETARDO_ACCESO_MEMORIA;
+extern pthread_mutex_t M_RETARDO_ACCESO_FILESYSTEM;
+extern pthread_mutex_t M_WATCH_DESCRIPTOR;
+extern pthread_mutex_t M_CONF_FD;
+extern pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
+extern pthread_mutex_t M_RUTA_ARCHIVO_CONF;
+extern pthread_mutex_t M_JOURNALING;
+
 #define LFS "LFS"
 #define _KERNEL "KERNEL"
 
