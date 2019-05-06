@@ -23,6 +23,15 @@ long TIEMPO_GOSSIPING;
 char * MEMORIA_PRINCIPAL;
 t_list * seeds=NULL;
 
+/* Semáforos mutex de variables globales */
+pthread_mutex_t M_RETARDO_ACCESO_MEMORIA;
+pthread_mutex_t M_RETARDO_ACCESO_FILESYSTEM;
+pthread_mutex_t M_WATCH_DESCRIPTOR;
+pthread_mutex_t M_CONF_FD;
+pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
+pthread_mutex_t M_RUTA_ARCHIVO_CONF;
+pthread_mutex_t M_JOURNALING;
+
 t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 t_log* g_logger;
 t_config* g_config;

@@ -14,6 +14,7 @@
 #define BUF_LEN     ( 1024 * EVENT_SIZE )
 
 void iniciar_logger(void);
+void inicializar_semaforos();
 void iniciar_config(int, char **);
 void leer_config(void);
 void configurar_signals(void);
@@ -46,6 +47,7 @@ void cerrar_socket_y_terminar(int);
 void mandar_handshake_a(char *, int, enum PROCESO);
 void recibir_handshake_kernel(int);
 void construir_lista_seeds();
+void apagar_semaforos();
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;

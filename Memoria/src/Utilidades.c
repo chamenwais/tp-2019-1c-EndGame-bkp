@@ -62,22 +62,30 @@ void iniciar_escucha_cambios_conf(char * directorio, char * nombre_archivo){
 }
 
 void *escuchar_cambios_conf(void * estructura_path){
+	pthread_mutex_lock(&M_RUTA_ARCHIVO_CONF);
 	ruta_archivo_conf=estructura_path;
+	pthread_mutex_unlock(&M_RUTA_ARCHIVO_CONF);
 	char buffer[BUF_LEN];
+	pthread_mutex_lock(&M_CONF_FD);
 	conf_fd = inotify_init();
+	pthread_mutex_unlock(&M_CONF_FD);
 	if (conf_fd < 0) {
 		logger(escribir_loguear,l_error, "No se van a poder escuchar cambios en el archivo de configuración");
 		free(ruta_archivo_conf);
 		return EXIT_SUCCESS;
 	}
+	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
 	watch_descriptor = inotify_add_watch(conf_fd, ruta_archivo_conf->directorio, IN_MODIFY);
+	pthread_mutex_unlock(&M_WATCH_DESCRIPTOR);
 	int length = read(conf_fd, buffer, BUF_LEN);
 	if (length < 0) {
 		logger(escribir_loguear,l_error, "No se van a poder escuchar cambios en el archivo de configuración");
 		free(ruta_archivo_conf);
 		return EXIT_SUCCESS;
 	}
+	pthread_mutex_lock(&M_PATH_ARCHIVO_CONFIGURACION);
 	path_archivo_configuracion=reconstruir_path_archivo(ruta_archivo_conf->directorio, ruta_archivo_conf->nombre_archivo);
+	pthread_mutex_unlock(&M_PATH_ARCHIVO_CONFIGURACION);
 	while (length>0) {
 		struct inotify_event *event = (struct inotify_event *) &buffer[0];
 		if (event->len>0 && (event->mask & IN_MODIFY)
@@ -87,10 +95,14 @@ void *escuchar_cambios_conf(void * estructura_path){
 
 			//Vuelve a abrir el archivo de conf para leer los nuevos valores de retardo
 			t_config* l_config = config_create(path_archivo_configuracion);
+			pthread_mutex_lock(&M_RETARDO_ACCESO_MEMORIA);
 			RETARDO_ACCESO_MEMORIA=config_get_int_value(l_config, CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA);
+			pthread_mutex_unlock(&M_RETARDO_ACCESO_MEMORIA);
 			logger(escribir_loguear, l_debug
 					, "Nuevo valor de retardo de acceso a memoria principal: %d",RETARDO_ACCESO_MEMORIA);
+			pthread_mutex_lock(&M_RETARDO_ACCESO_FILESYSTEM);
 			RETARDO_ACCESO_FILESYSTEM=config_get_int_value(l_config, CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM);
+			pthread_mutex_unlock(&M_RETARDO_ACCESO_FILESYSTEM);
 			logger(escribir_loguear, l_debug
 					, "Nuevo valor de retardo de acceso a filesystem: %d",RETARDO_ACCESO_FILESYSTEM);
 			config_destroy(l_config);
@@ -149,12 +161,16 @@ void obtener_puerto_seeds(){
 }
 
 void obtener_retardo_acceso_memoria(){
+	pthread_mutex_lock(&M_RETARDO_ACCESO_MEMORIA);
 	RETARDO_ACCESO_MEMORIA=config_get_int_value(g_config, CLAVE_CONFIG_RETARDO_ACCESO_MEMORIA);
+	pthread_mutex_unlock(&M_RETARDO_ACCESO_MEMORIA);
 	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Retardo de acceso a memoria principal': %d",RETARDO_ACCESO_MEMORIA);
 }
 
 void obtener_retardo_acceso_filesystem(){
+	pthread_mutex_lock(&M_RETARDO_ACCESO_FILESYSTEM);
 	RETARDO_ACCESO_FILESYSTEM=config_get_int_value(g_config, CLAVE_CONFIG_RETARDO_ACCESO_FILESYSTEM);
+	pthread_mutex_unlock(&M_RETARDO_ACCESO_FILESYSTEM);
 	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Retardo de acceso a filesystem': %d",RETARDO_ACCESO_FILESYSTEM);
 }
 
@@ -292,10 +308,19 @@ void terminar_programa(int codigo_finalizacion){
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
 	list_destroy(seeds);
+	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
 	inotify_rm_watch(conf_fd, watch_descriptor);
+	pthread_mutex_unlock(&M_WATCH_DESCRIPTOR);
+	pthread_mutex_lock(&M_CONF_FD);
 	close(conf_fd);
+	pthread_mutex_unlock(&M_CONF_FD);
+	pthread_mutex_lock(&M_PATH_ARCHIVO_CONFIGURACION);
 	free(path_archivo_configuracion);
+	pthread_mutex_unlock(&M_PATH_ARCHIVO_CONFIGURACION);
+	pthread_mutex_lock(&M_RUTA_ARCHIVO_CONF);
 	free(ruta_archivo_conf);
+	pthread_mutex_unlock(&M_RUTA_ARCHIVO_CONF);
+	apagar_semaforos();
 	exit(codigo_finalizacion);
 }
 
@@ -368,4 +393,24 @@ void recibir_handshake_kernel(int socket){
 		cerrar_socket_y_terminar(socket);
 	}
 	loguear_handshake_exitoso(socket, _KERNEL);
+}
+
+void inicializar_semaforos(){
+	pthread_mutex_init(&M_RETARDO_ACCESO_MEMORIA, NULL);
+	pthread_mutex_init(&M_RETARDO_ACCESO_FILESYSTEM, NULL);
+	pthread_mutex_init(&M_WATCH_DESCRIPTOR, NULL);
+	pthread_mutex_init(&M_CONF_FD, NULL);
+	pthread_mutex_init(&M_PATH_ARCHIVO_CONFIGURACION, NULL);
+	pthread_mutex_init(&M_RUTA_ARCHIVO_CONF, NULL);
+	pthread_mutex_init(&M_JOURNALING, NULL);
+}
+
+void apagar_semaforos(){
+	pthread_mutex_destroy(&M_RETARDO_ACCESO_MEMORIA);
+	pthread_mutex_destroy(&M_RETARDO_ACCESO_FILESYSTEM);
+	pthread_mutex_destroy(&M_WATCH_DESCRIPTOR);
+	pthread_mutex_destroy(&M_CONF_FD);
+	pthread_mutex_destroy(&M_PATH_ARCHIVO_CONFIGURACION);
+	pthread_mutex_destroy(&M_RUTA_ARCHIVO_CONF);
+	pthread_mutex_destroy(&M_JOURNALING);
 }
