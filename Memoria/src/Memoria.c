@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
 
 	iniciar_la_memoria_principal();
 	iniciar_el_proceso_de_gossiping();
-	iniciar_el_proceso_de_journaling();
+	iniciar_el_proceso_de_journaling(socket_lfs);
 
 	int server_memoria = iniciar_servidor();
 
@@ -59,9 +59,9 @@ void *realizar_gossiping(){
 	return EXIT_SUCCESS;
 }
 
-void iniciar_el_proceso_de_journaling(){
+void iniciar_el_proceso_de_journaling(int socket_LFS){
 	pthread_t idHilo;
-	int resultado_de_hacer_el_hilo = pthread_create (&idHilo, NULL, realizar_journaling, NULL);
+	int resultado_de_hacer_el_hilo = pthread_create (&idHilo, NULL, realizar_journaling, &socket_LFS);
 	if(resultado_de_hacer_el_hilo!=0){
 		logger(escribir_loguear,l_error
 				,"Error al crear el hilo de journal, vas a tener que levantar la memoria de nuevo");
@@ -70,11 +70,16 @@ void iniciar_el_proceso_de_journaling(){
 	pthread_detach(idHilo);
 }
 
-void *realizar_journaling(){
+void *realizar_journaling(void * args){
+	int LFS_fd=*((int*)args);
 	while(1){
 		usleep(TIEMPO_JOURNAL*1000);
-		logger(escribir_loguear, l_trace, "\nProcedo a realizar el journal...\n");
-		//TODO Hacer el journaling
+		logger(escribir_loguear, l_trace,
+				"\nProcedo a realizar el journal ya que pasaron %d miliseg...\n", TIEMPO_JOURNAL);
+
+		//Hace el journaling
+		notificar_escrituras_en_memoria_LFS(LFS_fd);
+
 	}
 	return EXIT_SUCCESS;
 }
@@ -209,7 +214,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 					//Solo apretaron enter, no hay que interpretar nada
 					continue;
 				}
-				int res = consola_derivar_comando(read_buffer);
+				int res = consola_derivar_comando(read_buffer, socket_lfs);
 				if (res) {
 					terminar_programa(EXIT_FAILURE);
 					break;

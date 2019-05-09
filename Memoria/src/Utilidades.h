@@ -23,6 +23,7 @@ void logger(int , int , const char* , ...);
 void validar_apertura_archivo_configuracion();
 void iniciar_escucha_cambios_conf(char *, char *);
 void *escuchar_cambios_conf(void * );
+void actualizar_campos_retardo(struct inotify_event*);
 void obtener_valor_configuracion(char*, t_config*, void(*f)(void));
 void obtener_puerto_escucha();
 void obtener_ip_filesystem();
@@ -48,6 +49,7 @@ void mandar_handshake_a(char *, int, enum PROCESO);
 void recibir_handshake_kernel(int);
 void construir_lista_seeds();
 void apagar_semaforos();
+void notificar_escrituras_en_memoria_LFS(int);
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;

@@ -209,14 +209,16 @@ void consola_drop(char** comandos){
 
 }
 
-void consola_journal(){
+void consola_journal(int socket_LFS){
 
 	loguear_comienzo_ejecucion_sentencia(_JOURNAL);
-	//TODO hacer algo
+
+	//hace el journaling
+	notificar_escrituras_en_memoria_LFS(socket_LFS);
 
 }
 
-int consola_obtener_key_comando(char** comandos)
+int consola_obtener_key_comando(char** comandos, int LFS_fs)
 {
 	int key = -1;
 	char *comando=comandos[0];
@@ -245,7 +247,7 @@ int consola_obtener_key_comando(char** comandos)
 		return 0;
 	}
 	if(string_equals_ignore_case(comando, "journal")){
-		consola_journal();
+		consola_journal(LFS_fs);
 		return 0;
 	}
 
@@ -366,7 +368,7 @@ void limpiar_parametro(char* parametro) {
 	}
 }
 
-int consola_derivar_comando(char * buffer){
+int consola_derivar_comando(char * buffer, int socket_LFS){
 
 	int comando_key;
 	int res = 0;
@@ -377,7 +379,7 @@ int consola_derivar_comando(char * buffer){
 	}
 
 	// Obtiene la clave del comando a ejecutar y manda a ejecutarlo
-	comando_key = consola_obtener_key_comando(comandos);
+	comando_key = consola_obtener_key_comando(comandos, socket_LFS);
 
 	if(comando_key<0){
 		logger(escribir_loguear, l_error,"No conozco ese comando, proba de nuevo");
