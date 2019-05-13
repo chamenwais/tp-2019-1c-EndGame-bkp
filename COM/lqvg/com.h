@@ -49,6 +49,17 @@ typedef struct {
 	int tamanio;
 }__attribute__((packed)) t_cabecera;
 
+typedef struct
+{
+	void* stream;
+} t_buffer;
+
+typedef struct
+{
+	t_cabecera cabecera;
+	t_buffer* buffer;
+} t_paquete;
+
 int escucharEn(int puerto);
 int conectarseA(char *ip, int puerto);
 int aceptarConexion(int escucha);
@@ -65,5 +76,12 @@ int enviarHandshake(enum PROCESO emisor,enum PROCESO procesoEsperado,int sock);
 int recibirHandshake(enum PROCESO receptor, enum PROCESO procesoEsperado, int sock);
 int enviarCabecera(int sock, enum MENSAJES tipoDeMensaje,int tamanio);
 t_cabecera recibirCabecera(int sock);
+t_paquete* crear_paquete(enum MENSAJES);
+void crear_buffer(t_paquete*);
+void agregar_string_a_paquete(t_paquete*, void*, int);
+void agregar_int_a_paquete(t_paquete*, int);
+void enviar_paquete(t_paquete*, int);
+void* serializar_paquete(t_paquete*, int);
+void eliminar_paquete(t_paquete*);
 
 #endif
