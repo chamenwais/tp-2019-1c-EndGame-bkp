@@ -113,7 +113,70 @@ int enviarCabecera(int sock, enum MENSAJES tipoDeMensaje,int tamanio){
 
 t_cabecera recibirCabecera(int sock){
 	t_cabecera cabecera;
-	int bytesRecibidos = recibir(sock,&cabecera,sizeof(cabecera));
-	cabecera.tamanio=bytesRecibidos;
+	if (recibir(sock,&cabecera,sizeof(cabecera))<0){
+		perror("Error al recibirCabecera.\n");
+	}
 	return cabecera;
+}
+
+t_paquete* crear_paquete(enum MENSAJES tipoDeMensaje){
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+	paquete->cabecera.tipoDeMensaje=tipoDeMensaje;
+	crear_buffer(paquete);
+	return paquete;
+}
+
+void crear_buffer(t_paquete* paquete)
+{
+	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->cabecera.tamanio = 0;
+	paquete->buffer->stream = NULL;
+}
+
+void agregar_string_a_paquete(t_paquete* paquete, void* valor_string, int tamanio)
+{
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->cabecera.tamanio + tamanio + sizeof(int));
+
+	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio, &tamanio, sizeof(int));
+	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio + sizeof(int), valor_string, tamanio);
+
+	paquete->cabecera.tamanio += tamanio + sizeof(int);
+}
+
+void agregar_int_a_paquete(t_paquete* paquete, int valor_int){
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->cabecera.tamanio + sizeof(int));
+
+	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio, &valor_int, sizeof(int));
+
+	paquete->cabecera.tamanio += sizeof(int);
+}
+
+void enviar_paquete(t_paquete* paquete, int socket_cliente)
+{
+	int bytes = paquete->cabecera.tamanio + sizeof(t_cabecera);
+	void* a_enviar = serializar_paquete(paquete, bytes);
+
+	enviar(socket_cliente, a_enviar, bytes);
+
+	free(a_enviar);
+}
+
+void* serializar_paquete(t_paquete* paquete, int bytes)
+{
+	void * mem_serializada = malloc(bytes);
+	int desplazamiento = 0;
+
+	memcpy(mem_serializada + desplazamiento, &(paquete->cabecera), sizeof(t_cabecera));
+	desplazamiento+= sizeof(t_cabecera);
+	memcpy(mem_serializada + desplazamiento, paquete->buffer->stream, paquete->cabecera.tamanio);
+	desplazamiento+= paquete->cabecera.tamanio;
+
+	return mem_serializada;
+}
+
+void eliminar_paquete(t_paquete* paquete)
+{
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
 }
