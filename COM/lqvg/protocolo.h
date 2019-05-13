@@ -6,13 +6,13 @@
 
 typedef struct struSelect{
 	char * nom_tabla;
-	int key;
+	uint16_t key;
 } t_select;
 typedef t_select* tp_select;
 
 void prot_enviar_int(int,int);
 int prot_recibir_int(int);
-void prot_enviar_select(char *, int, int);
+void prot_enviar_select(char *, uint16_t, int);
 tp_select prot_recibir_select(int, int);
 
 #endif

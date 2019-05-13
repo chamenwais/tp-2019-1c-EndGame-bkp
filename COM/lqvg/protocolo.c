@@ -10,10 +10,10 @@ int prot_recibir_int(int sock){
 	return i;
 }
 
-void prot_enviar_select(char *nom_tabla, int key, int socket){
+void prot_enviar_select(char *nom_tabla, uint16_t key, int socket){
 	t_paquete* paquete = crear_paquete(SELECT);
 	agregar_string_a_paquete(paquete, nom_tabla, strlen(nom_tabla)+1);
-	agregar_int_a_paquete(paquete, key);
+	agregar_uint16_t_a_paquete(paquete, key);
 	enviar_paquete(paquete, socket);
 	eliminar_paquete(paquete);
 }
