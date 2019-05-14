@@ -151,6 +151,14 @@ void agregar_uint16_t_a_paquete(t_paquete* paquete, uint16_t valor_int){
 	paquete->cabecera.tamanio += sizeof(uint16_t);
 }
 
+void agregar_long_a_paquete(t_paquete* paquete, long valor_long){
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->cabecera.tamanio + sizeof(long));
+
+	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio, &valor_long, sizeof(long));
+
+	paquete->cabecera.tamanio += sizeof(long);
+}
+
 void enviar_paquete(t_paquete* paquete, int socket_cliente)
 {
 	int bytes = paquete->cabecera.tamanio + sizeof(t_cabecera);
