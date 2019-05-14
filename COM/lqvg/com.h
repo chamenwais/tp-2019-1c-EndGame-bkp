@@ -45,7 +45,7 @@ struct memo_del_pool {
 typedef struct memo_del_pool t_memo_del_pool;
 
 typedef struct {
-	enum MENSAJES tipoDeMensaje;
+	enum COMANDOS tipoDeMensaje;
 	int tamanio;
 }__attribute__((packed)) t_cabecera;
 
@@ -80,6 +80,7 @@ t_paquete* crear_paquete(enum MENSAJES);
 void crear_buffer(t_paquete*);
 void agregar_string_a_paquete(t_paquete*, void*, int);
 void agregar_uint16_t_a_paquete(t_paquete*, uint16_t);
+void agregar_long_a_paquete(t_paquete*, long);
 void enviar_paquete(t_paquete*, int);
 void* serializar_paquete(t_paquete*, int);
 void eliminar_paquete(t_paquete*);
