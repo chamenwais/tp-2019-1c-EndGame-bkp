@@ -58,6 +58,8 @@ dkms.conf
 */Debug/FileSystem.log
 */Debug/Kernel
 */Debug/Kernel.log
+*/Debug/ReceiverSerializeTest
+*/Debug/SenderSerializeTest
 *.cproject
 *.project
 /.metadata/

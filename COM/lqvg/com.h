@@ -20,22 +20,16 @@ enum PROCESO {
 };
 
 enum MENSAJES {
-	TABLA_YA_EXISTIA,
-	TABLA_CREADA,
-	TABLA_NO_EXISTIA,
-	TABLA_BORRADA
-};
-
-enum COMANDOS {
 	SELECT,
 	INSERT,
 	CREATE,
 	DESCRIBE,
 	DROP,
 	JOURNAL,
-	RUN,
-	ADD,
-	METRICS
+	TABLA_YA_EXISTIA,
+	TABLA_CREADA,
+	TABLA_NO_EXISTIA,
+	TABLA_BORRADA
 };
 
 struct memo_del_pool {
@@ -45,7 +39,7 @@ struct memo_del_pool {
 typedef struct memo_del_pool t_memo_del_pool;
 
 typedef struct {
-	enum COMANDOS tipoDeMensaje;
+	enum MENSAJES tipoDeMensaje;
 	int tamanio;
 }__attribute__((packed)) t_cabecera;
 
