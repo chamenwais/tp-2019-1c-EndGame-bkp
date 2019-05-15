@@ -83,7 +83,13 @@ void *funcionHiloConsola(void *arg){
 							instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
 					consolaInsert(instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
 				}else{
-					printf("Faltan parametros para poder hacer un insert\n");
+					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&
+							(instruccion[3]!=NULL)&&(instruccion[4]==NULL)){
+						printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y sin timestamp\n",
+								instruccion[1],atoi(instruccion[2]),instruccion[3]);
+						consolaInsertSinTime(instruccion[1],atoi(instruccion[2]),instruccion[3]);
+					}else{
+						printf("Faltan parametros para poder hacer un insert\n");}
 					}
 			}else{
 				if((strcmp(instruccion[0],"create")==0) || (strcmp(instruccion[0],"CREATE")==0)){
@@ -156,8 +162,13 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 	return EXIT_SUCCESS;
 }
 
-int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,int timestamp){
+int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp){
 	insert(nombreDeLaTabla,key,valor,timestamp);
+	return EXIT_SUCCESS;
+}
+
+int consolaInsertSinTime(char* nombreDeLaTabla,uint16_t key,char* valor){
+	insertSinTime(nombreDeLaTabla,key,valor);
 	return EXIT_SUCCESS;
 }
 

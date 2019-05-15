@@ -20,6 +20,7 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);
 t_metadataDeLaTabla describe(char* nombreDeLaTabla);
-int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp);
+int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value);
 
 #endif /* FUNCIONESCOMUNES_H_ */

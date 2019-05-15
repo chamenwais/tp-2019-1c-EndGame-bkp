@@ -73,7 +73,7 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 	return metadata;
 }
 
-int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp){
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
 	 * Pasos:
 	 * 1) Verificar que la tabla exista en el file system. En caso que no exista,
@@ -99,4 +99,10 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp)
 		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
 		return resultadoDelInsert;
 		}
+}
+
+int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){
+	long timeStamp=(unsigned)time(NULL);
+	insert(nombreDeLaTabla, key, value, timeStamp);
+	return EXIT_SUCCESS;
 }
