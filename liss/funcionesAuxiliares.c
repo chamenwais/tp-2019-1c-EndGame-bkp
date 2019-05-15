@@ -310,15 +310,53 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 	}
 }
 
-char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
-	char* keyObtenida = NULL;
-	return keyObtenida;
-}
 
 t_list* escanearPorLaKeyDeseada(uint16_t key, int numeroDeParticionQueContieneLaKey){
 	t_list* listadoDeKeys = list_create();
 
+	t_list* keysDeLaMemTable = escanearPorLaKeyDeseadaMemTable(key);
+	list_add_all(listadoDeKeys,keysDeLaMemTable);
+	list_destroy(keysDeLaMemTable);
+
+	keysDeLaMemTable = escanearPorLaKeyDeseadaArchivosTemporales(key);
+	list_add_all(listadoDeKeys,keysDeLaMemTable);
+	list_destroy(keysDeLaMemTable);
+
+	keysDeLaMemTable = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
+			numeroDeParticionQueContieneLaKey);
+	list_add_all(listadoDeKeys,keysDeLaMemTable);
+	list_destroy(keysDeLaMemTable);
+
 	return listadoDeKeys;
+}
+
+t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key){
+	t_list* listaResultante= list_create();
+	return listaResultante;
+}
+
+t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key){
+	t_list* listaResultante= list_create();
+	return listaResultante;
+}
+
+t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey){
+	t_list* listaResultante= list_create();
+	return listaResultante;
+}
+char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
+	char* keyObtenida = NULL;
+	unsigned tiempo;
+	bool esLaMayor(void* nodo){
+		bool sonTodosMenores(void* nodo2){
+			return (tiempo<=((tp_nodoDeLaTabla)nodo2)->timeStamp);
+			}
+		tiempo = ((tp_nodoDeLaTabla)nodo)->timeStamp;
+		return list_all_satisfy(keysObtenidas,sonTodosMenores);
+		}
+	if(!list_is_empty(keysObtenidas))
+		keyObtenida = list_find(keysObtenidas,esLaMayor);
+	return keyObtenida;
 }
 
 int vaciarListaDeKeys(t_list* keysObtenidas){
