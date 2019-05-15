@@ -380,8 +380,12 @@ char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 	log_info(LOGGERFS,"Buscando key con el timestamp mas grande");
 	if(!list_is_empty(keysObtenidas)){
 		keyObtenida = list_find(keysObtenidas,esLaMayor);
-		log_info(LOGGERFS,"El mayor timestamp para la key %s fue de: %d, con un value de: %s",
+		if(keyObtenida!=NULL){
+			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %d, con un value de: %s",
 				keyObtenida->key, keyObtenida->timeStamp, keyObtenida->value);
+		}else{
+			log_info(LOGGERFS,"Lista vacia");
+			}
 		}
 	log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
 	return keyObtenida->value;

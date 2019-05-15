@@ -162,7 +162,7 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 	char* value = selectf(nombreDeLaTabla, key);
 	log_info(LOGGERFS,"Resultado del select: %s, para la key %d, de la tabla %s",
 			value, key, nombreDeLaTabla);
-	printf("Resultado del select: %s, para la key %d, de la tabla %s",
+	printf("Resultado del select: %s, para la key %d, de la tabla %s\n",
 			value, key, nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
