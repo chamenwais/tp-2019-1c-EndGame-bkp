@@ -29,5 +29,8 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla);
 int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla);
 tp_nodoDeLaMemTable obtenerNodoDeLaMemtable(char* nodeName);
 int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
+char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas);
+t_list* escanearPorLaKeyDeseada(uint16_t key, int numeroDeParticionQueContieneLaKey);
+int vaciarListaDeKeys(t_list* keysObtenidas);
 
 #endif /* FUNCIONESAUXILIARES_H_ */

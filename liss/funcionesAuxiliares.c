@@ -309,3 +309,19 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 		return EXIT_FAILURE;
 	}
 }
+
+char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
+	char* keyObtenida = NULL;
+	return keyObtenida;
+}
+
+t_list* escanearPorLaKeyDeseada(uint16_t key, int numeroDeParticionQueContieneLaKey){
+	t_list* listadoDeKeys = list_create();
+
+	return listadoDeKeys;
+}
+
+int vaciarListaDeKeys(t_list* keysObtenidas){
+
+	return EXIT_SUCCESS;
+}

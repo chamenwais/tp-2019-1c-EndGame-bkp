@@ -22,5 +22,6 @@ int drop(char* nombreDeLaTabla);
 t_metadataDeLaTabla describe(char* nombreDeLaTabla);
 int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp);
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value);
+char* selectf(char* nombreDeLaTabla, uint16_t key);
 
 #endif /* FUNCIONESCOMUNES_H_ */
