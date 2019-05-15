@@ -96,7 +96,7 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp)
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
 			}
-		int resultadoDelInsert = hacerElInsertPosta(nombreDeLaTabla, key, value, timeStamp);
+		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
 		return resultadoDelInsert;
 		}
 }

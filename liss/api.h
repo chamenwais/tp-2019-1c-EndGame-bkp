@@ -28,6 +28,6 @@ int consolaDrop(char* nombreDeLaTabla);
 int man();
 int reloadConfig();
 int imprimirConfiguracionDelSistema();
-
+int imprimirMemtableEnPantalla();
 
 #endif /* SRC_API_H_ */

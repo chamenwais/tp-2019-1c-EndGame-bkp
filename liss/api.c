@@ -154,6 +154,7 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 }
 
 int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,int timestamp){
+	insert(nombreDeLaTabla,key,valor,timestamp);
 	return EXIT_SUCCESS;
 }
 
@@ -281,5 +282,23 @@ int reloadConfig(){
 	config_destroy(configuracion);
 	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");
 
+	return EXIT_SUCCESS;
+}
+
+int imprimirMemtableEnPantalla(){
+	bool esMiNodo(void* nodo) {
+			return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+			}
+		list_any_satisfy(memTable, esMiNodo);
+
+	void imprimirTabla(void* nodoDeLaMemtable){
+		void imprimirValores(void* nodoDeUnaTabla){
+
+			}
+		t_list listaDeDatos=((tp_nodoDeLaMemTable) nodoDeLaMemtable)->listaDeDatosDeLaTabla;
+	}
+	if(!list_is_empty(memTable)){
+		list_iterate(memTable,imprimirTabla);
+		}
 	return EXIT_SUCCESS;
 }

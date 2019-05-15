@@ -54,7 +54,7 @@ int inicializarVariablesGlobales(){
 	bufferArchivo=NULL;
 	archivoDeBitmap=NULL;
 	archivoDeLaMetadata=NULL;
-	memTable=list_create();;
+	memTable=list_create();
 	return EXIT_SUCCESS;
 }
 

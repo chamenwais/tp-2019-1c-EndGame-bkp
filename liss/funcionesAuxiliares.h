@@ -27,6 +27,7 @@ int desbloquearTabla(char* nombreDeLaTabla);
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla);
 bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla);
 int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla);
-int hacerElInsertPosta(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
+tp_nodoDeLaMemTable obtenerNodoDeLaMemtable(char* nodeName);
+int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
 
 #endif /* FUNCIONESAUXILIARES_H_ */

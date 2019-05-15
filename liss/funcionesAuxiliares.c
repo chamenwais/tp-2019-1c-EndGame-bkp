@@ -251,16 +251,61 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 	return metadataDeLaTabla;
 }
 
-
 bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
-	return false;
+
+	bool esMiNodo(void* nodo) {
+		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+		}
+	bool resultado;
+	if(!list_is_empty(memTable)){
+		resultado = list_any_satisfy(memTable, esMiNodo);
+	}else{
+		resultado = false;
+	}
+	if(resultado==false){
+		log_info(LOGGERFS,"La tabla %s no estaba en la memtable", nombreDeLaTabla);
+	}else{
+		log_info(LOGGERFS,"La tabla %s si estaba en la memtable", nombreDeLaTabla);
+		}
+	return resultado;
 }
 
 int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
+	log_info(LOGGERFS,"Alocando memoria en la tabla %s para la memtable", nombreDeLaTabla);
+	tp_nodoDeLaMemTable nodo = malloc(sizeof(t_nodoDeLaMemTable));
+	nodo->nombreDeLaTabla=malloc(strlen(nombreDeLaTabla)+1);
+	strcpy(nodo->nombreDeLaTabla,nombreDeLaTabla);
+	nodo->listaDeDatosDeLaTabla=list_create();
+	list_add(memTable,nodo);
+	log_info(LOGGERFS,"Memoria alocada");
 	return EXIT_SUCCESS;
 }
 
-int hacerElInsertPosta(char* nombreDeLaTabla, uint16_t key, char* value,
+tp_nodoDeLaMemTable obtenerNodoDeLaMemtable(char* nombreDeLaTabla){
+
+	bool esMiNodo(void* nodo) {
+		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla, nombreDeLaTabla);
+	}
+
+	return (tp_nodoDeLaMemTable)list_find(memTable, esMiNodo);
+}
+
+int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value,
 		unsigned timeStamp){
-	return EXIT_SUCCESS;
+	log_info(LOGGERFS,"Voy a hacer el insert de los datos en la tabla %s de la memtable",
+			nombreDeLaTabla);
+	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+	if(nodoDeLaMemtable!=NULL){
+		tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
+		nuevoNodo->key=key;
+		nuevoNodo->timeStamp=timeStamp;
+		nuevoNodo->value=malloc(strlen(value)+1);
+		strcpy(nuevoNodo->value,value);
+		list_add(nodoDeLaMemtable->listaDeDatosDeLaTabla,nuevoNodo);
+		log_info(LOGGERFS,"Datos insertados");
+		return EXIT_SUCCESS;
+	}else{
+		log_error(LOGGERFS,"Error al insertar los datos, algo se corrompio, no se encontro la tabla en la memtable");
+		return EXIT_FAILURE;
+	}
 }
