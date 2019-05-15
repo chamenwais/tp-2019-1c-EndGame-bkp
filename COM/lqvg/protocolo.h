@@ -23,6 +23,11 @@ typedef struct struSelectRta{
 } t_select_rta;
 typedef t_select_rta* tp_select_rta;
 
+typedef struct procesarMsg{
+	int cliente;
+	t_cabecera cabecera;
+}datos_iniciales;
+
 void prot_enviar_int(int,int);
 int prot_recibir_int(int);
 void prot_enviar_select(char *, uint16_t, int);

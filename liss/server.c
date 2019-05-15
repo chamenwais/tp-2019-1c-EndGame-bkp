@@ -124,7 +124,7 @@ void* crearServerLissandra(){
 					}
 					else{ //procesar msg
 
-						datos* p = (datos*)malloc(sizeof(datos));
+						datos_iniciales* p = (datos_iniciales*)malloc(sizeof(datos_iniciales));
 						p->cabecera.tamanio=cabecera.tamanio;
 						p->cabecera.tipoDeMensaje = cabecera.tipoDeMensaje;
 						p->cliente = *cliente;
@@ -158,7 +158,7 @@ void* crearServerLissandra(){
 
 void* procesarMensaje(void* args){
 
-	datos* p = (datos*) args;
+	datos_iniciales* p = (datos_iniciales*) args;
 
 	log_info(LOGGERFS,"[LissServer] Recibi cod_mensaje %d desde %d tamanio %d",p->cabecera.tipoDeMensaje,p->cliente,p->cabecera.tamanio);
 

@@ -18,12 +18,6 @@
 #include <sys/select.h>
 #include "funcionesComunes.h"
 
-typedef struct procesarMsg{
-	int cliente;
-	t_cabecera cabecera;
-}datos;
-
-
 void procesarSelect(int,t_cabecera);
 void procesarInsert(int,t_cabecera);
 void procesarCreate(int,t_cabecera);
