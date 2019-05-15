@@ -311,10 +311,13 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 }
 
 
-t_list* escanearPorLaKeyDeseada(uint16_t key, int numeroDeParticionQueContieneLaKey){
+t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroDeParticionQueContieneLaKey){
 	t_list* listadoDeKeys = list_create();
 
-	t_list* keysDeLaMemTable = escanearPorLaKeyDeseadaMemTable(key);
+	log_info(LOGGERFS,"Voy a escanear todo el FS a ver donde existe la key %d para la tabla %s",
+			key, nombreDeLaTabla);
+
+	t_list* keysDeLaMemTable = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysDeLaMemTable);
 	list_destroy(keysDeLaMemTable);
 
@@ -327,36 +330,61 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, int numeroDeParticionQueContieneLa
 	list_add_all(listadoDeKeys,keysDeLaMemTable);
 	list_destroy(keysDeLaMemTable);
 
+	log_info(LOGGERFS,"Keys obtenidas");
+
 	return listadoDeKeys;
 }
 
-t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key){
-	t_list* listaResultante= list_create();
+t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
+	t_list* listaResultante;
+
+	bool esMiKey(void* nodo) {
+		return (((tp_nodoDeLaTabla) nodo)->key==key);
+		}
+
+	bool esMiTabla(void* nodo){
+		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+		}
+	log_info(LOGGERFS,"Escaneando memtable");
+	if(!list_is_empty(memTable)){
+		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
+		listaResultante = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
+	}else{
+		listaResultante = list_create();
+	}
 	return listaResultante;
 }
 
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key){
 	t_list* listaResultante= list_create();
+	log_info(LOGGERFS,"Escaneando archivos temporales");
 	return listaResultante;
 }
 
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey){
 	t_list* listaResultante= list_create();
+	log_info(LOGGERFS,"Escaneando particion correspondiente");
 	return listaResultante;
 }
+
 char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
-	char* keyObtenida = NULL;
+	tp_nodoDeLaTabla keyObtenida = NULL;
 	unsigned tiempo;
 	bool esLaMayor(void* nodo){
 		bool sonTodosMenores(void* nodo2){
-			return (tiempo<=((tp_nodoDeLaTabla)nodo2)->timeStamp);
+			return (tiempo>=((tp_nodoDeLaTabla)nodo2)->timeStamp);
 			}
 		tiempo = ((tp_nodoDeLaTabla)nodo)->timeStamp;
 		return list_all_satisfy(keysObtenidas,sonTodosMenores);
 		}
-	if(!list_is_empty(keysObtenidas))
+	log_info(LOGGERFS,"Buscando key con el timestamp mas grande");
+	if(!list_is_empty(keysObtenidas)){
 		keyObtenida = list_find(keysObtenidas,esLaMayor);
-	return keyObtenida;
+		log_info(LOGGERFS,"El mayor timestamp para la key %s fue de: %d, con un value de: %s",
+				keyObtenida->key, keyObtenida->timeStamp, keyObtenida->value);
+		}
+	log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
+	return keyObtenida->value;
 }
 
 int vaciarListaDeKeys(t_list* keysObtenidas){

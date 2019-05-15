@@ -159,6 +159,11 @@ char** parser_instruccion(char* linea){
 }
 
 int consolaSelect(char* nombreDeLaTabla,uint16_t key){
+	char* value = selectf(nombreDeLaTabla, key);
+	log_info(LOGGERFS,"Resultado del select: %s, para la key %d, de la tabla %s",
+			value, key, nombreDeLaTabla);
+	printf("Resultado del select: %s, para la key %d, de la tabla %s",
+			value, key, nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
