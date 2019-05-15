@@ -83,7 +83,13 @@ void *funcionHiloConsola(void *arg){
 							instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
 					consolaInsert(instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
 				}else{
-					printf("Faltan parametros para poder hacer un insert\n");
+					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&
+							(instruccion[3]!=NULL)&&(instruccion[4]==NULL)){
+						printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y sin timestamp\n",
+								instruccion[1],atoi(instruccion[2]),instruccion[3]);
+						consolaInsertSinTime(instruccion[1],atoi(instruccion[2]),instruccion[3]);
+					}else{
+						printf("Faltan parametros para poder hacer un insert\n");}
 					}
 			}else{
 				if((strcmp(instruccion[0],"create")==0) || (strcmp(instruccion[0],"CREATE")==0)){
@@ -128,8 +134,11 @@ void *funcionHiloConsola(void *arg){
 				if(strcmp(instruccion[0],"existeLaTabla")==0){
 					exiteLaTabla(instruccion[1]);
 			}else{
+				if(strcmp(instruccion[0],"pmemtable")==0){
+					imprimirMemtableEnPantalla();
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}}}}}}
+				}}}}}}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
@@ -150,10 +159,21 @@ char** parser_instruccion(char* linea){
 }
 
 int consolaSelect(char* nombreDeLaTabla,uint16_t key){
+	char* value = selectf(nombreDeLaTabla, key);
+	log_info(LOGGERFS,"Resultado del select: %s, para la key %d, de la tabla %s",
+			value, key, nombreDeLaTabla);
+	printf("Resultado del select: %s, para la key %d, de la tabla %s\n",
+			value, key, nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
-int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,int timestamp){
+int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp){
+	insert(nombreDeLaTabla,key,valor,timestamp);
+	return EXIT_SUCCESS;
+}
+
+int consolaInsertSinTime(char* nombreDeLaTabla,uint16_t key,char* valor){
+	insertSinTime(nombreDeLaTabla,key,valor);
 	return EXIT_SUCCESS;
 }
 
@@ -211,6 +231,7 @@ int man(){
 	printf("9) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
 	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
 	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
+	printf("12) \"pmemtable\", imprime los datos de la memtable en pantalla\n");
 	return EXIT_SUCCESS;
 }
 
@@ -281,5 +302,27 @@ int reloadConfig(){
 	config_destroy(configuracion);
 	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");
 
+	return EXIT_SUCCESS;
+}
+
+int imprimirMemtableEnPantalla(){
+
+	void imprimirTabla(void* nodoDeLaMemtable){
+		void imprimirValores(void* nodoDeUnaTabla){
+			printf("Key: %d / Timestamp: %d / Value: %s\n",
+					((tp_nodoDeLaTabla)nodoDeUnaTabla)->key,
+					((tp_nodoDeLaTabla)nodoDeUnaTabla)->timeStamp,
+					((tp_nodoDeLaTabla)nodoDeUnaTabla)->value);
+			}
+		if(!list_is_empty(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla)){
+			printf("Nombre de la tabla: %s\n",
+				((tp_nodoDeLaMemTable)nodoDeLaMemtable)->nombreDeLaTabla);
+			list_iterate(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla,
+				imprimirValores);
+			}
+	}
+	if(!list_is_empty(memTable)){
+		list_iterate(memTable,imprimirTabla);
+		}
 	return EXIT_SUCCESS;
 }

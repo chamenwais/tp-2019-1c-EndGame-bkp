@@ -20,7 +20,8 @@ void *funcionHiloConsola(void *arg);
 int esperarAQueTermineLaConsola();
 char** parser_instruccion(char* linea);
 int consolaSelect(char* nombreDeLaTabla,uint16_t key);
-int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,int timestamp);
+int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp);
+int consolaInsertSinTime(char* nombreDeLaTabla,uint16_t key,char* valor);
 int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDeParticiones,int tiempoDeCompactacion);
 int consolaDescribe();
 int consolaDescribeDeTabla(char* nombreDeLaTabla);
@@ -28,6 +29,6 @@ int consolaDrop(char* nombreDeLaTabla);
 int man();
 int reloadConfig();
 int imprimirConfiguracionDelSistema();
-
+int imprimirMemtableEnPantalla();
 
 #endif /* SRC_API_H_ */

@@ -73,7 +73,7 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 	return metadata;
 }
 
-int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp){
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
 	 * Pasos:
 	 * 1) Verificar que la tabla exista en el file system. En caso que no exista,
@@ -96,7 +96,44 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp)
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
 			}
-		int resultadoDelInsert = hacerElInsertPosta(nombreDeLaTabla, key, value, timeStamp);
+		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
 		return resultadoDelInsert;
 		}
 }
+
+int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){
+	long timeStamp=(unsigned)time(NULL);
+	insert(nombreDeLaTabla, key, value, timeStamp);
+	return EXIT_SUCCESS;
+}
+
+char* selectf(char* nombreDeLaTabla, uint16_t key){
+	/*
+	 * Ej:
+	 * SELECT [NOMBRE_TABLA] [KEY]
+	 * SELECT TABLA1 3
+	 * Esta operación incluye los siguientes pasos:
+	 *	1)Verificar que la tabla exista en el file system.
+	 *  2)Obtener la metadata asociada a dicha tabla.
+	 *	3)Calcular cual es la partición que contiene dicho KEY.
+	 *	4)Escanear la partición objetivo, todos los archivos temporales y
+	 *		la memoria temporal de dicha tabla (si existe) buscando la key deseada.
+	 *	5)Encontradas las entradas para dicha Key, se retorna el valor con el Timestamp
+	 *		más grande.
+	 */
+	char* resultado = NULL;
+	if(exiteLaTabla(nombreDeLaTabla)==false){
+		log_error(LOGGERFS,"Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
+		printf("Se esta intentando seleccionar de una tabla que no existe %s\n", nombreDeLaTabla);
+	}else{
+		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+		int numeroDeParticionQueContieneLaKey = key%(metadataDeLaTabla.particiones);
+		log_info(LOGGERFS,"Numero de particion que contiene a la key %d",
+				numeroDeParticionQueContieneLaKey);
+		t_list* keysObtenidas = escanearPorLaKeyDeseada(key, nombreDeLaTabla, numeroDeParticionQueContieneLaKey);
+		resultado = obtenerKeyConTimeStampMasGrande(keysObtenidas);
+		vaciarListaDeKeys(keysObtenidas);
+	}
+	return resultado;
+}
+

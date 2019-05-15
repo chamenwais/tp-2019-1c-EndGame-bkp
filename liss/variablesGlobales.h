@@ -39,12 +39,14 @@ typedef struct definicionNodoDeLaMemTable {
 	t_list* listaDeDatosDeLaTabla;
 	char* nombreDeLaTabla;
 } t_nodoDeLaMemTable;
+typedef t_nodoDeLaMemTable* tp_nodoDeLaMemTable;
 
 typedef struct definicionNodoDeLaTabla {
 	uint16_t key;
 	char* value;
 	unsigned timeStamp;
 } t_nodoDeLaTabla;
+typedef t_nodoDeLaTabla* tp_nodoDeLaTabla;
 
 extern t_metadataDelFS metadataDelFS;
 extern t_configuracionDelFS configuracionDelFS;
@@ -64,5 +66,6 @@ extern t_list* memTable;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();
+int vaciarMemTable();
 
 #endif /* VARIABLESGLOBALES_H_ */

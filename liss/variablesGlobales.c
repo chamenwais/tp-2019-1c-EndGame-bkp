@@ -54,7 +54,7 @@ int inicializarVariablesGlobales(){
 	bufferArchivo=NULL;
 	archivoDeBitmap=NULL;
 	archivoDeLaMetadata=NULL;
-	memTable=list_create();;
+	memTable=list_create();
 	return EXIT_SUCCESS;
 }
 
@@ -73,8 +73,32 @@ void liberarRecursos(){
 	bitarray_destroy(bitmap);
 	//free(srcMmap);
 	free(bufferArchivo);
-	list_destroy(memTable);
+	vaciarMemTable();
 	log_destroy(LOGGERFS);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
+}
+
+int vaciarMemTable(){
+	void destruirTabla(void* nodoDeLaMemtable){
+		void imprimirValores(void* nodoDeUnaTabla){
+			free(((tp_nodoDeLaTabla)nodoDeUnaTabla)->value);
+			free((tp_nodoDeLaTabla)nodoDeUnaTabla);
+			}
+		if(!list_is_empty(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla)){
+			log_info(LOGGERFS,"Liberando la tabla: %s",
+				((tp_nodoDeLaMemTable)nodoDeLaMemtable)->nombreDeLaTabla);
+			list_iterate(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla,
+				imprimirValores);
+			free(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->nombreDeLaTabla);
+			list_destroy(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla);
+			}
+		}
+	log_info(LOGGERFS,"Liberando memtable");
+	if(!list_is_empty(memTable)){
+		list_iterate(memTable,destruirTabla);
+		}
+	list_destroy(memTable);
+	log_info(LOGGERFS,"Memtable liberada");
+	return EXIT_SUCCESS;
 }
