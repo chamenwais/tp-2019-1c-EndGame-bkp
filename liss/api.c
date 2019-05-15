@@ -128,8 +128,11 @@ void *funcionHiloConsola(void *arg){
 				if(strcmp(instruccion[0],"existeLaTabla")==0){
 					exiteLaTabla(instruccion[1]);
 			}else{
+				if(strcmp(instruccion[0],"pmemtable")==0){
+					imprimirMemtableEnPantalla();
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}}}}}}
+				}}}}}}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
@@ -212,6 +215,7 @@ int man(){
 	printf("9) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
 	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
 	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
+	printf("12) \"pmemtable\", imprime los datos de la memtable en pantalla\n");
 	return EXIT_SUCCESS;
 }
 
@@ -286,16 +290,20 @@ int reloadConfig(){
 }
 
 int imprimirMemtableEnPantalla(){
-	bool esMiNodo(void* nodo) {
-			return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
-			}
-		list_any_satisfy(memTable, esMiNodo);
 
 	void imprimirTabla(void* nodoDeLaMemtable){
 		void imprimirValores(void* nodoDeUnaTabla){
-
+			printf("Key: %d / Timestamp: %d / Value: %s\n",
+					((tp_nodoDeLaTabla)nodoDeUnaTabla)->key,
+					((tp_nodoDeLaTabla)nodoDeUnaTabla)->timeStamp,
+					((tp_nodoDeLaTabla)nodoDeUnaTabla)->value);
 			}
-		t_list listaDeDatos=((tp_nodoDeLaMemTable) nodoDeLaMemtable)->listaDeDatosDeLaTabla;
+		if(!list_is_empty(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla)){
+			printf("Nombre de la tabla: %s\n",
+				((tp_nodoDeLaMemTable)nodoDeLaMemtable)->nombreDeLaTabla);
+			list_iterate(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla,
+				imprimirValores);
+			}
 	}
 	if(!list_is_empty(memTable)){
 		list_iterate(memTable,imprimirTabla);

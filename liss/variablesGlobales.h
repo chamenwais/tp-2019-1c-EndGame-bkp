@@ -66,5 +66,6 @@ extern t_list* memTable;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();
+int vaciarMemTable();
 
 #endif /* VARIABLESGLOBALES_H_ */
