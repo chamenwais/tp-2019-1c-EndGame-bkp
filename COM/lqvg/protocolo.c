@@ -18,6 +18,34 @@ void prot_enviar_select(char *nom_tabla, uint16_t key, int socket){
 	eliminar_paquete(paquete);
 }
 
+void prot_enviar_error(enum MENSAJES error, int socket){
+	t_paquete* paquete = crear_paquete(error);
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
+
+void prot_enviar_respuesta_select(char * value, int socket){
+	t_paquete* paquete = crear_paquete(SELECT_RTA);
+	agregar_string_a_paquete(paquete, value, strlen(value)+1);
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
+
+tp_select_rta prot_recibir_respuesta_select(int tamanio_paq,int socket){
+	void * buffer = malloc(tamanio_paq);
+	recibir(socket, buffer, tamanio_paq);
+	int tamanio_value;
+	int desplazamiento = 0;
+	memcpy(&tamanio_value, buffer+desplazamiento, sizeof(int));
+	desplazamiento+=sizeof(int);
+	char* value=malloc(tamanio_value);
+	memcpy(value, buffer+desplazamiento, tamanio_value);
+	tp_select_rta param_select_rta =malloc(sizeof(tp_select_rta));
+	param_select_rta->value=value;
+	free(buffer);
+	return param_select_rta;
+}
+
 tp_select prot_recibir_select(int tamanio_paq, int socket){
 	void * buffer = malloc(tamanio_paq);
 	recibir(socket, buffer, tamanio_paq);

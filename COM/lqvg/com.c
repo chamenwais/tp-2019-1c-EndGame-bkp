@@ -113,8 +113,12 @@ int enviarCabecera(int sock, enum MENSAJES tipoDeMensaje,int tamanio){
 
 t_cabecera recibirCabecera(int sock){
 	t_cabecera cabecera;
-	if (recibir(sock,&cabecera,sizeof(cabecera))<0){
+	int result=-1;
+	result = recibir(sock,&cabecera,sizeof(cabecera));
+	if (result < 0){
 		perror("Error al recibirCabecera.\n");
+	} else if (result == 0){
+		cabecera.tamanio= -1;
 	}
 	return cabecera;
 }
