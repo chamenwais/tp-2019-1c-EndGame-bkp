@@ -41,11 +41,12 @@ int main(int argc, char ** argv) {
 
 		if(METODO == 2){//recibo la respuesta
 		t_cabecera cabecera=recibirCabecera(receiver_fd);
+		if(cabecera.tipoDeMensaje == REQUEST_SUCCESS){
+			printf("Cabecera: tamanio= %d , tipomsg= %d\n",cabecera.tamanio,cabecera.tipoDeMensaje);
 
-		printf("Cabecera: tamanio= %d , tipomsg= %d\n",cabecera.tamanio,cabecera.tipoDeMensaje);
-
-		tp_select_rta result = prot_recibir_respuesta_select(cabecera.tamanio,receiver_fd);
-		printf("Resultado: valor= %s\n",result->value);
+			tp_select_rta result = prot_recibir_respuesta_select(cabecera.tamanio,receiver_fd);
+			printf("Resultado: valor= %s\n",result->value);
+		} else printf("Error con codigo= %d\n",cabecera.tipoDeMensaje);
 		}
 
 	}
@@ -56,7 +57,9 @@ int main(int argc, char ** argv) {
 		if(METODO == 2){
 			//No usar antes recibirCabecera!, prot_recibir_respuesta_insert se encarga
 			enum MENSAJES respuesta = prot_recibir_respuesta_insert(receiver_fd);
-			printf("Codigo de resultado del insert: %d\n",respuesta);
+			if(respuesta == REQUEST_SUCCESS){
+			printf("Insert realizado correctamente: %d\n",respuesta);
+			}else printf("Error con codigo: %d\n",respuesta);
 		}
 	}
 	if(string_equals_ignore_case(comando, "create")){

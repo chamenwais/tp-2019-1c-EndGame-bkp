@@ -145,7 +145,7 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 	int result = EXIT_SUCCESS; //Hace insert y guarda la respuesta en result
 
 	if (result == EXIT_SUCCESS){
-		prot_enviar_respuesta_insert(INSERT_RTA,cliente);
+		prot_enviar_respuesta_insert(cliente);
 		printf("[LissServer] Correctamente insertado en %s el value= %s\n",insercion->nom_tabla,insercion->value);
 	} else if(result == TABLA_NO_EXISTIA){
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);

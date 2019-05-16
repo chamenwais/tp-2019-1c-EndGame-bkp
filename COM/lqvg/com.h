@@ -26,11 +26,7 @@ enum MENSAJES {
 	DESCRIBE,
 	DROP,
 	JOURNAL,
-	SELECT_RTA,
-	INSERT_RTA,
-	CREATE_RTA,
-	DESCRIBE_RTA,
-	DROP_RTA,
+	REQUEST_SUCCESS,
 	TABLA_YA_EXISTIA,
 	TABLA_CREADA,
 	TABLA_NO_EXISTIA,
@@ -80,6 +76,7 @@ t_paquete* crear_paquete(enum MENSAJES);
 void crear_buffer(t_paquete*);
 void agregar_string_a_paquete(t_paquete*, void*, int);
 void agregar_uint16_t_a_paquete(t_paquete*, uint16_t);
+void agregar_int_a_paquete(t_paquete*, int);
 void agregar_long_a_paquete(t_paquete*, long);
 void enviar_paquete(t_paquete*, int);
 void* serializar_paquete(t_paquete*, int);
