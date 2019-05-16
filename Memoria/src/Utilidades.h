@@ -9,6 +9,7 @@
 #define UTILIDADES_H_
 
 #include "Contexto.h"
+#include "GestionSegPaginada.h"
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
 #define BUF_LEN     ( 1024 * EVENT_SIZE )

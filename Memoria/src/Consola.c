@@ -9,7 +9,7 @@
 
 void loguear_cant_menor_params(char *nombre_comando) {
 	logger(escribir_loguear, l_error,
-			"La cantidad de parámetros es menor a las necesarias para el comando %s",nombre_comando);
+			"La cantidad de parámetros es menor a los necesarios para el comando %s",nombre_comando);
 }
 
 void loguear_comienzo_ejecucion_sentencia(char *nombre_comando) {
@@ -18,7 +18,7 @@ void loguear_comienzo_ejecucion_sentencia(char *nombre_comando) {
 
 void loguear_cant_mayor_params(char *nombre_comando) {
 	logger(escribir_loguear, l_warning
-			, "La cantidad de parámetros es mayor a las necesarias para el comando %s",nombre_comando);
+			, "La cantidad de parámetros es mayor a los necesarios para el comando %s",nombre_comando);
 }
 
 void loguear_param_erroneo(char *parametro) {
@@ -51,8 +51,11 @@ void consola_select(char** comandos){
 		limpiar_dos_parametros(nombre_tabla, string_key);
 		return;
 	}
+
+	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_SELECT);
 	//TODO hacer algo
+	pthread_mutex_unlock(&M_JOURNALING);
 
 	limpiar_dos_parametros(nombre_tabla, string_key);
 }
@@ -113,8 +116,11 @@ void consola_insert(char** comandos){
 		}
 	}
 	logger(escribir_loguear, l_debug,"El timestamp fue '%d'",timestamp);
+
+	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_INSERT);
 	//TODO hacer algo
+	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
 	limpiar_cuatro_parametros(nombre_tabla, string_key, value,
@@ -154,8 +160,10 @@ void consola_create(char** comandos){
 		return;
 	}
 
+	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_CREATE);
 	//TODO hacer algo
+	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);
@@ -181,9 +189,12 @@ void consola_describe(char** comandos){
 		return;
 	}
 
-	loguear_comienzo_ejecucion_sentencia(_DESCRIBE);
 	loguear_un_parametros_recibido(nombre_tabla);
+
+	pthread_mutex_lock(&M_JOURNALING);
+	loguear_comienzo_ejecucion_sentencia(_DESCRIBE);
 	//TODO hacer algo
+	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);
@@ -199,10 +210,12 @@ void consola_drop(char** comandos){
 		loguear_cant_menor_params(_DROP);
 		return;
 	}
-
-	loguear_comienzo_ejecucion_sentencia(_DROP);
 	loguear_un_parametros_recibido(nombre_tabla);
+
+	pthread_mutex_lock(&M_JOURNALING);
+	loguear_comienzo_ejecucion_sentencia(_DROP);
 	//TODO hacer algo
+	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);

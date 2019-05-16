@@ -234,7 +234,9 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 								continue;
 							}
 
+							pthread_mutex_lock(&M_JOURNALING);
 							//TODO clasificar y atender cabecera del mensaje
+							pthread_mutex_unlock(&M_JOURNALING);
 
 						} else if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
 								//Excepciones del cliente, para la desconexion
