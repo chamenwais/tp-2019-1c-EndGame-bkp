@@ -21,19 +21,33 @@ void mandar_create(int);
 void mandar_describe(int);
 void mandar_drop(int);
 
+#define METODO 2 //el 2 es el nuevo, usar otro numero para el metodo viejo
+
 int main(int argc, char ** argv) {
 	puts("Comienza el test de envíos de info serializada");
 	char *comando;
+
 	if (argc>1){
 		comando=argv[1];
 	} else {
 		puts("Si no decís por parámetro qué querés enviar, no camina");
 		return EXIT_FAILURE;
 	}
+
 	int receiver_fd=conectarseA("127.0.0.1",10101);
 	if(string_equals_ignore_case(comando, "select")){
 		puts("Vamos a mandar un select");
 		mandar_select(receiver_fd);
+
+		if(METODO == 2){
+		t_cabecera cabecera=recibirCabecera(receiver_fd);
+
+		printf("Cabecera: tamanio= %d , tipomsg= %d\n",cabecera.tamanio,cabecera.tipoDeMensaje);
+
+		tp_select_rta result = prot_recibir_respuesta_select(cabecera.tamanio,receiver_fd);
+		printf("Resultado: valor= %s\n",result->value);
+		}
+
 	}
 	if(string_equals_ignore_case(comando, "insert")){
 		puts("Vamos a mandar un insert");

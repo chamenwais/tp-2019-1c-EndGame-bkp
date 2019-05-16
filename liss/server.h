@@ -16,11 +16,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include "funcionesComunes.h"
 
+void procesarSelect(int,t_cabecera);
+void procesarInsert(int,t_cabecera);
+void procesarCreate(int,t_cabecera);
+void procesarDescribe(int,t_cabecera);
+void procesarDrop(int,t_cabecera);
+
+void* procesarMensaje(void*);
 void* crearServerLissandra();
 int lanzarServer();
 int list_mayor_int(t_list *);
-
-
 
 #endif /* LISS_SERVER_H_ */
