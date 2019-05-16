@@ -321,7 +321,7 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	list_add_all(listadoDeKeys,keysDeLaMemTable);
 	list_destroy(keysDeLaMemTable);
 
-	keysDeLaMemTable = escanearPorLaKeyDeseadaArchivosTemporales(key);
+	keysDeLaMemTable = escanearPorLaKeyDeseadaArchivosTemporales(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysDeLaMemTable);
 	list_destroy(keysDeLaMemTable);
 
@@ -352,19 +352,51 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	}else{
 		listaResultante = list_create();
 	}
+	log_info(LOGGERFS,"Memtable escaneada");
 	return listaResultante;
 }
 
-t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key){
+t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
 	t_list* listaResultante= list_create();
-
 	log_info(LOGGERFS,"Escaneando archivos temporales");
+	char* directorioDeLasTablas= string_new();
+	string_append(&directorioDeLasTablas,configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeLasTablas,"/Tables/");
+	string_append(&directorioDeLasTablas,nombreDeLaTabla);
+	string_append(&directorioDeLasTablas,"/");
+	string_append(&directorioDeLasTablas,nombreDeLaTabla);
+	char* ubicacionDelTemp;
+	bool noHayMas=false;
+	for(int i=1;noHayMas==false;i++){
+		ubicacionDelTemp=string_new();
+		string_append(&ubicacionDelTemp,directorioDeLasTablas);
+		string_append(&ubicacionDelTemp,string_itoa(i));
+		string_append(&ubicacionDelTemp,".tmp");
+		log_info(LOGGERFS,"Checkeando en el archivo %s",ubicacionDelTemp);
+		FILE* archivo = fopen(ubicacionDelTemp,"r");
+		if(archivo!=NULL){
+			log_info(LOGGERFS,"Archivo %s abierto",ubicacionDelTemp);
+			char line[1000];
+			while(fgets(line, sizeof line, archivo)!=NULL){/* read a line */
+				//fputs ( line, stdout );/* write the line */
+
+
+				}
+			fclose(archivo);
+		}else{
+			noHayMas=true;
+		}
+		free(ubicacionDelTemp);
+		}
+	free(directorioDeLasTablas);
+	log_info(LOGGERFS,"Archivos temporales escaneados");
 	return listaResultante;
 }
 
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey){
 	t_list* listaResultante= list_create();
 	log_info(LOGGERFS,"Escaneando particion correspondiente");
+	log_info(LOGGERFS,"Particion correspondiente escaneada");
 	return listaResultante;
 }
 
@@ -387,9 +419,12 @@ char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 		}else{
 			log_info(LOGGERFS,"Lista vacia");
 			}
-		}
-	log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
-	return keyObtenida->value;
+		log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
+		return keyObtenida->value;
+	}else{
+		log_info(LOGGERFS,"No hay ninguna key en la tabla");
+		return string_new();
+	}
 }
 
 int vaciarListaDeKeys(t_list* keysObtenidas){
