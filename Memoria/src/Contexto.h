@@ -16,6 +16,7 @@
 #include <commons/log.h>    // Para Logger
 #include <commons/config.h> // Para Archivo de configuración
 #include <commons/string.h> // Para manejo de strings
+#include <commons/bitarray.h>
 #include <signal.h>			// Para manejo de señales
 #include <stdarg.h>
 #include <sys/socket.h>
@@ -106,6 +107,22 @@ struct path_archivo_conf {
 	char * nombre_archivo;
 };
 typedef struct path_archivo_conf t_path_archivo_conf;
+
+struct entrada_tabla_segmentos{
+	t_list * base;
+	char * tabla;
+};
+typedef struct entrada_tabla_segmentos t_entrada_tabla_segmentos;
+
+struct entrada_tabla_paginas{
+	int pagina;
+	int marco;
+	int flag;
+};
+typedef struct entrada_tabla_paginas t_entrada_tabla_paginas;
+
+extern t_bitarray *bitmap_marcos_libres;
+extern t_list * tabla_de_segmentos;
 
 extern t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 extern t_log* g_logger;

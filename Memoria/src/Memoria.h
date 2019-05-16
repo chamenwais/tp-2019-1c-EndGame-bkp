@@ -11,6 +11,7 @@
 /*** Includes ***/
 #include "Contexto.h"
 #include "Utilidades.h"
+#include "GestionSegPaginada.h"
 #include "Consola.h"
 
 void stdin_no_bloqueante(void);
