@@ -224,9 +224,14 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 	int result = insert(insercion->nom_tabla, insercion->key, insercion->value, insercion->timestamp);
 
 	if (result == EXIT_SUCCESS){
+		prot_enviar_respuesta_insert(cliente);
 		log_info(LOGGERFS,"[LissServer] Correctamente insertado en %s el value= %s",insercion->nom_tabla,insercion->value);
-	}else {
-		log_error(LOGGERFS,"[LissServer] Error al insertar en %s con value= %s",insercion->nom_tabla,insercion->value);
+	} else if(result == TABLA_NO_EXISTIA){
+		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
+		log_info(LOGGERFS,"[LissServer] Error Insert: la tabla %s no existe",insercion->nom_tabla,insercion->value);
+	} else {
+		prot_enviar_error(ERROR_DESCONOCIDO,cliente);
+		log_error(LOGGERFS,"[LissServer] Error Insert: en %s con value= %s",insercion->nom_tabla,insercion->value);
 	}
 
 	free(insercion->nom_tabla);
@@ -235,12 +240,21 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 }
 
 void procesarCreate(int cliente, t_cabecera cabecera){
-
+/*
+	int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
+			int numeroDeParticiones, int tiempoDeCompactacion)
+	TABLA_YA_EXISTIA
+	TABLA_CREADA si funciona
+	*/
 }
-void procesarDescribe(int cliente, t_cabecera cabecera){
+void procesarDescribe(int cliente, t_cabecera cabecera){//de momento no tiene retorno de errores describe
+	//t_metadataDeLaTabla describe(char* nombreDeLaTabla)
 
 }
 void procesarDrop(int cliente, t_cabecera cabecera){
 
+	//int drop(char* nombreDeLaTabla)
+	//TABLA_NO_EXISTIA
+	//TABLA_BORRADA si funciona
 }
 
