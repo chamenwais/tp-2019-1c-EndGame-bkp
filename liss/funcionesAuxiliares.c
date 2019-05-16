@@ -356,8 +356,41 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	return listaResultante;
 }
 
+t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo){
+	/*Dada la ubicacion de un archivo con datos como:
+	* 123;1231;asd
+	* 1111;11;ddd
+	* 5434;111;asddas
+	* Me devuelve dentro de una lista estos datos que contiene el archivo
+	* */
+	FILE* archivo = fopen(nombreDelArchivo,"r");
+	char** lineaParseada;
+	t_list* listaResultante = list_create();
+	log_info(LOGGERFS,"Archivo %s abierto",nombreDelArchivo);
+	char *linea = NULL;
+	size_t linea_buf_size = 0;
+	ssize_t linea_size;
+	linea_size = getline(&linea, &linea_buf_size, archivo);
+	while (linea_size >= 0){
+		lineaParseada = string_split(linea, ";");
+		log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
+		lineaParseada[0], lineaParseada[1], lineaParseada[2]);
+		tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
+		nuevoNodo->key=atoi(lineaParseada[1]);
+		nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+		nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
+		strcpy(nuevoNodo->value,lineaParseada[2]);
+		list_add(listaResultante,nuevoNodo);
+		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
+		linea_size = getline(&linea, &linea_buf_size, archivo);
+		}
+	fclose(archivo);
+	log_info(LOGGERFS,"Archivo %s parseado",nombreDelArchivo);
+	return listaResultante;
+}
+
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
-	t_list* listaResultante= list_create();
+	t_list* listaResultante = list_create();
 	log_info(LOGGERFS,"Escaneando archivos temporales");
 	char* directorioDeLasTablas= string_new();
 	string_append(&directorioDeLasTablas,configuracionDelFS.puntoDeMontaje);
@@ -374,27 +407,9 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		string_append(&ubicacionDelTemp,".tmp");
 		log_info(LOGGERFS,"Checkeando en el archivo %s",ubicacionDelTemp);
 		FILE* archivo = fopen(ubicacionDelTemp,"r");
-		tp_nodoDeLaTabla nuevoNodo;
-		char** lineaParseada;
 		if(archivo!=NULL){
-			log_info(LOGGERFS,"Archivo %s abierto",ubicacionDelTemp);
-			char *linea = NULL;
-			size_t linea_buf_size = 0;
-			ssize_t linea_size;
-			linea_size = getline(&linea, &linea_buf_size, archivo);
-			while (linea_size >= 0){
-				lineaParseada = string_split(linea, ";");
-				log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
-						lineaParseada[0], lineaParseada[1], lineaParseada[2]);
-				tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
-				nuevoNodo->key=atoi(lineaParseada[1]);
-				nuevoNodo->timeStamp=atoi(lineaParseada[0]);
-				nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
-				strcpy(nuevoNodo->value,lineaParseada[2]);
-				list_add(listaResultante,nuevoNodo);
-				linea_size = getline(&linea, &linea_buf_size, archivo);
-				}
 			fclose(archivo);
+			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelTemp));
 		}else{
 			noHayMas=true;
 		}
