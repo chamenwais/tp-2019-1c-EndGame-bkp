@@ -357,6 +357,7 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key){
 	t_list* listaResultante= list_create();
+
 	log_info(LOGGERFS,"Escaneando archivos temporales");
 	return listaResultante;
 }

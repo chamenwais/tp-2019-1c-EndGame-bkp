@@ -137,8 +137,11 @@ void *funcionHiloConsola(void *arg){
 				if(strcmp(instruccion[0],"pmemtable")==0){
 					imprimirMemtableEnPantalla();
 			}else{
+				if(strcmp(instruccion[0],"dumpear")==0){
+					dump();
+			}else{
 				printf("Comando desconocido\n");
-				}}}}}}}}}}}}
+				}}}}}}}}}}}}}
 			free(instruccion);
 			}
 		free(linea);
