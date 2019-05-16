@@ -374,13 +374,25 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		string_append(&ubicacionDelTemp,".tmp");
 		log_info(LOGGERFS,"Checkeando en el archivo %s",ubicacionDelTemp);
 		FILE* archivo = fopen(ubicacionDelTemp,"r");
+		tp_nodoDeLaTabla nuevoNodo;
+		char** lineaParseada;
 		if(archivo!=NULL){
 			log_info(LOGGERFS,"Archivo %s abierto",ubicacionDelTemp);
-			char line[1000];
-			while(fgets(line, sizeof line, archivo)!=NULL){/* read a line */
-				//fputs ( line, stdout );/* write the line */
-
-
+			char *linea = NULL;
+			size_t linea_buf_size = 0;
+			ssize_t linea_size;
+			linea_size = getline(&linea, &linea_buf_size, archivo);
+			while (linea_size >= 0){
+				lineaParseada = string_split(linea, ";");
+				log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
+						lineaParseada[0], lineaParseada[1], lineaParseada[2]);
+				tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
+				nuevoNodo->key=atoi(lineaParseada[1]);
+				nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+				nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
+				strcpy(nuevoNodo->value,lineaParseada[2]);
+				list_add(listaResultante,nuevoNodo);
+				linea_size = getline(&linea, &linea_buf_size, archivo);
 				}
 			fclose(archivo);
 		}else{
