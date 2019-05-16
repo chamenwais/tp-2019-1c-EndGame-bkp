@@ -389,6 +389,17 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo){
 	return listaResultante;
 }
 
+bool existeElArchivo(char* nombreDelArchivo){
+	//me dice si existe o no un archivo
+	FILE* archivo = fopen(nombreDelArchivo,"r");
+	if(archivo!=NULL){
+		fclose(archivo);
+		return true;
+	}else{
+		return false;
+	}
+}
+
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
 	t_list* listaResultante = list_create();
 	log_info(LOGGERFS,"Escaneando archivos temporales");
@@ -406,13 +417,11 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		string_append(&ubicacionDelTemp,string_itoa(i));
 		string_append(&ubicacionDelTemp,".tmp");
 		log_info(LOGGERFS,"Checkeando en el archivo %s",ubicacionDelTemp);
-		FILE* archivo = fopen(ubicacionDelTemp,"r");
-		if(archivo!=NULL){
-			fclose(archivo);
+		if(existeElArchivo(ubicacionDelTemp)){
 			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelTemp));
 		}else{
 			noHayMas=true;
-		}
+			}
 		free(ubicacionDelTemp);
 		}
 	free(directorioDeLasTablas);

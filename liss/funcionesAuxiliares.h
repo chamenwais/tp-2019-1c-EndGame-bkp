@@ -33,6 +33,7 @@ char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas);
 t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroDeParticionQueContieneLaKey);
 t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla);
 t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo);
+bool existeElArchivo(char* nombreDelArchivo);
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla);
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey);
 int vaciarListaDeKeys(t_list* keysObtenidas);
