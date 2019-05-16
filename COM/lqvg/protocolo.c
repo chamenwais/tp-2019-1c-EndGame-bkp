@@ -18,6 +18,16 @@ void prot_enviar_select(char *nom_tabla, uint16_t key, int socket){
 	eliminar_paquete(paquete);
 }
 
+void prot_enviar_respuesta_insert(enum MENSAJES rta,int socket){
+	t_paquete* paquete = crear_paquete(rta);
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
+enum MENSAJES prot_recibir_respuesta_insert(int socket){
+	t_cabecera cabecera = recibirCabecera(socket);
+	return cabecera.tipoDeMensaje;
+}
+
 void prot_enviar_error(enum MENSAJES error, int socket){
 	t_paquete* paquete = crear_paquete(error);
 	enviar_paquete(paquete, socket);

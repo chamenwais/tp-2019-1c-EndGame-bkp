@@ -19,6 +19,7 @@ void recibir_select(int, int);
 void recibir_insert(int, int);
 
 void procesarSelect(int,t_cabecera);
+void procesarInsert(int,t_cabecera);
 void* procesarMensaje(void*);
 
 #define METODO 2 //@@Metodo a usar, el 2 es el mas nuevo
@@ -89,7 +90,7 @@ void* procesarMensaje(void* args){
 
 	case INSERT:
 
-
+		procesarInsert(p->cliente,p->cabecera);
 
 		break;
 	case CREATE:
@@ -134,7 +135,29 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 	free(seleccion->nom_tabla);
 	free(seleccion);
 	free(value);
+}
 
+void procesarInsert(int cliente, t_cabecera cabecera){
+
+	tp_insert insercion = prot_recibir_insert(cabecera.tamanio, cliente);
+
+
+	int result = EXIT_SUCCESS; //Hace insert y guarda la respuesta en result
+
+	if (result == EXIT_SUCCESS){
+		prot_enviar_respuesta_insert(INSERT_RTA,cliente);
+		printf("[LissServer] Correctamente insertado en %s el value= %s\n",insercion->nom_tabla,insercion->value);
+	} else if(result == TABLA_NO_EXISTIA){
+		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
+		printf("[LissServer] Error Insert: la tabla %s no existe\n",insercion->nom_tabla);
+	} else {
+		prot_enviar_error(ERROR_DESCONOCIDO,cliente);
+		printf("[LissServer] Error Insert: en %s con value= %s\n",insercion->nom_tabla,insercion->value);
+	}
+
+	free(insercion->nom_tabla);
+	free(insercion->value);
+	free(insercion);
 }
 
 void recibir_select(int tamanio, int cliente_fd){

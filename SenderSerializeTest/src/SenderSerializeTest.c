@@ -39,7 +39,7 @@ int main(int argc, char ** argv) {
 		puts("Vamos a mandar un select");
 		mandar_select(receiver_fd);
 
-		if(METODO == 2){
+		if(METODO == 2){//recibo la respuesta
 		t_cabecera cabecera=recibirCabecera(receiver_fd);
 
 		printf("Cabecera: tamanio= %d , tipomsg= %d\n",cabecera.tamanio,cabecera.tipoDeMensaje);
@@ -52,6 +52,12 @@ int main(int argc, char ** argv) {
 	if(string_equals_ignore_case(comando, "insert")){
 		puts("Vamos a mandar un insert");
 		mandar_insert(receiver_fd);
+
+		if(METODO == 2){
+			//No usar antes recibirCabecera!, prot_recibir_respuesta_insert se encarga
+			enum MENSAJES respuesta = prot_recibir_respuesta_insert(receiver_fd);
+			printf("Codigo de resultado del insert: %d\n",respuesta);
+		}
 	}
 	if(string_equals_ignore_case(comando, "create")){
 		puts("Vamos a mandar un create");
