@@ -224,8 +224,9 @@ tp_describe prot_recibir_describe(int tamanio_paq, int socket){
 	return param_describe;
 }
 
-void prot_enviar_respuesta_describe(int particiones, char* consistencia, int tiempo_compactacion, int socket){
+void prot_enviar_respuesta_describe(char* nom_tabla,int particiones, char* consistencia, int tiempo_compactacion, int socket){
 	t_paquete* paquete = crear_paquete(REQUEST_SUCCESS);
+	agregar_string_a_paquete(paquete,nom_tabla,strlen(nom_tabla)+1);
 	agregar_int_a_paquete(paquete,particiones);
 	agregar_string_a_paquete(paquete, consistencia, strlen(consistencia)+1);
 	agregar_int_a_paquete(paquete,tiempo_compactacion);
@@ -237,10 +238,16 @@ tp_describe_rta prot_recibir_respuesta_describe(int tamanio_paq,int socket){
 	//posibles MENSAJES a recibir del fs: REQUEST_SUCCESS, TABLA_NO_EXISTIA
 	void * buffer = malloc(tamanio_paq);
 	recibir(socket, buffer, tamanio_paq);
+	int tamanio_nom_tabla;
 	int particiones;
 	int tamanio_consistencia;
 	int tiempo_compactacion;
 	int desplazamiento = 0;
+	memcpy(&tamanio_nom_tabla, buffer + desplazamiento, sizeof(int));
+	desplazamiento+=sizeof(int);
+	char* nom_tabla = malloc(tamanio_nom_tabla);
+	memcpy(nom_tabla, buffer+desplazamiento, tamanio_nom_tabla);
+	desplazamiento+=tamanio_nom_tabla;
 	memcpy(&particiones, buffer + desplazamiento, sizeof(int));
 	desplazamiento+=sizeof(int);
 	memcpy(&tamanio_consistencia, buffer+desplazamiento, sizeof(int));
@@ -251,9 +258,10 @@ tp_describe_rta prot_recibir_respuesta_describe(int tamanio_paq,int socket){
 	memcpy(&tiempo_compactacion, buffer + desplazamiento, sizeof(int));
 	desplazamiento+=sizeof(int);
 	tp_describe_rta param_describe_rta =malloc(sizeof(t_describe_rta));
+	param_describe_rta->nombre=nom_tabla;
 	param_describe_rta->particiones=particiones;
 	param_describe_rta->consistencia=consistencia;
-	param_describe_rta->tiempo_compactacion=tiempo_compactacion;
+	param_describe_rta->tiempoDeCompactacion=tiempo_compactacion;
 	free(buffer);
 	return param_describe_rta;
 }
@@ -270,9 +278,10 @@ void prot_enviar_respuesta_describeAll(t_describeAll_rta descripciones, int sock
 	agregar_int_a_paquete(paquete,cantidad_descripciones);
 	for(int i=0;i<cantidad_descripciones;i++){
 		tp_describe_rta descriptor = (tp_describe_rta)list_get(descripciones.lista,i);
+		agregar_string_a_paquete(paquete,descriptor->nombre,strlen(descriptor->nombre)+1);
 		agregar_int_a_paquete(paquete,descriptor->particiones);
 		agregar_string_a_paquete(paquete, descriptor->consistencia, strlen(descriptor->consistencia)+1);
-		agregar_int_a_paquete(paquete,descriptor->tiempo_compactacion);
+		agregar_int_a_paquete(paquete,descriptor->tiempoDeCompactacion);
 	}
 	enviar_paquete(paquete, socket);
 	eliminar_paquete(paquete);
@@ -284,8 +293,8 @@ tp_describeAll_rta prot_recibir_respuesta_describeAll(int tamanio_paq, int socke
 	recibir(socket, buffer, tamanio_paq);
 	int cantidad_descripciones;
 	int desplazamiento=0;
+	int tamanio_nombre;
 	int tamanio_consistencia;
-
 	tp_describeAll_rta descripciones = malloc(sizeof(t_describeAll_rta));
 	descripciones->lista = list_create();
 
@@ -293,20 +302,20 @@ tp_describeAll_rta prot_recibir_respuesta_describeAll(int tamanio_paq, int socke
 	desplazamiento+=sizeof(int);
 
 	for(int i =0;i<cantidad_descripciones;i++){//agrego cada descriptor
-		tp_datos_describe descriptor = malloc(sizeof(datos_describe));
+		tp_describe_rta descriptor = malloc(sizeof(t_describe_rta));
 
-		//necesita int particiones, char* consistencia, int timepo_compactacion
-
+		memcpy(&tamanio_nombre,buffer+desplazamiento, sizeof(int));
+		desplazamiento+=sizeof(int);
+		descriptor->nombre = malloc(tamanio_nombre);
+		memcpy(descriptor->nombre,buffer+desplazamiento,tamanio_nombre);
+		desplazamiento+=sizeof(int);
 		memcpy(&descriptor->particiones, buffer+desplazamiento, sizeof(int));
 		desplazamiento+=sizeof(int);
-
 		memcpy(&tamanio_consistencia, buffer+desplazamiento, sizeof(int));
 		desplazamiento+=sizeof(int);
-
 		descriptor->consistencia=malloc(tamanio_consistencia);
 		memcpy(descriptor->consistencia, buffer+desplazamiento, tamanio_consistencia);
 		desplazamiento+=tamanio_consistencia;
-
 		memcpy(&descriptor->tiempoDeCompactacion, buffer+desplazamiento, sizeof(int));
 		desplazamiento+=sizeof(int);
 
@@ -316,7 +325,8 @@ tp_describeAll_rta prot_recibir_respuesta_describeAll(int tamanio_paq, int socke
 	return descripciones;
 }
 void free_tp_describeAll_rta(void* d){
-	tp_datos_describe unDescriptor = d;
+	tp_describe_rta unDescriptor = d;
+	free(unDescriptor->nombre);
 	free(unDescriptor->consistencia);
 	free(unDescriptor);
 }
