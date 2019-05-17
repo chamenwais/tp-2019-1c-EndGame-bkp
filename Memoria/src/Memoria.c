@@ -10,8 +10,17 @@
 #include "Memoria.h"
 
 
-int main(int argc, char ** argv) {
+int  main(int argc, char ** argv) {
 
+	if(argc>1 && string_equals_ignore_case(argv[1],"run-tests")){
+		return correr_tests();
+	} else {
+		ejecutar_programa_memoria(argc, argv);
+	}
+	return EXIT_SUCCESS;
+}
+
+void ejecutar_programa_memoria(int argc, char ** argv){
 	iniciar_logger();
 	inicializar_semaforos();
 	iniciar_config(argc,argv);
@@ -28,21 +37,15 @@ int main(int argc, char ** argv) {
 	int server_memoria = iniciar_servidor();
 
 	escuchar_clientes(server_memoria, socket_lfs);
-	return EXIT_SUCCESS;
 }
 
 void iniciar_la_memoria_principal(){
 	MEMORIA_PRINCIPAL = reservar_total_memoria();
-	struct stru_marco{
-		long timestamp;
-		uint16_t key;
-		char value[TAMANIO_VALUE];
-	};
-	typedef struct stru_marco t_marco;
-	int tamanio_marco=(sizeof(long)+sizeof(uint16_t)+sizeof(TAMANIO_VALUE)+1);
+
+	int tamanio_marco = obtener_tamanio_marco();
 	logger(escribir_loguear,l_debug
 						,"Tamaño de marco: %d",tamanio_marco);
-	int cantidad_marcos=(int)TAMANIO_MEMORIA/tamanio_marco;
+	int cantidad_marcos = obtener_cantidad_marcos_en_MP(tamanio_marco);
 	logger(escribir_loguear,l_info
 					,"Memoria inicializada con %d marcos",cantidad_marcos);
 }
