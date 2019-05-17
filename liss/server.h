@@ -22,6 +22,7 @@ void procesarSelect(int,t_cabecera);
 void procesarInsert(int,t_cabecera);
 void procesarCreate(int,t_cabecera);
 void procesarDescribe(int,t_cabecera);
+void procesarDescribeAll(int);
 void procesarDrop(int,t_cabecera);
 
 void* procesarMensaje(void*);
