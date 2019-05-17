@@ -74,7 +74,8 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 }
 
 t_describeAll_rta describeAll(){
-	t_describeAll_rta descriptores;//obtenerTodosLosDescriptores();
+	t_describeAll_rta descriptores;
+	descriptores.lista = obtenerTodosLosDescriptores();
 	return descriptores;
 }
 

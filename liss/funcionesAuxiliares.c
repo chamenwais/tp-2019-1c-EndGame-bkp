@@ -467,3 +467,64 @@ int vaciarListaDeKeys(t_list* keysObtenidas){
 
 	return EXIT_SUCCESS;
 }
+
+char* recortarHastaUltimaBarra(char* path){
+	int indice = (int)(strrchr(path,'/')-path)+1;
+	char* ultimoNombre = string_substring_from(path,indice);
+	return ultimoNombre;
+}
+
+t_list* obtenerTodosLosDescriptores(){
+	int result;
+	char* main_directorio=string_new();
+	string_append(&main_directorio, configuracionDelFS.puntoDeMontaje);
+	string_append(&main_directorio, "/Tables/");
+
+	t_list* metadata_todos_los_descriptores = list_create();
+
+	//deberia ser static pero gcc no estaba feliz, veo si funca igualmente
+	int guardar_metadata_descriptores(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
+
+		char* path_nombre;
+		if (ftwbuf->level == 0) return FTW_CONTINUE;
+		if (ftwbuf->level > 1) return FTW_SKIP_SUBTREE;
+		if(tflag == FTW_D) {
+
+			path_nombre = recortarHastaUltimaBarra(fpath);
+
+			log_info(LOGGERFS,"NOMBRE: %s",path_nombre);//@testing
+
+			t_metadataDeLaTabla unaMetadata = obtenerMetadataDeLaTabla(path_nombre);
+
+			free(path_nombre);
+
+			if(unaMetadata.consistencia!=NULL){
+				tp_datos_describe metadataEncodeada = malloc(sizeof(datos_describe));
+				metadataEncodeada->consistencia= malloc(strlen(unaMetadata.consistencia)+1);
+				memcpy(metadataEncodeada->consistencia,unaMetadata.consistencia,strlen(unaMetadata.consistencia)+1);
+				metadataEncodeada->particiones=unaMetadata.particiones;
+				metadataEncodeada->tiempoDeCompactacion=unaMetadata.tiempoDeCompactacion;
+				list_add(metadata_todos_los_descriptores,(void*)metadataEncodeada);
+			}
+			return FTW_SKIP_SUBTREE;
+			//return FTW_SKIP_SUBTREE;//salta a la proxima carpeta sin mirar los contenidos
+		}
+		return FTW_CONTINUE;
+	}
+
+	result = nftw(main_directorio,guardar_metadata_descriptores,20,FTW_ACTIONRETVAL|FTW_PHYS);//deberia retornar FTW_STOP
+	//@@hacer if con result, ver primero que devuelve
+	//@@revisar si devuelve el nombre de la carpeta o todo el path
+
+	free(main_directorio);
+
+	if(metadata_todos_los_descriptores->head->data == NULL) return NULL;
+	else return metadata_todos_los_descriptores;
+}
+
+
+
+
+
+
+

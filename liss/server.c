@@ -274,7 +274,7 @@ void procesarDescribe(int cliente, t_cabecera cabecera){
 
 void procesarDescribeAll(int cliente){
 
-	t_describeAll_rta descripciones;//=describeAll();
+	t_describeAll_rta descripciones = describeAll();
 
 	if(descripciones.lista!=NULL){
 		prot_enviar_respuesta_describeAll(descripciones,cliente);

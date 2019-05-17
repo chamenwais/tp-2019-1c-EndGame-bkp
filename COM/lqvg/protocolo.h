@@ -97,7 +97,7 @@ enum MENSAJES prot_recibir_respuesta_drop(int);
 void prot_enviar_describeAll(int);
 //no hay prot_recibir_ describeAll, cuando antes le hagas recibirCabecera ya vas a tener todos los datos necesarios
 void prot_enviar_respuesta_describeAll(t_describeAll_rta,int);
-tp_describeAll_rta prot_recibir_respuesta_describeAll(int,int);//@necesita antes hacer un recibirCabecera para el tamaño
+tp_describeAll_rta prot_recibir_respuesta_describeAll(int,int);//@necesita antes hacer un recibirCabecera para el tamaño total
 void prot_free_tp_describeAll_rta(tp_describeAll_rta);//para eliminar la lista una vez se usó
 
 void prot_enviar_error(enum MENSAJES, int);

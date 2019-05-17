@@ -108,6 +108,8 @@ void *funcionHiloConsola(void *arg){
 						consolaDescribeDeTabla(instruccion[1]);
 					}else{
 						printf("Voy a hacer un describe por consola de todas las tablas\n");
+						t_list* lista_desc = obtenerTodosLosDescriptores();
+						//@imprimir la lista
 						consolaDescribe();
 						}
 			}else{
