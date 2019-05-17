@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../api.c \
+../dump.c \
 ../fs.c \
 ../funcionesAuxiliares.c \
 ../funcionesComunes.c \
@@ -15,6 +16,7 @@ C_SRCS += \
 
 OBJS += \
 ./api.o \
+./dump.o \
 ./fs.o \
 ./funcionesAuxiliares.o \
 ./funcionesComunes.o \
@@ -25,6 +27,7 @@ OBJS += \
 
 C_DEPS += \
 ./api.d \
+./dump.d \
 ./fs.d \
 ./funcionesAuxiliares.d \
 ./funcionesComunes.d \
