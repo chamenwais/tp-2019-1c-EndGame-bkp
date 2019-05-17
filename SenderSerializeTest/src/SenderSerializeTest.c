@@ -65,6 +65,14 @@ int main(int argc, char ** argv) {
 	if(string_equals_ignore_case(comando, "create")){
 		puts("Vamos a mandar un create");
 		mandar_create(receiver_fd);
+
+		if(METODO == 2){
+			//No usar antes recibirCabecera!, prot_recibir_respuesta_create se encarga
+			enum MENSAJES respuesta = prot_recibir_respuesta_create(receiver_fd);
+			if(respuesta == REQUEST_SUCCESS){
+			printf("Create realizado correctamente, cod_respuesta %d\n",respuesta);
+			}else printf("Error con codigo: %d\n",respuesta);
+		}
 	}
 	if(string_equals_ignore_case(comando, "describe")){
 		puts("Vamos a mandar un describe");
@@ -87,7 +95,7 @@ void mandar_insert(int server_fd){
 }
 
 void mandar_create(int server_fd){
-	enviarCabecera(server_fd, CREATE, 16);
+	prot_enviar_create("Tablita", "SC", 5,5000,server_fd);
 }
 
 void mandar_describe(int server_fd){
