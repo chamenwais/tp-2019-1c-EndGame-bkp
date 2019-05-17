@@ -12,6 +12,7 @@
 #include <readline/readline.h>
 #include "lissandra.h"
 #include "funcionesComunes.h"
+#include "dump.h"
 
 int lanzarConsola();
 int lanzarCompactador();
