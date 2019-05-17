@@ -11,7 +11,6 @@ C_SRCS += \
 ../funcionesComunes.c \
 ../lissandra.c \
 ../server.c \
-../dump.c \
 ../variablesGlobales.c 
 
 OBJS += \
@@ -22,7 +21,6 @@ OBJS += \
 ./funcionesComunes.o \
 ./lissandra.o \
 ./server.o \
-./dump.o \
 ./variablesGlobales.o 
 
 C_DEPS += \
@@ -33,7 +31,6 @@ C_DEPS += \
 ./funcionesComunes.d \
 ./lissandra.d \
 ./server.d \
-./dump.d \
 ./variablesGlobales.d 
 
 

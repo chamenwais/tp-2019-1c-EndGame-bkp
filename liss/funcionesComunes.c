@@ -73,6 +73,11 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 	return metadata;
 }
 
+t_describeAll_rta describeAll(){
+	t_describeAll_rta descriptores;//obtenerTodosLosDescriptores();
+	return descriptores;
+}
+
 int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
 	 * Pasos:

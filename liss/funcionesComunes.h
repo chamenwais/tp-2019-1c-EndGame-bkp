@@ -11,6 +11,7 @@
 #include "lissandra.h"
 #include "funcionesAuxiliares.h"
 #include "../COM/lqvg/com.h"
+#include "../COM/lqvg/protocolo.h"
 #include "variablesGlobales.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -20,6 +21,7 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);
 t_metadataDeLaTabla describe(char* nombreDeLaTabla);
+t_describeAll_rta describeAll();
 int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp);
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value);
 char* selectf(char* nombreDeLaTabla, uint16_t key);
