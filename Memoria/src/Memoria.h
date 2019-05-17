@@ -13,7 +13,9 @@
 #include "Utilidades.h"
 #include "GestionSegPaginada.h"
 #include "Consola.h"
+#include "../test/TestGeneral.h"
 
+void ejecutar_programa_memoria(int argc, char ** argv);
 void stdin_no_bloqueante(void);
 int atender_al_kernel(int serv_socket);
 void inicializar_conexiones_cliente(void);
