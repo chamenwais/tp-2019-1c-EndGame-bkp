@@ -33,6 +33,18 @@ int main(int argc, char ** argv) {
 
 void iniciar_la_memoria_principal(){
 	MEMORIA_PRINCIPAL = reservar_total_memoria();
+	struct stru_marco{
+		long timestamp;
+		uint16_t key;
+		char value[TAMANIO_VALUE];
+	};
+	typedef struct stru_marco t_marco;
+	int tamanio_marco=(sizeof(long)+sizeof(uint16_t)+sizeof(TAMANIO_VALUE)+1);
+	logger(escribir_loguear,l_debug
+						,"Tamaño de marco: %d",tamanio_marco);
+	int cantidad_marcos=(int)TAMANIO_MEMORIA/tamanio_marco;
+	logger(escribir_loguear,l_info
+					,"Memoria inicializada con %d marcos",cantidad_marcos);
 }
 
 char *reservar_total_memoria(){
