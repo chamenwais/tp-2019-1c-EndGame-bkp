@@ -108,9 +108,7 @@ void *funcionHiloConsola(void *arg){
 						consolaDescribeDeTabla(instruccion[1]);
 					}else{
 						printf("Voy a hacer un describe por consola de todas las tablas\n");
-						t_list* lista_desc = obtenerTodosLosDescriptores();
-						//@imprimir la lista
-						consolaDescribe();
+						consolaDescribe(obtenerTodosLosDescriptores());
 						}
 			}else{
 				if((strcmp(instruccion[0],"drop")==0) || (strcmp(instruccion[0],"DROP")==0)){
@@ -191,8 +189,26 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 	return resultado;
 }
 
-int consolaDescribe(){
-	return EXIT_SUCCESS;
+void imprimirMetadataDescribeAll(tp_describe_rta unaMetadata){
+	printf("Info de la tabla: %s\n",unaMetadata->nombre);
+	printf("Numero de particiones: %d\n",unaMetadata->particiones);
+	printf("Tipo de consistencia: %s\n",unaMetadata->consistencia);
+	printf("Tiempo de compactacion: %d\n",unaMetadata->tiempoDeCompactacion);
+	printf("\n");
+}
+
+int consolaDescribe(t_list* descriptores){
+	log_info(LOGGERFS,"Haciendo un describe por consola de todas las tablas");
+	if(descriptores==NULL){
+		log_info(LOGGERFS,"No se hizo describe porque no hay tablas en el fs");
+		return EXIT_SUCCESS;//es EXIT_FAILURE que no haya tablas?
+	} else{
+		for(int i=0;i<descriptores->elements_count;i++){
+			imprimirMetadataDescribeAll((tp_describe_rta)list_get(descriptores,i));
+		}
+		liberarYDestruirTablaDeMetadata(descriptores);
+		return EXIT_SUCCESS;
+	}
 }
 
 int consolaDescribeDeTabla(char* nombreDeLaTabla){

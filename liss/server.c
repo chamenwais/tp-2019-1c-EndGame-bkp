@@ -262,7 +262,7 @@ void procesarDescribe(int cliente, t_cabecera cabecera){
 
 	t_metadataDeLaTabla metadata = describe(descripcion->nom_tabla);
 	if(metadata.consistencia!=NULL){
-		prot_enviar_respuesta_describe(metadata.particiones,metadata.consistencia,metadata.tiempoDeCompactacion,cliente);
+		prot_enviar_respuesta_describe(descripcion->nom_tabla,metadata.particiones,metadata.consistencia,metadata.tiempoDeCompactacion,cliente);
 		log_info(LOGGERFS,"[LissServer] Describe: tabla= %s",descripcion->nom_tabla);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);

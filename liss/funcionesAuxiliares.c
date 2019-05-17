@@ -492,14 +492,12 @@ t_list* obtenerTodosLosDescriptores(){
 
 			path_nombre = recortarHastaUltimaBarra(fpath);
 
-			log_info(LOGGERFS,"NOMBRE: %s",path_nombre);//@testing
-
 			t_metadataDeLaTabla unaMetadata = obtenerMetadataDeLaTabla(path_nombre);
 
-			free(path_nombre);
-
 			if(unaMetadata.consistencia!=NULL){
-				tp_datos_describe metadataEncodeada = malloc(sizeof(datos_describe));
+				tp_describe_rta metadataEncodeada = malloc(sizeof(t_describe_rta));
+				metadataEncodeada->nombre = malloc (strlen(path_nombre)+1);
+				memcpy(metadataEncodeada->nombre,path_nombre,strlen(path_nombre)+1);
 				metadataEncodeada->consistencia= malloc(strlen(unaMetadata.consistencia)+1);
 				memcpy(metadataEncodeada->consistencia,unaMetadata.consistencia,strlen(unaMetadata.consistencia)+1);
 				metadataEncodeada->particiones=unaMetadata.particiones;
