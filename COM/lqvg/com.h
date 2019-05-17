@@ -26,12 +26,11 @@ enum MENSAJES {
 	DESCRIBE,
 	DROP,
 	JOURNAL,
-	REQUEST_SUCCESS,
+	REQUEST_SUCCESS, //@seria mejor tener cada nombre por separado?
 	TABLA_YA_EXISTIA,
 	TABLA_CREADA,
 	TABLA_NO_EXISTIA,
 	TABLA_BORRADA,
-	ERROR_DESCONOCIDO
 };
 
 struct memo_del_pool {
