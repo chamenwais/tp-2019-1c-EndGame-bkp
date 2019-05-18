@@ -19,10 +19,51 @@ char* reconstruir_path_archivo(char* directorio, char* nombre_archivo) {
 	return path;
 }
 
+void separar_path_pasado_por_parametro(char * nombre_archivo, char * directorio, char ** parametros){
+	char** path_a_separar = string_n_split(parametros[1], 20, "/");
+	char * nombre_arch_aux;
+	char * dir_aux;
+
+	int final,cont = 0;
+	while(path_a_separar[final]){
+		final++;
+		if(path_a_separar[final]!=NULL){
+			cont++;
+		}
+	}
+
+	nombre_arch_aux = string_duplicate(path_a_separar[cont]);
+	nombre_archivo = nombre_arch_aux;
+	logger(escribir_loguear, l_debug,"El nombre del archivo es %s", nombre_archivo);
+
+	dir_aux = string_new();
+	string_append(&dir_aux,"/");
+
+	int cont2 = 0;
+	while(cont2 <= (cont-1)){
+		string_append_with_format(&dir_aux, "%s/", path_a_separar[cont2]);
+		cont2++;
+	}
+
+	directorio = dir_aux;
+	logger(escribir_loguear, l_debug,"EL directorio es %s", directorio);
+
+	int j = 0;
+	while(path_a_separar[j]){
+		free(path_a_separar[j]);
+		j++;
+	}
+
+	free(path_a_separar);
+	free(nombre_arch_aux);
+	free(dir_aux);
+}
+
 void iniciar_config(int cantidad_parametros, char ** parametros) {
 	char * directorio;
 	char * nombre_archivo;
 	if (cantidad_parametros>1){
+		separar_path_pasado_por_parametro(nombre_archivo, directorio, parametros);
 		g_config = config_create(parametros[1]);
 	} else {
 		directorio=DIRECTORIO_CONFIG_DEFAULT;
