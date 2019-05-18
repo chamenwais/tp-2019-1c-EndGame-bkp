@@ -43,9 +43,10 @@ typedef struct struSelectRta{
 typedef t_select_rta* tp_select_rta;
 
 typedef struct struDescribeRta{
+	char* nombre;//@@@@@@@@por que tengo dos describe rta, no puedo usar esto para all tmb o al reves?
 	int particiones;
 	char* consistencia;
-	int tiempo_compactacion;
+	int tiempoDeCompactacion;
 } t_describe_rta;
 typedef t_describe_rta* tp_describe_rta;
 
@@ -54,14 +55,7 @@ typedef struct procesarMsg{
 	t_cabecera cabecera;
 }datos_iniciales;
 
-typedef struct metadataDescribe{//para lista de describe all
-	int particiones;
-	char* consistencia;
-	int tiempoDeCompactacion;
-}datos_describe;
-typedef datos_describe* tp_datos_describe;
-
-typedef struct listaDescribeAll{//va a ser una lista de datos_describe
+typedef struct listaDescribeAll{//va a ser una lista de tp_datos_describe
 	t_list *lista;
 }t_describeAll_rta;
 typedef t_describeAll_rta* tp_describeAll_rta;
@@ -69,36 +63,41 @@ typedef t_describeAll_rta* tp_describeAll_rta;
 void prot_enviar_int(int,int);
 int prot_recibir_int(int);
 
+//@@Antes de cada funcion de recibir, ya sea recibir o recibir_respuesta tenés que
+//  hacer antes un recibirCabecera para el saber tamaño (excepto las que indiqué)
+
 void prot_enviar_select(char *, uint16_t, int);
 tp_select prot_recibir_select(int, int);
 void prot_enviar_respuesta_select(char *, int);
-tp_select_rta prot_recibir_respuesta_select(int,int);//@necesita antes hacer un recibirCabecera para el tamaño
+tp_select_rta prot_recibir_respuesta_select(int,int);
 
 void prot_enviar_insert(char *, uint16_t, char *, long, int);
 tp_insert prot_recibir_insert(int, int);
 void prot_enviar_respuesta_insert(int);
-enum MENSAJES prot_recibir_respuesta_insert(int);
+enum MENSAJES prot_recibir_respuesta_insert(int);//@NO necesita antes hacer un recibirCabecera
 
 void prot_enviar_create(char *, char *, int, int,int);
 tp_create prot_recibir_create(int, int);
 void prot_enviar_respuesta_create(int);
-enum MENSAJES prot_recibir_respuesta_create(int);
+enum MENSAJES prot_recibir_respuesta_create(int);//@NO necesita antes hacer un recibirCabecera
 
 void prot_enviar_describe(char *,int);
 tp_describe prot_recibir_describe(int, int);
-void prot_enviar_respuesta_describe(int, char*, int, int);
-tp_describe_rta prot_recibir_respuesta_describe(int,int);//@necesita antes hacer un recibirCabecera para el tamaño
+void prot_enviar_respuesta_describe(char*,int, char*, int, int);
+tp_describe_rta prot_recibir_respuesta_describe(int,int);
 
 void prot_enviar_drop(char *,int);
 tp_drop prot_recibir_drop(int, int);
 void prot_enviar_respuesta_drop(int);
-enum MENSAJES prot_recibir_respuesta_drop(int);
+enum MENSAJES prot_recibir_respuesta_drop(int);//@NO necesita antes hacer un recibirCabecera
 
 void prot_enviar_describeAll(int);
 //no hay prot_recibir_ describeAll, cuando antes le hagas recibirCabecera ya vas a tener todos los datos necesarios
 void prot_enviar_respuesta_describeAll(t_describeAll_rta,int);
-tp_describeAll_rta prot_recibir_respuesta_describeAll(int,int);//@necesita antes hacer un recibirCabecera para el tamaño total
+tp_describeAll_rta prot_recibir_respuesta_describeAll(int,int);
+
+
 void prot_free_tp_describeAll_rta(tp_describeAll_rta);//para eliminar la lista una vez se usó
 
-void prot_enviar_error(enum MENSAJES, int);
+void prot_enviar_error(enum MENSAJES, int);//usarlo cada que vez que la respuesta a cualquier pedido no sea correcta
 #endif
