@@ -180,9 +180,7 @@ int consolaDescribe(t_list* descriptores){
 		log_info(LOGGERFS,"No se hizo describe porque no hay tablas en el fs");
 		return EXIT_SUCCESS;//es EXIT_FAILURE que no haya tablas?
 	} else{
-		for(int i=0;i<descriptores->elements_count;i++){
-			imprimirMetadataDescribeAll((tp_describe_rta)list_get(descriptores,i));
-		}
+		list_iterate(descriptores,imprimirMetadataDescribeAll);
 		liberarYDestruirTablaDeMetadata(descriptores);
 		return EXIT_SUCCESS;
 	}
