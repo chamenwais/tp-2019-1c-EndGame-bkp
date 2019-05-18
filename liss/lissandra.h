@@ -18,5 +18,6 @@
 #include "fs.h"
 #include "dump.h"
 #include "server.h"
+#include "compactador.h"
 
 #endif /* LISSANDRA_H_ */

@@ -166,10 +166,10 @@ void procesarCreate(int cliente, t_cabecera cabecera){
 
 	if(result == TABLA_CREADA){
 		prot_enviar_respuesta_create(cliente);
-		printf("[TestServer] Create: tabla= %s",creacion->nom_tabla);
+		printf("[TestServer] Create: tabla= %s\n",creacion->nom_tabla);
 	} else if (result == TABLA_YA_EXISTIA){
 		prot_enviar_error(TABLA_YA_EXISTIA,cliente);
-		printf("[TestServer] Error Create: tabla= %s ya existe",creacion->nom_tabla);
+		printf("[TestServer] Error Create: tabla= %s ya existe\n",creacion->nom_tabla);
 	}
 
 }

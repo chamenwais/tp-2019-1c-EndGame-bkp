@@ -22,29 +22,6 @@ int lanzarConsola(){
 	return EXIT_SUCCESS;
 }
 
-int lanzarCompactador(){
-	log_info(LOGGERFS,"Iniciando hilo de compactador");
-	int resultadoDeCrearHilo = pthread_create( &threadCompactador, NULL,
-			funcionHiloCompactador, "Hilo compactador");
-	if(resultadoDeCrearHilo){
-		log_error(LOGGERFS,"Error al crear el hilo del compactador, return code: %d",
-				resultadoDeCrearHilo);
-		exit(EXIT_FAILURE);
-	}else{
-		log_info(LOGGERFS,"El compactador se creo exitosamente");
-		return EXIT_SUCCESS;
-		}
-	return EXIT_SUCCESS;
-	}
-
-void *funcionHiloCompactador(void *arg){
-	char *ret="Cerrando hilo";
-	log_info(LOGGERFS,"Compactador listo");
-	while(1);
-	log_info(LOGGERFS,"Finalizando compactador");
-	return ret;
-}
-
 void *funcionHiloConsola(void *arg){
 	char * linea;
 	char *ret="Cerrando hilo";

@@ -2,7 +2,7 @@
  * server.c
  *
  *  Created on: 13 abr. 2019
- *      Author: utnso
+ *      Author: franco
  */
 #include "server.h"
 
@@ -17,10 +17,10 @@ struct fds{
 int lanzarServer(){//@@crear una funcion que lance hilos de estos especiales seria mas lindo
 
 	log_info(LOGGERFS,"Iniciando hilo de server lissandra");
-	int resultadoDeCrearHilo = pthread_create( &threadServer, NULL, crearServerLissandra, (void*)NULL);
+	int resultado = pthread_create( &threadServer, NULL, crearServerLissandra, (void*)NULL);
 	pthread_detach(threadServer);
-	if(resultadoDeCrearHilo){
-		log_error(LOGGERFS,"Error al crear hilo de server lissandra, return code: %d",resultadoDeCrearHilo);
+	if(resultado){
+		log_error(LOGGERFS,"Error al crear hilo de server lissandra, return code: %d",resultado);
 		exit(EXIT_FAILURE);
 	}else{
 		log_info(LOGGERFS,"Hilo de server lissandra creado exitosamente");
