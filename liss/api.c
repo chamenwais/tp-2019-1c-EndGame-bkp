@@ -218,7 +218,7 @@ int consolaDrop(char* nombreDeLaTabla){
 
 int man(){
 	printf("Mostrando funciones disponibles de la consola:\n");
-	printf("1) \"exit\" fnaliza el programa\n");
+	printf("1) \"exit\" finaliza el programa\n");
 	printf("2) SELECT [NOMBRE_TABLA] [KEY]\n");
 	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
 	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");

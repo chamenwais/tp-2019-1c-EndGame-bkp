@@ -21,7 +21,7 @@ typedef t_insert* tp_insert;
 
 typedef struct struCreate{
 	char * nom_tabla;
-	char* tipo_consistencia;
+	char* tipo_consistencia;//SC, SHC, EC
 	int numero_particiones;
 	int tiempo_compactacion;
 } t_create;
@@ -76,7 +76,7 @@ tp_insert prot_recibir_insert(int, int);
 void prot_enviar_respuesta_insert(int);
 enum MENSAJES prot_recibir_respuesta_insert(int);//@NO necesita antes hacer un recibirCabecera
 
-void prot_enviar_create(char *, char *, int, int,int);
+void prot_enviar_create(char *, char *, int, int,int);//consistencia=SC,SHC,EC
 tp_create prot_recibir_create(int, int);
 void prot_enviar_respuesta_create(int);
 enum MENSAJES prot_recibir_respuesta_create(int);//@NO necesita antes hacer un recibirCabecera
