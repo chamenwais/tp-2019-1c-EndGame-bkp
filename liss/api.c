@@ -22,29 +22,6 @@ int lanzarConsola(){
 	return EXIT_SUCCESS;
 }
 
-int lanzarCompactador(){
-	log_info(LOGGERFS,"Iniciando hilo de compactador");
-	int resultadoDeCrearHilo = pthread_create( &threadCompactador, NULL,
-			funcionHiloCompactador, "Hilo compactador");
-	if(resultadoDeCrearHilo){
-		log_error(LOGGERFS,"Error al crear el hilo del compactador, return code: %d",
-				resultadoDeCrearHilo);
-		exit(EXIT_FAILURE);
-	}else{
-		log_info(LOGGERFS,"El compactador se creo exitosamente");
-		return EXIT_SUCCESS;
-		}
-	return EXIT_SUCCESS;
-	}
-
-void *funcionHiloCompactador(void *arg){
-	char *ret="Cerrando hilo";
-	log_info(LOGGERFS,"Compactador listo");
-	while(1);
-	log_info(LOGGERFS,"Finalizando compactador");
-	return ret;
-}
-
 void *funcionHiloConsola(void *arg){
 	char * linea;
 	char *ret="Cerrando hilo";
@@ -108,7 +85,7 @@ void *funcionHiloConsola(void *arg){
 						consolaDescribeDeTabla(instruccion[1]);
 					}else{
 						printf("Voy a hacer un describe por consola de todas las tablas\n");
-						consolaDescribe();
+						consolaDescribe(obtenerTodosLosDescriptores());
 						}
 			}else{
 				if((strcmp(instruccion[0],"drop")==0) || (strcmp(instruccion[0],"DROP")==0)){
@@ -189,8 +166,24 @@ int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDePar
 	return resultado;
 }
 
-int consolaDescribe(){
-	return EXIT_SUCCESS;
+void imprimirMetadataDescribeAll(tp_describe_rta unaMetadata){
+	printf("Info de la tabla: %s\n",unaMetadata->nombre);
+	printf("Numero de particiones: %d\n",unaMetadata->particiones);
+	printf("Tipo de consistencia: %s\n",unaMetadata->consistencia);
+	printf("Tiempo de compactacion: %d\n",unaMetadata->tiempoDeCompactacion);
+	printf("\n");
+}
+
+int consolaDescribe(t_list* descriptores){
+	log_info(LOGGERFS,"Haciendo un describe por consola de todas las tablas");
+	if(descriptores==NULL){
+		log_info(LOGGERFS,"No se hizo describe porque no hay tablas en el fs");
+		return EXIT_SUCCESS;//es EXIT_FAILURE que no haya tablas?
+	} else{
+		list_iterate(descriptores,imprimirMetadataDescribeAll);
+		liberarYDestruirTablaDeMetadata(descriptores);
+		return EXIT_SUCCESS;
+	}
 }
 
 int consolaDescribeDeTabla(char* nombreDeLaTabla){
@@ -223,7 +216,7 @@ int consolaDrop(char* nombreDeLaTabla){
 
 int man(){
 	printf("Mostrando funciones disponibles de la consola:\n");
-	printf("1) \"exit\" fnaliza el programa\n");
+	printf("1) \"exit\" finaliza el programa\n");
 	printf("2) SELECT [NOMBRE_TABLA] [KEY]\n");
 	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
 	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");

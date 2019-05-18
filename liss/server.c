@@ -2,7 +2,7 @@
  * server.c
  *
  *  Created on: 13 abr. 2019
- *      Author: utnso
+ *      Author: franco
  */
 #include "server.h"
 
@@ -17,10 +17,10 @@ struct fds{
 int lanzarServer(){//@@crear una funcion que lance hilos de estos especiales seria mas lindo
 
 	log_info(LOGGERFS,"Iniciando hilo de server lissandra");
-	int resultadoDeCrearHilo = pthread_create( &threadServer, NULL, crearServerLissandra, (void*)NULL);
+	int resultado = pthread_create( &threadServer, NULL, crearServerLissandra, (void*)NULL);
 	pthread_detach(threadServer);
-	if(resultadoDeCrearHilo){
-		log_error(LOGGERFS,"Error al crear hilo de server lissandra, return code: %d",resultadoDeCrearHilo);
+	if(resultado){
+		log_error(LOGGERFS,"Error al crear hilo de server lissandra, return code: %d",resultado);
 		exit(EXIT_FAILURE);
 	}else{
 		log_info(LOGGERFS,"Hilo de server lissandra creado exitosamente");
@@ -262,7 +262,7 @@ void procesarDescribe(int cliente, t_cabecera cabecera){
 
 	t_metadataDeLaTabla metadata = describe(descripcion->nom_tabla);
 	if(metadata.consistencia!=NULL){
-		prot_enviar_respuesta_describe(metadata.particiones,metadata.consistencia,metadata.tiempoDeCompactacion,cliente);
+		prot_enviar_respuesta_describe(descripcion->nom_tabla,metadata.particiones,metadata.consistencia,metadata.tiempoDeCompactacion,cliente);
 		log_info(LOGGERFS,"[LissServer] Describe: tabla= %s",descripcion->nom_tabla);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
@@ -274,7 +274,7 @@ void procesarDescribe(int cliente, t_cabecera cabecera){
 
 void procesarDescribeAll(int cliente){
 
-	t_describeAll_rta descripciones;//=describeAll();
+	t_describeAll_rta descripciones = describeAll();
 
 	if(descripciones.lista!=NULL){
 		prot_enviar_respuesta_describeAll(descripciones,cliente);

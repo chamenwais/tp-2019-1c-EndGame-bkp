@@ -7,11 +7,15 @@
 
 #ifndef FUNCIONESAUXILIARES_H_
 #define FUNCIONESAUXILIARES_H_
+#define _XOPEN_SOURCE 500 //para ftw
+#define _GNU_SOURCE
 
 #include "lissandra.h"
 #include "variablesGlobales.h"
 #include "../COM/lqvg/com.h"
+#include "../COM/lqvg/protocolo.h"
 #include <stdbool.h>
+#include <ftw.h>
 
 int crearDirectorioParaLaTabla(char* nombreDeLaTabla);
 int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
@@ -37,5 +41,7 @@ bool existeElArchivo(char* nombreDelArchivo);
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla);
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey);
 int vaciarListaDeKeys(t_list* keysObtenidas);
+t_list* obtenerTodosLosDescriptores();
+char* recortarDespuesUltimaBarra(char*);//ej: home/utnso/file -> file
 
 #endif /* FUNCIONESAUXILIARES_H_ */

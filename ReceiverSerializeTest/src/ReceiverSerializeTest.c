@@ -20,6 +20,7 @@ void recibir_insert(int, int);
 
 void procesarSelect(int,t_cabecera);
 void procesarInsert(int,t_cabecera);
+void procesarCreate(int,t_cabecera);
 void* procesarMensaje(void*);
 
 #define METODO 2 //@@Metodo a usar, el 2 es el mas nuevo
@@ -79,7 +80,7 @@ void* procesarMensaje(void* args){
 	datos_iniciales* p = (datos_iniciales*) args;
 
 
-	printf("[LissServer] Recibi cod_mensaje %d desde %d tamanio %d\n",p->cabecera.tipoDeMensaje,p->cliente,p->cabecera.tamanio);
+	printf("[TestServer] Recibi cod_mensaje %d desde %d tamanio %d\n",p->cabecera.tipoDeMensaje,p->cliente,p->cabecera.tamanio);
 	switch(p->cabecera.tipoDeMensaje){
 
 	case SELECT:
@@ -95,7 +96,7 @@ void* procesarMensaje(void* args){
 		break;
 	case CREATE:
 
-
+		procesarCreate(p->cliente,p->cabecera);
 
 		break;
 	case DESCRIBE:
@@ -126,11 +127,11 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 
 	if (value == NULL){
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		printf("[LissServer] Enviada respuesta de select a %d con error= TABLA_NO_EXISTIA\n",cliente);
+		printf("[TestServer] Enviada respuesta de select a %d con error= TABLA_NO_EXISTIA\n",cliente);
 
 	} else{
 		prot_enviar_respuesta_select(value,cliente);
-		printf("[LissServer] Enviada respuesta de select a %d con value= %s\n",cliente,value);
+		printf("[TestServer] Enviada respuesta de select a %d con value= %s\n",cliente,value);
 	}
 	free(seleccion->nom_tabla);
 	free(seleccion);
@@ -142,22 +143,35 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 	tp_insert insercion = prot_recibir_insert(cabecera.tamanio, cliente);
 
 
-	int result = EXIT_SUCCESS; //Hace insert y guarda la respuesta en result
+	int result = EXIT_SUCCESS; //"Hace" insert y guarda la respuesta en result
 
 	if (result == EXIT_SUCCESS){
 		prot_enviar_respuesta_insert(cliente);
-		printf("[LissServer] Correctamente insertado en %s el value= %s\n",insercion->nom_tabla,insercion->value);
-	} else if(result == TABLA_NO_EXISTIA){
-		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		printf("[LissServer] Error Insert: la tabla %s no existe\n",insercion->nom_tabla);
+		printf("[TestServer] Correctamente insertado en %s el value= %s\n",insercion->nom_tabla,insercion->value);
 	} else {
-		prot_enviar_error(ERROR_DESCONOCIDO,cliente);
-		printf("[LissServer] Error Insert: en %s con value= %s\n",insercion->nom_tabla,insercion->value);
+		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
+		printf("[TestServer] Error Insert: la tabla %s no existe\n",insercion->nom_tabla);
 	}
 
 	free(insercion->nom_tabla);
 	free(insercion->value);
 	free(insercion);
+}
+
+void procesarCreate(int cliente, t_cabecera cabecera){
+
+	tp_create creacion = prot_recibir_create(cabecera.tamanio,cliente);
+
+	int result= TABLA_CREADA;//"creo" la tabla y guardo el resultado
+
+	if(result == TABLA_CREADA){
+		prot_enviar_respuesta_create(cliente);
+		printf("[TestServer] Create: tabla= %s\n",creacion->nom_tabla);
+	} else if (result == TABLA_YA_EXISTIA){
+		prot_enviar_error(TABLA_YA_EXISTIA,cliente);
+		printf("[TestServer] Error Create: tabla= %s ya existe\n",creacion->nom_tabla);
+	}
+
 }
 
 void recibir_select(int tamanio, int cliente_fd){
