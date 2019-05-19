@@ -19,34 +19,28 @@ char* reconstruir_path_archivo(char* directorio, char* nombre_archivo) {
 	return path;
 }
 
-void separar_path_pasado_por_parametro(char * nombre_archivo, char * directorio, char ** parametros){
+void separar_path_pasado_por_parametro(char ** nombre_archivo, char ** directorio, char ** parametros){
 	char** path_a_separar = string_n_split(parametros[1], 20, "/");
-	char * nombre_arch_aux;
-	char * dir_aux;
 
-	int final,cont = 0;
+	int final = 0,cont = 0;
 	while(path_a_separar[final]){
 		final++;
 		if(path_a_separar[final]!=NULL){
 			cont++;
 		}
 	}
+	string_append(nombre_archivo, path_a_separar[cont]);
+	logger(escribir_loguear, l_debug,"El nombre del archivo es %s", *nombre_archivo);
 
-	nombre_arch_aux = string_duplicate(path_a_separar[cont]);
-	nombre_archivo = nombre_arch_aux;
-	logger(escribir_loguear, l_debug,"El nombre del archivo es %s", nombre_archivo);
-
-	dir_aux = string_new();
-	string_append(&dir_aux,"/");
+	string_append(directorio,"/");
 
 	int cont2 = 0;
 	while(cont2 <= (cont-1)){
-		string_append_with_format(&dir_aux, "%s/", path_a_separar[cont2]);
+		string_append_with_format(directorio, "%s/", path_a_separar[cont2]);
 		cont2++;
 	}
 
-	directorio = dir_aux;
-	logger(escribir_loguear, l_debug,"EL directorio es %s", directorio);
+	logger(escribir_loguear, l_debug,"EL directorio es %s", *directorio);
 
 	int j = 0;
 	while(path_a_separar[j]){
@@ -55,19 +49,19 @@ void separar_path_pasado_por_parametro(char * nombre_archivo, char * directorio,
 	}
 
 	free(path_a_separar);
-	free(nombre_arch_aux);
-	free(dir_aux);
 }
 
 void iniciar_config(int cantidad_parametros, char ** parametros) {
-	char * directorio;
-	char * nombre_archivo;
+	char * directorio=string_new();
+	char * nombre_archivo=string_new();
 	if (cantidad_parametros>1){
-		separar_path_pasado_por_parametro(nombre_archivo, directorio, parametros);
+		separar_path_pasado_por_parametro(&nombre_archivo, &directorio, parametros);
 		g_config = config_create(parametros[1]);
 	} else {
-		directorio=DIRECTORIO_CONFIG_DEFAULT;
-		nombre_archivo=NOMBRE_ARCH_CONFIG_DEFAULT;
+		free(directorio);
+		free(nombre_archivo);
+		directorio=string_duplicate(DIRECTORIO_CONFIG_DEFAULT);
+		nombre_archivo=string_duplicate(NOMBRE_ARCH_CONFIG_DEFAULT);
 		char* path = reconstruir_path_archivo(directorio, nombre_archivo);
 		g_config = config_create(path);
 		free(path);
@@ -86,16 +80,16 @@ void validar_apertura_archivo_configuracion() {
 
 void iniciar_escucha_cambios_conf(char * directorio, char * nombre_archivo){
 	pthread_t hilo_cambios_conf;
-	t_path_archivo_conf *ruta_archivo_conf=malloc(sizeof(t_path_archivo_conf));
-	ruta_archivo_conf->directorio=directorio;
-	ruta_archivo_conf->nombre_archivo=nombre_archivo;
+	t_path_archivo_conf * str_ruta_archivo_conf=malloc(sizeof(t_path_archivo_conf));
+	str_ruta_archivo_conf->directorio=directorio;
+	str_ruta_archivo_conf->nombre_archivo=nombre_archivo;
 	int resultado_de_hacer_el_hilo = pthread_create (&hilo_cambios_conf, NULL
-			, escuchar_cambios_conf, ruta_archivo_conf);
+			, escuchar_cambios_conf, str_ruta_archivo_conf);
 	if(resultado_de_hacer_el_hilo!=0){
 		if(resultado_de_hacer_el_hilo!=0){
 			logger(escribir_loguear,l_error
 					,"Error al crear el hilo de escucha de cambios de conf, levantá la memoria de nuevo");
-			free(ruta_archivo_conf);
+			free(str_ruta_archivo_conf);
 			terminar_programa(EXIT_FAILURE);
 		}
 	}
@@ -382,8 +376,11 @@ void terminar_programa(int codigo_finalizacion){
 	pthread_mutex_unlock(&M_PATH_ARCHIVO_CONFIGURACION);
 
 	pthread_mutex_lock(&M_RUTA_ARCHIVO_CONF);
+	free(ruta_archivo_conf->directorio);
+	free(ruta_archivo_conf->nombre_archivo);
 	free(ruta_archivo_conf);
 	pthread_mutex_unlock(&M_RUTA_ARCHIVO_CONF);
+
 
 	apagar_semaforos();
 	exit(codigo_finalizacion);

@@ -12,10 +12,18 @@
 #include <stdlib.h>
 #include "CUnit/Basic.h"
 #include "../src/Memoria.h"
+#include "../src/Consola.h"
+
+int correr_tests();
 
 int setup_gestion_seg_pag();
 int clean_gestion_seg_pag();
-int correr_tests();
 void test_calcular_cantidad_marcos_MP();
+
+int setup_comandos();
+int clean_comandos();
+void test_tomar_value_insert();
+void test_tomar_value_insert_una_comilla();
+void test_tomar_value_insert_sin_comillas();
 
 #endif /* TEST_TESTGENERAL_H_ */
