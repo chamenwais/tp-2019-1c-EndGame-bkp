@@ -79,19 +79,21 @@ void logeuar_param_err_limpiar_cuatro_restantes(char* param1, char* param2,
 	limpiar_cuatro_parametros(param2, param1, param3, param4);
 }
 
-void consola_insert(char** comandos){
+void consola_insert(char * comando_puro, char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
 	char *string_key = NULL;
 	char *value = NULL;
 	char *string_timestamp = NULL;
-	obtener_cuatro_parametros(comandos, &nombre_tabla, &string_key, &value, &string_timestamp, _INSERT);
+	obtener_cuatro_parametros_insert(comando_puro, comandos
+			, &nombre_tabla, &string_key, &value, &string_timestamp, _INSERT);
 	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
 	cant_param_correcta=validar_parametro_consola(&string_key);
 	cant_param_correcta=validar_parametro_consola(&value);
 	validar_parametro_consola(&string_timestamp);
 	if(cant_param_correcta<0){
-		loguear_cant_menor_params(_INSERT);
+		logger(escribir_loguear, l_error,
+					"Los parámetros del insert son incorrectos");
 		return;
 	}
 
@@ -104,6 +106,10 @@ void consola_insert(char** comandos){
 		return;
 	}
 	long timestamp;
+	if(string_contains(string_timestamp, "\"")){
+		free(string_timestamp);
+		string_timestamp="-1";
+	}
 	if(string_equals_ignore_case(string_timestamp, "-1")){
 		timestamp=(unsigned)time(NULL);
 	} else {
@@ -125,6 +131,29 @@ void consola_insert(char** comandos){
 	//Limpio el nombre_tabla
 	limpiar_cuatro_parametros(nombre_tabla, string_key, value,
 			string_timestamp);
+}
+
+char * obtener_value_a_insertar(char * comando_insert){
+	char * p_first=strchr(comando_insert,'"');
+	char * p_last=strrchr(comando_insert,'"');
+	if(p_first==NULL){
+		return NULL;
+	}
+	if(p_first==p_last){
+		return NULL;
+	}
+	int i=0;
+	while(p_first[i+1]!=p_last[0]){
+		i++;
+	}
+	char * value_a_insertar=malloc(i+1);
+	i=1;
+	while(p_first[i]!=p_last[0]){
+		value_a_insertar[i-1]=p_first[i];
+		i++;
+	}
+	value_a_insertar[i-1]='\0';
+	return value_a_insertar;
 }
 
 void consola_create(char** comandos){
@@ -231,7 +260,7 @@ void consola_journal(int socket_LFS){
 
 }
 
-int consola_obtener_key_comando(char** comandos, int LFS_fs)
+int consola_obtener_key_comando(char * buf_comando,char** comandos, int LFS_fs)
 {
 	int key = -1;
 	char *comando=comandos[0];
@@ -244,7 +273,7 @@ int consola_obtener_key_comando(char** comandos, int LFS_fs)
 		return 0;
 	}
 	if(string_equals_ignore_case(comando, "insert")){
-		consola_insert(comandos);
+		consola_insert(buf_comando, comandos);
 		return 0;
 	}
 	if(string_equals_ignore_case(comando, "create")){
@@ -360,6 +389,32 @@ void obtener_cuatro_parametros(char** comandos, char** parametro1,
 	free(comandos);
 }
 
+void obtener_cuatro_parametros_insert(char * comando_puro, char** comandos, char** parametro1,
+		char** parametro2, char** parametro3, char** parametro4, char * proceso){
+	int j=0;
+
+	while(comandos[j])
+	{
+		switch(j)
+		{
+			case 1:
+				*parametro1 = string_duplicate(comandos[j]);
+				break;
+			case 2:
+				*parametro2 = string_duplicate(comandos[j]);
+				break;
+		}
+
+		j++;
+	}
+	*parametro3 = obtener_value_a_insertar(comando_puro);
+	*parametro4 = string_duplicate(comandos[j-1]);
+
+	limpiar_elementos_comando(j, comandos);
+
+	free(comandos);
+}
+
 void loguear_cuatro_parametros_recibidos(char * param1, char * param2, char * param3, char* param4){
 	logger(escribir_loguear, l_debug,"Los parámetros fueron '%s', '%s', '%s' y '%s'"
 			, param1, param2, param3, param4);
@@ -392,7 +447,7 @@ int consola_derivar_comando(char * buffer, int socket_LFS){
 	}
 
 	// Obtiene la clave del comando a ejecutar y manda a ejecutarlo
-	comando_key = consola_obtener_key_comando(comandos, socket_LFS);
+	comando_key = consola_obtener_key_comando(buffer, comandos, socket_LFS);
 
 	if(comando_key<0){
 		logger(escribir_loguear, l_error,"No conozco ese comando, proba de nuevo");
