@@ -9,5 +9,12 @@
 
 int dump(){
 
-return EXIT_SUCCESS;
+	void dumpearTabla(void* nodo) {
+		!strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+		}
+
+	list_iterate(memTable,dumpearTabla);
+	vaciarMemTable();
+	memTable=list_create();
+	return EXIT_SUCCESS;
 }
