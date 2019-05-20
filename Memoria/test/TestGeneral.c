@@ -13,6 +13,8 @@ int correr_tests(){
 	CU_pSuite tests_gestion_seg_pag =
 			CU_add_suite("Suite para probar gestión de la seg paginada", setup_gestion_seg_pag, clean_gestion_seg_pag);
 	CU_add_test(tests_gestion_seg_pag, "test_calcular_cantidad_marcos_MP", test_calcular_cantidad_marcos_MP);
+	CU_add_test(tests_gestion_seg_pag, "test_colocar_key_en_MP", test_colocar_key_en_MP);
+	CU_add_test(tests_gestion_seg_pag, "test_modificar_key_en_MP", test_modificar_key_en_MP);
 
 	CU_pSuite tests_comandos =
 				CU_add_suite("Suite para probar interpretación de comandos", setup_comandos, clean_comandos);
@@ -30,12 +32,22 @@ int correr_tests(){
 int setup_gestion_seg_pag(){
 	TAMANIO_MEMORIA=256;
 	TAMANIO_VALUE=3;
+	MEMORIA_PRINCIPAL = reservar_total_memoria();
 	g_logger= log_create("/home/utnso/TestsMemoria.log", "TestsMemoria", true, LOG_LEVEL_DEBUG);
+
+	inicializar_bitmap_marcos();
+	inicializar_tabla_segmentos();
+
 	return 0;
 }
 
 int clean_gestion_seg_pag(){
+	free(MEMORIA_PRINCIPAL);
 	log_destroy(g_logger);
+
+	liberar_bitmap_marcos();
+	liberar_tabla_segmentos();
+
 	return 0;
 }
 
@@ -43,6 +55,14 @@ void test_calcular_cantidad_marcos_MP(){
 	setup_gestion_seg_pag();
 	int tamanio_marco = obtener_tamanio_marco();
 	CU_ASSERT_EQUAL(obtener_cantidad_marcos_en_MP(tamanio_marco), 23);
+}
+
+void test_colocar_key_en_MP(){
+
+}
+
+void test_modificar_key_en_MP(){
+
 }
 
 int setup_comandos(){

@@ -121,7 +121,7 @@ struct entrada_tabla_paginas{
 };
 typedef struct entrada_tabla_paginas t_entrada_tabla_paginas;
 
-extern t_bitarray *bitmap_marcos_libres;
+extern t_bitarray *bitmap_marcos;
 extern t_list * tabla_de_segmentos;
 
 extern t_conexion_cliente conexiones_cliente[MAX_CLIENTES];

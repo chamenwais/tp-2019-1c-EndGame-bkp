@@ -9,6 +9,7 @@
 #define SRC_GESTIONSEGPAGINADA_H_
 
 #include "Contexto.h"
+#include "Utilidades.h"
 
 /* Esta sería la estructura de un marco en la MP
  *
@@ -20,7 +21,12 @@ struct stru_marco{
 typedef struct stru_marco t_marco;*/
 
 int obtener_tamanio_marco();
-
 int obtener_cantidad_marcos_en_MP(int );
+void inicializar_bitmap_marcos();
+void inicializar_tabla_segmentos();
+void liberar_bitmap_marcos();
+void liberar_tabla_segmentos();
+int obtener_marco_libre_del_bitmap();
+void ocupar_marco_en_el_bitmap(int);
 
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */
