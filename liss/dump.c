@@ -9,5 +9,18 @@
 
 int dump(){
 
-return EXIT_SUCCESS;
+	void dumpearTabla(void* nodo) {
+		//!strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+		t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla);
+		char* directorioDeLaTabla=string_new();
+		string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
+		string_append(&directorioDeLaTabla, "/Tables/");
+		string_append(&directorioDeLaTabla, ((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla);
+
+	}
+
+	list_iterate(memTable,dumpearTabla);
+	vaciarMemTable();
+	memTable=list_create();
+	return EXIT_SUCCESS;
 }
