@@ -8,6 +8,7 @@ C_SRCS += \
 ../src/Contexto.c \
 ../src/GestionSegPaginada.c \
 ../src/Memoria.c \
+../src/ManejoConexionesyAPI.c \
 ../src/Utilidades.c 
 
 OBJS += \
@@ -15,6 +16,7 @@ OBJS += \
 ./src/Contexto.o \
 ./src/GestionSegPaginada.o \
 ./src/Memoria.o \
+./src/ManejoConexionesyAPI.o \
 ./src/Utilidades.o 
 
 C_DEPS += \
@@ -22,6 +24,7 @@ C_DEPS += \
 ./src/Contexto.d \
 ./src/GestionSegPaginada.d \
 ./src/Memoria.d \
+./src/ManejoConexionesyAPI.d \
 ./src/Utilidades.d 
 
 

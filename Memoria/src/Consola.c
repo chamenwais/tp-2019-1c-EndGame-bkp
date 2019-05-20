@@ -54,7 +54,7 @@ void consola_select(char** comandos){
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_SELECT);
-	//TODO hacer algo
+	realizar_select(nombre_tabla, key);
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	limpiar_dos_parametros(nombre_tabla, string_key);
@@ -123,10 +123,14 @@ void consola_insert(char * comando_puro, char** comandos){
 	}
 	logger(escribir_loguear, l_debug,"El timestamp fue '%d'",timestamp);
 
-	pthread_mutex_lock(&M_JOURNALING);
-	loguear_comienzo_ejecucion_sentencia(_INSERT);
-	//TODO hacer algo
-	pthread_mutex_unlock(&M_JOURNALING);
+	if(strlen(value)>TAMANIO_VALUE){
+		logger(escribir_loguear, l_error,"El tamanio del value excede al permitido, volve a intentar");
+	}else{
+		pthread_mutex_lock(&M_JOURNALING);
+		loguear_comienzo_ejecucion_sentencia(_INSERT);
+		//TODO hacer algo
+		pthread_mutex_unlock(&M_JOURNALING);
+	}
 
 	//Limpio el nombre_tabla
 	limpiar_cuatro_parametros(nombre_tabla, string_key, value,

@@ -53,3 +53,11 @@ void inicializar_tabla_segmentos(){
 void liberar_tabla_segmentos(){
 	list_destroy(tabla_de_segmentos);
 }
+
+char * verificar_existencia_en_MP(char * nombre_tabla, int key){
+	return NULL;
+}
+
+void colocar_value_en_MP(){
+
+}

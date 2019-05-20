@@ -11,6 +11,7 @@
 #include "Contexto.h"
 #include "Utilidades.h"
 #include "GestionSegPaginada.h"
+#include "ManejoConexionesyAPI.h"
 
 #define _SELECT "SELECT"
 #define _INSERT "INSERT"
