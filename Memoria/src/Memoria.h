@@ -14,6 +14,7 @@
 #include "GestionSegPaginada.h"
 #include "Consola.h"
 #include "../test/TestGeneral.h"
+#include "ManejoConexionesyAPI.h"
 
 void ejecutar_programa_memoria(int argc, char ** argv);
 void stdin_no_bloqueante(void);

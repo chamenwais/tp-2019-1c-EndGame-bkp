@@ -170,6 +170,7 @@ int comunicarse_con_lissandra(void){
 	validar_comunicacion(socket_liss, LFS);
 	mandar_handshake_a(LFS, socket_liss, LISSANDRA);
 	obtener_tamanio_value(socket_liss);
+	SOCKET_LISS = socket_liss;
 	return socket_liss;
 }
 
