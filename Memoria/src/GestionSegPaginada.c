@@ -58,6 +58,12 @@ char * verificar_existencia_en_MP(char * nombre_tabla, int key){
 	return NULL;
 }
 
-void colocar_value_en_MP(){
+void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+	t_entrada_tabla_segmentos * segmento = buscar_segmento_de_tabla(nom_tabla);
 
+}
+
+t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char * nombre_tabla){
+	t_entrada_tabla_segmentos * segmento=NULL;
+	return segmento;
 }

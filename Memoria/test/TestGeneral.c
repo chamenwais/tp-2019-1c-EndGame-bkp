@@ -13,7 +13,7 @@ int correr_tests(){
 	CU_pSuite tests_gestion_seg_pag =
 			CU_add_suite("Suite para probar gestión de la seg paginada", setup_gestion_seg_pag, clean_gestion_seg_pag);
 	CU_add_test(tests_gestion_seg_pag, "test_calcular_cantidad_marcos_MP", test_calcular_cantidad_marcos_MP);
-	CU_add_test(tests_gestion_seg_pag, "test_colocar_key_en_MP", test_colocar_key_en_MP);
+	CU_add_test(tests_gestion_seg_pag, "test_colocar_value_en_MP", test_colocar_value_en_MP);
 	CU_add_test(tests_gestion_seg_pag, "test_modificar_key_en_MP", test_modificar_key_en_MP);
 
 	CU_pSuite tests_comandos =
@@ -31,9 +31,10 @@ int correr_tests(){
 
 int setup_gestion_seg_pag(){
 	TAMANIO_MEMORIA=256;
-	TAMANIO_VALUE=3;
+	TAMANIO_VALUE=7;
 	MEMORIA_PRINCIPAL = reservar_total_memoria();
 	g_logger= log_create("/home/utnso/TestsMemoria.log", "TestsMemoria", true, LOG_LEVEL_DEBUG);
+	RETARDO_ACCESO_MEMORIA=10000;
 
 	inicializar_bitmap_marcos();
 	inicializar_tabla_segmentos();
@@ -57,7 +58,9 @@ void test_calcular_cantidad_marcos_MP(){
 	CU_ASSERT_EQUAL(obtener_cantidad_marcos_en_MP(tamanio_marco), 23);
 }
 
-void test_colocar_key_en_MP(){
+void test_colocar_value_en_MP(){
+	setup_gestion_seg_pag();
+	colocar_value_en_MP("tabla1",(unsigned)time(NULL),(uint16_t)1,"Ahí va");
 
 }
 
