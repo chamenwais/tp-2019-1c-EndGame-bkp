@@ -516,12 +516,24 @@ t_list* obtenerTodosLosDescriptores(){
 
 	free(main_directorio);
 
-	if(metadata_todos_los_descriptores->head->data == NULL) return NULL;
+	if(metadata_todos_los_descriptores->head->data == NULL) {
+		list_destroy(metadata_todos_los_descriptores);
+		return NULL;
+	}
 	else return metadata_todos_los_descriptores;
 }
 
 
+void free_tp_describe_rta(void* d){
+	tp_describe_rta unDescriptor = d;
+	free(unDescriptor->nombre);
+	free(unDescriptor->consistencia);
+	free(unDescriptor);
+}
 
+void liberarYDestruirTablaDeMetadata(t_list* descriptores){//libera y destruye una lista que tenga tp_describe_rta dentro
+	list_destroy_and_destroy_elements(descriptores,free_tp_describe_rta);
+}
 
 
 

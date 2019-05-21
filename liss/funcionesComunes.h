@@ -21,7 +21,8 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);
 t_metadataDeLaTabla describe(char* nombreDeLaTabla);
-t_describeAll_rta describeAll();
+t_describeAll_rta describeAll();//en funciones auxiliares esta la func
+								//liberarYDestruirTablaDeMetadata para liberar la lista q tiene dentro t_describeAll_rta
 int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp);
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value);
 char* selectf(char* nombreDeLaTabla, uint16_t key);

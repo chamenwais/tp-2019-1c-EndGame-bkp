@@ -43,5 +43,6 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numero
 int vaciarListaDeKeys(t_list* keysObtenidas);
 t_list* obtenerTodosLosDescriptores();
 char* recortarDespuesUltimaBarra(char*);//ej: home/utnso/file -> file
+void liberarYDestruirTablaDeMetadata(t_list*);
 
 #endif /* FUNCIONESAUXILIARES_H_ */
