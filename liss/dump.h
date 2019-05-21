@@ -10,6 +10,9 @@
 
 #include "lissandra.h"
 
-int dump();
+int dump(char* nombreDeLaTabla);
+char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla);
+int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo);
+int crearElTemp(char* nombreDelArchivo);
 
 #endif /* DUMP_H_ */

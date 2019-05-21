@@ -114,8 +114,8 @@ void *funcionHiloConsola(void *arg){
 				if(strcmp(instruccion[0],"pmemtable")==0){
 					imprimirMemtableEnPantalla();
 			}else{
-				if(strcmp(instruccion[0],"dumpear")==0){
-					dump();
+				if((strcmp(instruccion[0],"dumpear")==0)&&(instruccion[1]!=NULL)){
+					dump(instruccion[1]);
 			}else{
 				printf("Comando desconocido\n");
 				}}}}}}}}}}}}}
@@ -228,6 +228,7 @@ int man(){
 	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
 	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
 	printf("12) \"pmemtable\", imprime los datos de la memtable en pantalla\n");
+	printf("13) \"dumpear\" [NOMBRE DE LA TABLA], fuerza el dumpeo de la tabla\n");
 	return EXIT_SUCCESS;
 }
 
