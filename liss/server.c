@@ -234,17 +234,18 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 
 	char* value = selectf(seleccion->nom_tabla, seleccion->key);//pido el value al fs
 
-	if(value != NULL){
+	if(*value != 0){
+
+		log_info(LOGGERFS,"[LissServer] Proceso Select: tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",seleccion->nom_tabla,seleccion->key,value);
 		prot_enviar_respuesta_select(value,cliente);
-		log_info(LOGGERFS,"[LissServer] Select: tabla= %s con value= %s",seleccion->nom_tabla,seleccion->key);
 	}
 	else{
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Select: tabla= %d no existe",seleccion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Error Select: tabla= %s no existe",seleccion->nom_tabla);
 	}
 	free(seleccion->nom_tabla);
 	free(seleccion);
-	free(value);
+	//free(value); //@necesita free el value q manda selectf???
 }
 
 void procesarInsert(int cliente, t_cabecera cabecera){
@@ -259,7 +260,7 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 		log_info(LOGGERFS,"[LissServer] Insert: tabla= %s , value= %s",insercion->nom_tabla,insercion->value);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Insert: tabla= %s no existe",insercion->nom_tabla,insercion->value);
+		log_info(LOGGERFS,"[LissServer] Error Insert: tabla= %s no existe",insercion->nom_tabla);
 	}
 
 	free(insercion->nom_tabla);
