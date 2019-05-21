@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include "funcionesComunes.h"
+#include "funcionesAuxiliares.h"
 
 void procesarSelect(int,t_cabecera);
 void procesarInsert(int,t_cabecera);
