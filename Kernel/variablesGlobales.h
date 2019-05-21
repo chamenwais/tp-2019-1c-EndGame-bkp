@@ -16,6 +16,7 @@
 #include <lqvg/protocolo.h>
 #include <commons/string.h> // Para manejo de strings
 #include <signal.h>			// Para manejo de señales
+#include <commons/collections/list.h>
 
 enum tipo_logueo {
 	escribir,
@@ -37,6 +38,13 @@ typedef struct definicionConfiguracionDelKernel {
 	int retardoCiclo;
 } t_configuracionDelKernel;
 
+struct memo_del_pool_kernel {
+	char * ip;
+	char * puerto;
+	int socket;
+};
+typedef struct memo_del_pool_kernel t_memo_del_pool_kernel;
+
 enum tipo_consistencia {
 	SC,
 	HC,
@@ -45,12 +53,12 @@ enum tipo_consistencia {
 
 typedef struct {
 	enum {
-		SELECT,
+		/*SELECT,
 		INSERT,
 		CREATE,
 		DESCRIBE,
 		DROP,
-		JOURNAL,
+		JOURNAL,*/
 		ADD,
 		RUN,
 		METRICS,
@@ -98,7 +106,11 @@ typedef struct {
 extern t_configuracionDelKernel configKernel;
 extern t_log* LOG_KERNEL;
 extern pthread_t threadConsola, threadPlanif;
-extern t_list* listaNew, listaReady, listaExec, listaExit;
+extern t_list* listaNew;
+extern t_list* listaReady;
+extern t_list* listaExec;
+extern t_list* listaExit;
+extern t_list* listaMemConectadas;
 
 int inicializarVariablesGlobales();
 int liberarRecursos();

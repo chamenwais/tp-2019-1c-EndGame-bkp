@@ -31,6 +31,7 @@ enum MENSAJES {
 	TABLA_CREADA,
 	TABLA_NO_EXISTIA,
 	TABLA_BORRADA,
+	POOL_REQUEST,
 };
 
 struct memo_del_pool {
