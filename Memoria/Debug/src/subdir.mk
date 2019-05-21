@@ -7,24 +7,24 @@ C_SRCS += \
 ../src/Consola.c \
 ../src/Contexto.c \
 ../src/GestionSegPaginada.c \
-../src/Memoria.c \
 ../src/ManejoConexionesyAPI.c \
+../src/Memoria.c \
 ../src/Utilidades.c 
 
 OBJS += \
 ./src/Consola.o \
 ./src/Contexto.o \
 ./src/GestionSegPaginada.o \
-./src/Memoria.o \
 ./src/ManejoConexionesyAPI.o \
+./src/Memoria.o \
 ./src/Utilidades.o 
 
 C_DEPS += \
 ./src/Consola.d \
 ./src/Contexto.d \
 ./src/GestionSegPaginada.d \
-./src/Memoria.d \
 ./src/ManejoConexionesyAPI.d \
+./src/Memoria.d \
 ./src/Utilidades.d 
 
 

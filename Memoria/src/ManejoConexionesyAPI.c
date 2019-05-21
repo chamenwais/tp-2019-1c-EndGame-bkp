@@ -48,7 +48,8 @@ void realizar_select(char * nombre_tabla, int key){
 		value = pedir_value_a_liss(nombre_tabla, key);
 
 		if(value!=NULL){
-			colocar_value_en_MP();
+			//TODO ¡El timestamp tiene que venir de LFS, no se tiene que calcular!
+			colocar_value_en_MP(nombre_tabla, (unsigned)time(NULL),(uint16_t)key,value);
 		}
 	}
 

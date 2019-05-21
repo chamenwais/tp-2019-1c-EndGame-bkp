@@ -28,7 +28,8 @@ void liberar_bitmap_marcos();
 void liberar_tabla_segmentos();
 int obtener_marco_libre_del_bitmap();
 void ocupar_marco_en_el_bitmap(int);
-char * verificar_existencia_en_MP(char * nombre_tabla, int key);
-void colocar_value_en_MP();
+char * verificar_existencia_en_MP(char *, int);
+void colocar_value_en_MP(char *, long, uint16_t,char *);
+t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char *);
 
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */
