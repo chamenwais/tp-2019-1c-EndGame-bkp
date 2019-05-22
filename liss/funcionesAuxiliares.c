@@ -378,15 +378,16 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 	config_destroy(configuracion);
 	char* directorioDeTrabajo= string_new();
 	string_append(&directorioDeTrabajo,configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioDeTrabajo,"/Tables/");
-	string_append(&directorioDeTrabajo,nombreDeLaTabla);
-	string_append(&directorioDeTrabajo,"/");
+	string_append(&directorioDeTrabajo,"/Blocks/");
+	//string_append(&directorioDeTrabajo,nombreDeLaTabla);
+	//string_append(&directorioDeTrabajo,"/");
 	for(int i=0;arrayDeBloques[i]!=NULL;i++){
 		ubicacionDelBloque=string_new();
 		string_append(&ubicacionDelBloque,directorioDeTrabajo);
 		string_append(&ubicacionDelBloque,arrayDeBloques[i]);
 		string_append(&ubicacionDelBloque,".bin");
-		list_add_all(listaResultante, recuperarKeysDelBloque(key, ubicacionDelBloque));
+		log_info(LOGGERFS,"Voy a recuperar las keys del bloque %s",ubicacionDelBloque);
+		list_add_all(listaResultante, recuperarKeysDelBloque(ubicacionDelBloque, key));
 		free(ubicacionDelBloque);
 		free(arrayDeBloques[i]);
 		}
@@ -407,17 +408,19 @@ t_list* recuperarKeysDelBloque(char* nombreDelArchivo, uint16_t key){
 	t_list* listaResultante = list_create();
 	log_info(LOGGERFS,"Archivo %s abierto",nombreDelArchivo);
 	char *linea = NULL;
+	char *aux = NULL;
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
-	linea_size = getline(&linea, &linea_buf_size, archivo);
+	linea_size = getline(&aux, &linea_buf_size, archivo);
 	while (linea_size >= 0){
+		linea=(string_split(aux,"\n"))[0]; //hago esto para sacarle el \n
 		lineaParseada = string_split(linea, ";");
 		log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
-		lineaParseada[0], lineaParseada[1], lineaParseada[2]);
-		if(key==atoi(lineaParseada[1])){
+		lineaParseada[1], lineaParseada[0], lineaParseada[2]);
+		if(key==atoi(lineaParseada[0])){
 			nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
-			nuevoNodo->key=atoi(lineaParseada[1]);
-			nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+			nuevoNodo->key=atoi(lineaParseada[0]);
+			nuevoNodo->timeStamp=atoi(lineaParseada[1]);
 			nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
 			strcpy(nuevoNodo->value,lineaParseada[2]);
 			list_add(listaResultante,nuevoNodo);
@@ -499,7 +502,7 @@ char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 		log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
 		return keyObtenida->value;
 	}else{
-		log_info(LOGGERFS,"No hay ninguna key en la tabla");
+		log_info(LOGGERFS,"No hay ninguna key con ese valor en la tabla");
 		return string_new();
 	}
 }
