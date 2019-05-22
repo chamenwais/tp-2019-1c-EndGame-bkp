@@ -426,7 +426,8 @@ t_list* recuperarKeysDelBloque(char* nombreDelArchivo, uint16_t key){
 			list_add(listaResultante,nuevoNodo);
 			}
 		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
-		linea_size = getline(&linea, &linea_buf_size, archivo);
+		free(lineaParseada);
+		linea_size = getline(&aux, &linea_buf_size, archivo);
 		}
 	fclose(archivo);
 	log_info(LOGGERFS,"Archivo %s parseado",nombreDelArchivo);
