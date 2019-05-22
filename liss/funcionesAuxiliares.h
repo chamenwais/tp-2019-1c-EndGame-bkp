@@ -23,6 +23,7 @@ int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
 int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		int numeroDeParticiones);
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
+int crearArchivoDeBloque(int bloqueLibre);
 int eliminarDirectorio(char* nombreDeLaTabla);
 int eliminarArchivoDeMetada(char* nombreDeLaTabla);
 int liberarBloquesYParticiones(char* nombreDeLaTabla);
@@ -36,10 +37,12 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas);
 t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroDeParticionQueContieneLaKey);
 t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla);
-t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo);
+t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTabla, uint16_t key);
+t_list* recuperarKeysDelBloque(char* nombreDelArchivo, uint16_t key);
 bool existeElArchivo(char* nombreDelArchivo);
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla);
-t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey);
+t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
+		int numeroDeParticionQueContieneLaKey, char* nombreDeLaTabla);
 int vaciarListaDeKeys(t_list* keysObtenidas);
 t_list* obtenerTodosLosDescriptores();
 char* recortarDespuesUltimaBarra(char*);//ej: home/utnso/file -> file

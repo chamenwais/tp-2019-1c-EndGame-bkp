@@ -40,7 +40,7 @@ int crearElTemp(char* nombreDelArchivo){
 	fclose(archivoTemp);
 	t_config* configuracion = config_create(nombreDelArchivo);
 	config_set_value(configuracion, "SIZE", "0");
-	config_set_value(configuracion, "PARTITIONS", "[]");
+	config_set_value(configuracion, "BLOCKS", "[]");
 	config_save(configuracion);
 	config_destroy(configuracion);
 	log_info(LOGGERFS,"Archivo %s creado", nombreDelArchivo);
@@ -57,7 +57,7 @@ char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla){
 	char* pathDelTemp;
 	//FILE* archivo;
 	bool encontrado=true;
-	for(int i=0;encontrado==true;i++){
+	for(int i=1;encontrado==true;i++){
 		pathDelTemp=string_new();
 		string_append(&pathDelTemp, aux);
 		string_append(&pathDelTemp, string_itoa(i));

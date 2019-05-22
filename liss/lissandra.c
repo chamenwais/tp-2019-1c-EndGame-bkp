@@ -18,11 +18,12 @@ int main(int argc,char** argv) {
 	if(levantarConfiguracionInicialDelFS()==EXIT_SUCCESS){
 	if(levantarMetadataDelFS()==EXIT_SUCCESS){
 	if(levantarBitMap()==EXIT_SUCCESS){
+	if(inicializarEstructuras()==EXIT_SUCCESS){
 	if(lanzarConsola()==EXIT_SUCCESS){
 	if(lanzarServer()==EXIT_SUCCESS){
 	if(lanzarCompactador()==EXIT_SUCCESS){
 	if(esperarAQueTermineLaConsola()==EXIT_FAILURE);
 		liberarRecursos();
-	}}}}}}}
+	}}}}}}}}
 	return EXIT_SUCCESS;
 }
