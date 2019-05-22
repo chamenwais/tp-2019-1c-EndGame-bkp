@@ -79,6 +79,7 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 			// ejemplo del formato de cada bin
 			// SIZE=250
 			// BLOCKS=[40,21,82,3]
+			crearArchivoDeBloque(bloqueLibre);
 			configuracion = config_create(nombreDelBinario);
 			config_set_value(configuracion, "SIZE", string_itoa(0));
 			cadenaTemp=string_new();
@@ -97,6 +98,19 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 			}
 
 		}
+	return EXIT_SUCCESS;
+}
+
+int crearArchivoDeBloque(int bloqueLibre){
+	char* nombreDelArchivoDeBloque=string_new();
+	string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
+	string_append(&nombreDelArchivoDeBloque, "/Blocks/");
+	string_append(&nombreDelArchivoDeBloque, string_itoa(bloqueLibre));
+	string_append(&nombreDelArchivoDeBloque, ".bin");
+	FILE * archivoDeBloque = fopen(nombreDelArchivoDeBloque,"w");
+	fclose(archivoDeBloque);
+	log_info(LOGGERFS,"Archivo de bloque %s creado",nombreDelArchivoDeBloque);
+	free(nombreDelArchivoDeBloque);
 	return EXIT_SUCCESS;
 }
 

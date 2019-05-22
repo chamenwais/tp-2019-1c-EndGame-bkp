@@ -364,7 +364,7 @@ int inicializarEstructuras(){
 	char* dirtectorio;
 	dirtectorio=string_new();
 	string_append(&dirtectorio, configuracionDelFS.puntoDeMontaje);
-	string_append(&dirtectorio, "/Bloques");
+	string_append(&dirtectorio, "/Blocks");
 	mkdir(dirtectorio,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	log_info(LOGGERFS,"Directorio %s creado", dirtectorio);
 	free(dirtectorio);

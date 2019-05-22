@@ -23,6 +23,7 @@ int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
 int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		int numeroDeParticiones);
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
+int crearArchivoDeBloque(int bloqueLibre);
 int eliminarDirectorio(char* nombreDeLaTabla);
 int eliminarArchivoDeMetada(char* nombreDeLaTabla);
 int liberarBloquesYParticiones(char* nombreDeLaTabla);
