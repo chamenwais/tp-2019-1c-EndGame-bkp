@@ -38,6 +38,8 @@ typedef struct struDrop{
 typedef t_drop* tp_drop;
 
 typedef struct struSelectRta{
+	long timestamp;
+	uint16_t key;
 	char* value;
 } t_select_rta;
 typedef t_select_rta* tp_select_rta;

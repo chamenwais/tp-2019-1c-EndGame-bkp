@@ -12,6 +12,7 @@
 #include "Utilidades.h"
 #include "GestionSegPaginada.h"
 #include "ManejoConexionesyAPI.h"
+#include <lqvg/utils.h>
 
 #define _SELECT "SELECT"
 #define _INSERT "INSERT"

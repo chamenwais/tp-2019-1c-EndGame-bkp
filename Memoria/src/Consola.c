@@ -137,29 +137,6 @@ void consola_insert(char * comando_puro, char** comandos){
 			string_timestamp);
 }
 
-char * obtener_value_a_insertar(char * comando_insert){
-	char * p_first=strchr(comando_insert,'"');
-	char * p_last=strrchr(comando_insert,'"');
-	if(p_first==NULL){
-		return NULL;
-	}
-	if(p_first==p_last){
-		return NULL;
-	}
-	int i=0;
-	while(p_first[i+1]!=p_last[0]){
-		i++;
-	}
-	char * value_a_insertar=malloc(i+1);
-	i=1;
-	while(p_first[i]!=p_last[0]){
-		value_a_insertar[i-1]=p_first[i];
-		i++;
-	}
-	value_a_insertar[i-1]='\0';
-	return value_a_insertar;
-}
-
 void consola_create(char** comandos){
 	int cant_param_correcta = 0;
 	char *nombre_tabla = NULL;
