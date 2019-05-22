@@ -54,8 +54,10 @@ void liberar_tabla_segmentos(){
 	list_destroy(tabla_de_segmentos);
 }
 
-char * verificar_existencia_en_MP(char * nombre_tabla, int key){
-	return NULL;
+tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
+	tp_select_rta marco = malloc(sizeof(t_select_rta));
+	marco->value=NULL;
+	return marco;
 }
 
 void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){

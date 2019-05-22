@@ -60,8 +60,12 @@ void test_calcular_cantidad_marcos_MP(){
 
 void test_colocar_value_en_MP(){
 	setup_gestion_seg_pag();
-	colocar_value_en_MP("tabla1",(unsigned)time(NULL),(uint16_t)1,"Ahí va");
-
+	long timestamp = (unsigned) time(NULL);
+	char* value = "Ahí va";
+	colocar_value_en_MP("tabla1", timestamp, (uint16_t) 1, value);
+	tp_select_rta rta_select=verificar_existencia_en_MP("tabla1",(uint16_t)1);
+	CU_ASSERT_STRING_EQUAL(rta_select->value,value);
+	CU_ASSERT_EQUAL(rta_select->timestamp, timestamp);
 }
 
 void test_modificar_key_en_MP(){

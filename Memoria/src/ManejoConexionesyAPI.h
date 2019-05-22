@@ -12,9 +12,8 @@
 #include "Utilidades.h"
 #include "GestionSegPaginada.h"
 
-void realizar_select(char * nombre_tabla, int key);
-void loguear_value_por_pantalla(char * value);
-char * pedir_value_a_liss(char * nombre_tabla, int key);
-
+void realizar_select(char *, int);
+void loguear_value_por_pantalla(char *);
+tp_select_rta pedir_value_a_liss(char *, uint16_t);
 
 #endif /* SRC_MANEJOCONEXIONESYAPI_H_ */
