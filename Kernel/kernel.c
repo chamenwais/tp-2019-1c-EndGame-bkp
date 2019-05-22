@@ -13,10 +13,11 @@ int main(int argc,char** argv) {
 	inicializarListas();
 	if(levantarConfiguracionInicialDelKernel()==EXIT_SUCCESS){
 	configurar_signals();
-	int socket_memoria = conectarse_con_memoria();
+	int socket_primera_memoria = conectarse_con_memoria(configKernel.ipMemoria, configKernel.puertoMemoria);
 	if(lanzarConsola()==EXIT_SUCCESS){
+	if(lanzarPlanificador()){//TODO
 	if(esperarAQueTermineLaConsola()==EXIT_FAILURE){
 		liberarRecursos();
-	}}}}
+	}}}}}
 	return EXIT_SUCCESS;
 }

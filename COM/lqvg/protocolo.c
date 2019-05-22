@@ -334,6 +334,7 @@ void free_tp_describeAll_rta(void* d){
 void prot_free_tp_describeAll_rta(tp_describeAll_rta descriptores){
 	//una unica funcion para liberar todo lo referido a la lista, no usar nada mas
 	list_destroy_and_destroy_elements(descriptores->lista,free_tp_describeAll_rta);
+	free(descriptores);
 }
 
 

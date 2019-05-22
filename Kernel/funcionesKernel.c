@@ -31,7 +31,7 @@ void captura_signal(int signo){
     if(signo == SIGINT)
     {
     	logger(escribir_loguear, l_warning,"Finalizando proceso kernel...");
-    	terminar_programa(EXIT_SUCCESS);
+    	//terminar_programa(EXIT_SUCCESS); TODO
     }
     else if(signo == SIGPIPE)
     {
@@ -56,7 +56,7 @@ void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida) {
 	if ((tipo_esc == loguear) || (tipo_esc == escribir_loguear)) {
 		if (tipo_log == l_info) {
-			logger(LOG_KERNEL, escribir_loguear, l_info, msj_salida);
+			log_info(LOG_KERNEL, escribir_loguear, l_info, msj_salida);
 		} else if (tipo_log == l_warning) {
 			log_warning(LOG_KERNEL, msj_salida);
 		} else if (tipo_log == l_error) {
@@ -95,8 +95,8 @@ void logger(int tipo_esc, int tipo_log, const char* mensaje, ...){
 }
 
 void inicializarLogKernel(){
-	LOG_KERNEL = log_create("Kernel.log","Kernel",true,LOG_LEVEL_INFO);
-	logger(LOG_KERNEL, escribir_loguear, l_info,"Log del Kernel iniciado");
+	LOG_KERNEL = log_create("Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
+	logger(escribir_loguear, l_info,"Log del Kernel iniciado");
 	return;
 }
 
@@ -108,13 +108,13 @@ int levantarConfiguracionInicialDelKernel(){
 	t_config* configuracion = config_create(ubicacionDelArchivoDeConfiguracion);
 
 	if(configuracion!=NULL){
-		logger(LOG_KERNEL, escribir_loguear, l_info,"El archivo de configuracion existe");
+		logger(escribir_loguear, l_info,"El archivo de configuracion existe");
 	}else{
 		log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",ubicacionDelArchivoDeConfiguracion);
 		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	logger(LOG_KERNEL, escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
+	logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
 
 	//Recupero el IP de la Memoria
 	if(!config_has_property(configuracion,"IP_MEMORIA")) {
@@ -126,7 +126,7 @@ int levantarConfiguracionInicialDelKernel(){
 	char* ipMemoria = config_get_string_value(configuracion,"IP_MEMORIA");
 	configKernel.ipMemoria = malloc(strlen(ipMemoria)+1);
 	strcpy(configKernel.ipMemoria, ipMemoria);
-	logger(LOG_KERNEL, escribir_loguear, l_info,"IP_MEMORIA del archivo de configuracion del Kernel recuperado: %s",
+	logger(escribir_loguear, l_info,"IP_MEMORIA del archivo de configuracion del Kernel recuperado: %s",
 			configKernel.ipMemoria);
 	//Recupero el puerto de la memoria
 	if(!config_has_property(configuracion,"PUERTO_MEMORIA")) {
@@ -136,7 +136,7 @@ int levantarConfiguracionInicialDelKernel(){
 		return EXIT_FAILURE;
 		}
 	configKernel.puertoMemoria = config_get_int_value(configuracion, "PUERTO_MEMORIA");
-	logger(LOG_KERNEL, escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %d",
+	logger(escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %d",
 		configKernel.puertoMemoria);
 	//Recupero el quantum
 	if(!config_has_property(configuracion,"QUANTUM")) {
@@ -146,7 +146,7 @@ int levantarConfiguracionInicialDelKernel(){
 		return EXIT_FAILURE;
 		}
 	configKernel.quantum = config_get_int_value(configuracion,"QUANTUM");
-	logger(LOG_KERNEL, escribir_loguear, l_info,"Quantum del archivo de configuracion del Kernel recuperado: %d",
+	logger(escribir_loguear, l_info,"Quantum del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.quantum);
 
 	//Recupero el valor de multiprocesamiento
@@ -157,7 +157,7 @@ int levantarConfiguracionInicialDelKernel(){
 		return EXIT_FAILURE;
 		}
 	configKernel.multiprocesamiento = config_get_int_value(configuracion,"MULTIPROCESAMIENTO");
-	logger(LOG_KERNEL, escribir_loguear, l_info,"Multiprocesamiento del archivo de configuracion del Kernel recuperado: %d",
+	logger(escribir_loguear, l_info,"Multiprocesamiento del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.multiprocesamiento);
 
 	//Recupero el tiempo refresh metadata
@@ -168,7 +168,7 @@ int levantarConfiguracionInicialDelKernel(){
 		return EXIT_FAILURE;
 		}
 	configKernel.refreshMetadata = config_get_int_value(configuracion,"REFRESH_METADATA");
-	logger(LOG_KERNEL, escribir_loguear, l_info,"refresh metadata del archivo de configuracion del Kernel recuperado: %d",
+	logger(escribir_loguear, l_info,"refresh metadata del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.refreshMetadata);
 
 	//Recupero el tiempo de retardo del ciclo
@@ -179,27 +179,29 @@ int levantarConfiguracionInicialDelKernel(){
 			return EXIT_FAILURE;
 			}
 		configKernel.retardoCiclo = config_get_int_value(configuracion,"RETARDO_CICLO");
-		logger(LOG_KERNEL, escribir_loguear, l_info,"retardo_ciclo del archivo de configuracion del Kernel recuperado: %d",
+		logger(escribir_loguear, l_info,"retardo_ciclo del archivo de configuracion del Kernel recuperado: %d",
 				configKernel.retardoCiclo);
 
 	config_destroy(configuracion);
-	logger(LOG_KERNEL, escribir_loguear, l_info,"Configuracion del Kernel recuperada exitosamente");
+	logger(escribir_loguear, l_info,"Configuracion del Kernel recuperada exitosamente");
 
 	return EXIT_SUCCESS;
 	}
 
 int inicializarListas(){
-	logger(LOG_KERNEL, escribir_loguear, l_info, "Inicializando listas del Kernel");
+	logger(escribir_loguear, l_info, "Inicializando listas del Kernel");
 	listaNew = list_create();
 	listaReady = list_create();
 	listaExec = list_create();
 	listaExit = list_create();
+	listaMemConectadas = list_create(); // va a ser una lista de t_memo_del_pool sumandole socket
 	return EXIT_SUCCESS;
 }
 
-int conectarse_con_memoria(void){
-	logger(LOG_KERNEL, escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i", configKernel.ipMemoria, configKernel.puertoMemoria);
-	int socket_mem = conectarseA(configKernel.ipMemoria, configKernel.puertoMemoria);
+int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONECTARSE!
+	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
+			ip, puerto);
+	int socket_mem = conectarseA(ip, puerto);
 	//validar que el socket sea <0
 	enviarHandshake(KERNEL, MEMORIA, socket_mem);
 
@@ -222,12 +224,12 @@ t_operacion parsear(char * linea){
 	}
 
 	if(string_equals_ignore_case(tipo_de_operacion, "#")){
-		logger(LOG_KERNEL, escribir_loguear, l_warning,"Es un comentario, sera ignorado");
+		logger(escribir_loguear, l_warning,"Es un comentario, sera ignorado");
 		//no se hace nada...
 	}
 
 	if(tipo_de_operacion[0]=='#'){
-		logger(LOG_KERNEL, escribir_loguear, l_warning,"Es un comentario, sera ignorado");
+		logger(escribir_loguear, l_warning,"Es un comentario, sera ignorado");
 		//no se hace nada...
 	}
 
@@ -272,4 +274,7 @@ t_operacion parsear(char * linea){
 }
 
 
-
+/*void conocer_pool_memorias(int socket){
+	logger(escribir_loguear, l_info, "Voy a consultar el pool de memorias");
+	enviarCabecera(socket, POOL_REQUEST, sizeof(int));
+}*/

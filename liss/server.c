@@ -11,7 +11,9 @@ struct fds{
 	t_list *lista;
 }fd_conocidos;
 
+fd_set maestro;//creo filedescriptor principal
 
+pthread_mutex_t fd_mutex;
 
 //funcion para crear el hilo de server lissandra
 int lanzarServer(){//@@crear una funcion que lance hilos de estos especiales seria mas lindo
@@ -42,6 +44,11 @@ int list_mayor_int(t_list *lista){
 //funcion que maneja la creacion y uso del server
 void* crearServerLissandra(){
 
+	if(pthread_mutex_init(&fd_mutex, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo fd_mutex");
+		pthread_exit(0);
+	}
+
 	fd_conocidos.lista = list_create();//lista de file descriptors
 	log_info(LOGGERFS,"Iniciando server de lissandra");
 
@@ -49,8 +56,7 @@ void* crearServerLissandra(){
 	*escuchador = escucharEn(configuracionDelFS.puertoEscucha);//creo puerto de escucha
 	log_info(LOGGERFS,"[LissServer] Escuchando en el puerto: %d",configuracionDelFS.puertoEscucha);
 
-	fd_set maestro;//creo filedescriptor principal
-	FD_ZERO(&maestro);
+	FD_ZERO(&maestro);//inicio el fd ppal
 	FD_SET(*escuchador,&maestro);
 
 	list_add(fd_conocidos.lista,(void*)escuchador);//agrego el fd escuchador, que es el que va a escuchar nuevas solicitudes de conexion
@@ -65,7 +71,10 @@ void* crearServerLissandra(){
 
 	while(1){//loop del select
 
+		pthread_mutex_lock(&fd_mutex);
 		copia_maestro=maestro;//creo copia para que select no destruya los datos del maestro
+		//creo copia independiente de maestro que va a mantenerse hasta el proximo loop de while
+		pthread_mutex_unlock(&fd_mutex);
 		copia_tiempo_espera=tiempo_espera;
 		//memcpy(&copia_maestro,&maestro,sizeof(copia_maestro));
 
@@ -97,7 +106,9 @@ void* crearServerLissandra(){
 				prot_enviar_int(configuracionDelFS.sizeValue,*cliente_nuevo);
 
 				list_add(fd_conocidos.lista,(void*)cliente_nuevo);
+				pthread_mutex_lock(&fd_mutex);
 				FD_SET(*cliente_nuevo,&maestro);//agrego el nuevo cliente a los fd que conoce el maestro
+				pthread_mutex_unlock(&fd_mutex);
 			}
 		}
 
@@ -107,6 +118,10 @@ void* crearServerLissandra(){
 
 				int *cliente = (int*)list_get(fd_conocidos.lista,i);//no hacer free, es el valor en la tabla
 
+				bool _fdID(void * elem){//inner function para remover el fd que cierro
+					return (*((int*)elem)) == *cliente;
+				}
+
 				if(FD_ISSET(*cliente,&copia_maestro)){//mensaje del cliente
 
 					t_cabecera cabecera=recibirCabecera(*cliente);//@necesito hacer free a cabecera?
@@ -114,11 +129,11 @@ void* crearServerLissandra(){
 					if(cabecera.tamanio == -1 )/*==5*/{//remover este cliente si se desconecta
 						log_info(LOGGERFS,"[LissServer] El cliente %d se ha desconectado, cerrando conexion",*cliente);
 						cerrarConexion(*cliente);
-						FD_CLR(*cliente,&maestro);
 
-						bool _fdID(void * elem){//inner function para remover el fd que cierro
-							return (*((int*)elem)) == *cliente;
-						}
+						pthread_mutex_lock(&fd_mutex);
+						FD_CLR(*cliente,&maestro);
+						pthread_mutex_unlock(&fd_mutex);
+
 						list_remove_and_destroy_by_condition(fd_conocidos.lista,_fdID,free);
 
 					}
@@ -129,7 +144,10 @@ void* crearServerLissandra(){
 						p->cabecera.tipoDeMensaje = cabecera.tipoDeMensaje;
 						p->cliente = *cliente;
 
-
+						pthread_mutex_lock(&fd_mutex);
+						FD_CLR(*cliente,&maestro);	//elimino el cliente pa q el thread pueda operar sin que
+													//el loop ppal de while lo moleste en ese socket
+						pthread_mutex_unlock(&fd_mutex);
 
 						pthread_t* thread_procesar = (pthread_t*) malloc(sizeof(pthread_t));
 
@@ -138,6 +156,11 @@ void* crearServerLissandra(){
 						free(thread_procesar);
 						if(resultadoDeCrearHilo)
 							log_error(LOGGERFS,"Error al crear hilo de procesarMensaje, return code: %d",resultadoDeCrearHilo);
+
+						//en vez de tener que modificar todo para que el server no se ponga a recibir lo que no debe
+						//podria sacar de la lista y del fd maestro ese cliente, y que despues el thread se encargue de volver
+						//a agregarlo, esto requeriria una lista "global" y crear funciones atomicas
+
 
 
 					}
@@ -151,6 +174,7 @@ void* crearServerLissandra(){
 
 	}
 	log_info(LOGGERFS,"[LissServer] Finalizando server");
+	pthread_mutex_destroy(&fd_mutex);
 	cerrarConexion(*escuchador);
 	list_destroy_and_destroy_elements(fd_conocidos.lista,free);
 	pthread_exit(0);
@@ -194,6 +218,12 @@ void* procesarMensaje(void* args){
 	default:
 		break;
 	}
+
+	pthread_mutex_lock(&fd_mutex);
+	FD_SET(p->cliente,&maestro);//vuelvo a agregar el cliente pa q el loop ppal de while
+								//siga operando con el
+	pthread_mutex_unlock(&fd_mutex);
+
 	free(p);//@@@solo libero p??
 	pthread_exit(0);
 }
@@ -204,18 +234,18 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 
 	char* value = selectf(seleccion->nom_tabla, seleccion->key);//pido el value al fs
 
-	if(value != NULL){
+	if(*value != 0){
+
+		log_info(LOGGERFS,"[LissServer] Proceso Select: tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",seleccion->nom_tabla,seleccion->key,value);
 		prot_enviar_respuesta_select(value,cliente);
-		log_info(LOGGERFS,"[LissServer] Select: tabla= %s con value= %s",seleccion->nom_tabla,seleccion->key);
 	}
 	else{
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Select: tabla= %d no existe",seleccion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Error Select: tabla= %s no existe",seleccion->nom_tabla);
 	}
 	free(seleccion->nom_tabla);
 	free(seleccion);
-	free(value);
-
+	//free(value); //@necesita free el value q manda selectf???
 }
 
 void procesarInsert(int cliente, t_cabecera cabecera){
@@ -230,7 +260,7 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 		log_info(LOGGERFS,"[LissServer] Insert: tabla= %s , value= %s",insercion->nom_tabla,insercion->value);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Insert: tabla= %s no existe",insercion->nom_tabla,insercion->value);
+		log_info(LOGGERFS,"[LissServer] Error Insert: tabla= %s no existe",insercion->nom_tabla);
 	}
 
 	free(insercion->nom_tabla);
@@ -254,7 +284,6 @@ void procesarCreate(int cliente, t_cabecera cabecera){
 	free(creacion->nom_tabla);
 	free(creacion->tipo_consistencia);
 	free(creacion);
-
 }
 void procesarDescribe(int cliente, t_cabecera cabecera){
 
@@ -283,8 +312,7 @@ void procesarDescribeAll(int cliente){
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
 		log_info(LOGGERFS,"[LissServer] Error DescribeAll: no hay tablas en el fs");
 	}
-
-	//@@@@@@free de cada elemento y free de sus char* probablemente con otra funcion
+	liberarYDestruirTablaDeMetadata(descripciones.lista);
 }
 
 void procesarDrop(int cliente, t_cabecera cabecera){

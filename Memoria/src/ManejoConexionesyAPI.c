@@ -24,7 +24,8 @@ char * pedir_value_a_liss(char * nombre_tabla, int key){
 	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
 		logger(escribir_loguear, l_debug, "Value recibido correctamente");
 		pedido_value = prot_recibir_respuesta_select(rta_pedido.tamanio, SOCKET_LISS);
-		value_en_cuestion = pedido_value->value;
+		value_en_cuestion = malloc(strlen(pedido_value->value)+1);
+		strcpy(value_en_cuestion,pedido_value->value);
 	}
 	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
 		logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
@@ -48,6 +49,7 @@ void realizar_select(char * nombre_tabla, int key){
 		value = pedir_value_a_liss(nombre_tabla, key);
 
 		if(value!=NULL){
+			logger(escribir_loguear, l_info, "Recibi valor= %s",value);
 			//TODO ¡El timestamp tiene que venir de LFS, no se tiene que calcular!
 			colocar_value_en_MP(nombre_tabla, (unsigned)time(NULL),(uint16_t)key,value);
 		}

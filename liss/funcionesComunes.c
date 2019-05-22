@@ -79,17 +79,6 @@ t_describeAll_rta describeAll(){
 	return descriptores;
 }
 
-void free_tp_describe_rta(void* d){
-	tp_describe_rta unDescriptor = d;
-	free(unDescriptor->nombre);
-	free(unDescriptor->consistencia);
-	free(unDescriptor);
-}
-
-void liberarYDestruirTablaDeMetadata(t_list* descriptores){//libera y destruye una lista que tenga tp_describe_rta dentro
-	list_destroy_and_destroy_elements(descriptores,free_tp_describe_rta);
-}
-
 int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
 	 * Pasos:
