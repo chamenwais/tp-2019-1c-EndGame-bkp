@@ -340,7 +340,7 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	list_destroy(keysDeLaMemTable);
 
 	keysDeLaMemTable = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
-			numeroDeParticionQueContieneLaKey);
+			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysDeLaMemTable);
 	list_destroy(keysDeLaMemTable);
 
@@ -379,8 +379,6 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 	char* directorioDeTrabajo= string_new();
 	string_append(&directorioDeTrabajo,configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeTrabajo,"/Blocks/");
-	//string_append(&directorioDeTrabajo,nombreDeLaTabla);
-	//string_append(&directorioDeTrabajo,"/");
 	for(int i=0;arrayDeBloques[i]!=NULL;i++){
 		ubicacionDelBloque=string_new();
 		string_append(&ubicacionDelBloque,directorioDeTrabajo);
@@ -474,10 +472,43 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 	return listaResultante;
 }
 
-t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey){
+t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
+		int numeroDeParticionQueContieneLaKey, char* nombreDeLaTabla){
 	t_list* listaResultante= list_create();
-	log_info(LOGGERFS,"Escaneando particion correspondiente");
-	log_info(LOGGERFS,"Particion correspondiente escaneada");
+	log_info(LOGGERFS,"Escaneando particiones correspondientes, son %d",
+			numeroDeParticionQueContieneLaKey);
+	char* directorioDeLasTablas= string_new();
+	char* ubicacionDelArchivo;
+	string_append(&directorioDeLasTablas,configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeLasTablas,"/Tables/");
+	string_append(&directorioDeLasTablas,nombreDeLaTabla);
+	string_append(&directorioDeLasTablas,"/");
+
+	string_append(&directorioDeLasTablas,directorioDeLasTablas);
+	string_append(&directorioDeLasTablas,string_itoa(numeroDeParticionQueContieneLaKey));
+	string_append(&directorioDeLasTablas,".bin");
+	log_info(LOGGERFS,"Checkeando en el archivo %d de las particiones, %s",
+								numeroDeParticionQueContieneLaKey, ubicacionDelArchivo);
+	if(existeElArchivo(ubicacionDelArchivo)){
+		list_add_all(listaResultante,
+				obtenerListaDeDatosDeArchivo(ubicacionDelArchivo, nombreDeLaTabla, key));
+		}
+	/*for(int i=1;i<=numeroDeParticionQueContieneLaKey;i++){
+		ubicacionDelArchivo= string_new();
+		string_append(&ubicacionDelArchivo,directorioDeLasTablas);
+		string_append(&ubicacionDelArchivo,string_itoa(i));
+		string_append(&ubicacionDelArchivo,".bin");
+		log_info(LOGGERFS,"Checkeando en el archivo %d de las particiones, %s",
+							i ,ubicacionDelArchivo);
+		if(existeElArchivo(ubicacionDelArchivo)){
+
+			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelArchivo, nombreDeLaTabla, key));
+			}
+		free(ubicacionDelArchivo);
+		}
+	*/
+	free(directorioDeLasTablas);
+	log_info(LOGGERFS,"Particiones correspondientes escaneadas");
 	return listaResultante;
 }
 

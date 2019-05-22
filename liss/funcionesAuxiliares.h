@@ -41,7 +41,8 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 t_list* recuperarKeysDelBloque(char* nombreDelArchivo, uint16_t key);
 bool existeElArchivo(char* nombreDelArchivo);
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla);
-t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key, int numeroDeParticionQueContieneLaKey);
+t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
+		int numeroDeParticionQueContieneLaKey, char* nombreDeLaTabla);
 int vaciarListaDeKeys(t_list* keysObtenidas);
 t_list* obtenerTodosLosDescriptores();
 char* recortarDespuesUltimaBarra(char*);//ej: home/utnso/file -> file
