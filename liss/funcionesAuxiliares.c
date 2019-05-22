@@ -356,13 +356,38 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	return listaResultante;
 }
 
-t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo){
+t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTabla, uint16_t key){
+	t_list* listaResultante = list_create();
+	char* ubicacionDelBloque;
+	t_config* configuracion = config_create(nombreDelArchivo);
+	char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
+	config_destroy(configuracion);
+	char* directorioDeTrabajo= string_new();
+	string_append(&directorioDeTrabajo,configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeTrabajo,"/Tables/");
+	string_append(&directorioDeTrabajo,nombreDeLaTabla);
+	string_append(&directorioDeTrabajo,"/");
+	for(int i=0;arrayDeBloques[i]!=NULL;i++){
+		ubicacionDelBloque=string_new();
+		string_append(&ubicacionDelBloque,directorioDeTrabajo);
+		string_append(&ubicacionDelBloque,arrayDeBloques[i]);
+		string_append(&ubicacionDelBloque,".bin");
+		list_add_all(listaResultante, recuperarKeysDelBloque(key, ubicacionDelBloque));
+		free(ubicacionDelBloque);
+		free(arrayDeBloques[i]);
+		}
+	return listaResultante;
+}
+
+
+t_list* recuperarKeysDelBloque(char* nombreDelArchivo, uint16_t key){
 	/*Dada la ubicacion de un archivo con datos como:
 	* 123;1231;asd
 	* 1111;11;ddd
 	* 5434;111;asddas
 	* Me devuelve dentro de una lista estos datos que contiene el archivo
 	* */
+	tp_nodoDeLaTabla nuevoNodo;
 	FILE* archivo = fopen(nombreDelArchivo,"r");
 	char** lineaParseada;
 	t_list* listaResultante = list_create();
@@ -375,12 +400,14 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo){
 		lineaParseada = string_split(linea, ";");
 		log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
 		lineaParseada[0], lineaParseada[1], lineaParseada[2]);
-		tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
-		nuevoNodo->key=atoi(lineaParseada[1]);
-		nuevoNodo->timeStamp=atoi(lineaParseada[0]);
-		nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
-		strcpy(nuevoNodo->value,lineaParseada[2]);
-		list_add(listaResultante,nuevoNodo);
+		if(key==atoi(lineaParseada[1])){
+			nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
+			nuevoNodo->key=atoi(lineaParseada[1]);
+			nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+			nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
+			strcpy(nuevoNodo->value,lineaParseada[2]);
+			list_add(listaResultante,nuevoNodo);
+			}
 		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
 		linea_size = getline(&linea, &linea_buf_size, archivo);
 		}
@@ -416,9 +443,9 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		string_append(&ubicacionDelTemp,directorioDeLasTablas);
 		string_append(&ubicacionDelTemp,string_itoa(i));
 		string_append(&ubicacionDelTemp,".tmp");
-		log_info(LOGGERFS,"Checkeando en el archivo %s",ubicacionDelTemp);
 		if(existeElArchivo(ubicacionDelTemp)){
-			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelTemp));
+			log_info(LOGGERFS,"Checkeando en el archivo temporal %s",ubicacionDelTemp);
+			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelTemp, nombreDeLaTabla, key));
 		}else{
 			noHayMas=true;
 			}

@@ -29,6 +29,7 @@ int actualizarRetardo(int retardo);
 int obtenerRetardo();
 int obtenerBloqueLibreDelBitMap();
 int levantarBitMap();
+int inicializarEstructuras();
 int ocuparBloqueDelBitmap(int numeroDeBloque);
 int bajarADiscoBitmap();
 int imprimirEstadoDelBitmap();
