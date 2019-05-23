@@ -518,7 +518,7 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 	return listaResultante;
 }
 
-char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
+tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 	tp_nodoDeLaTabla keyObtenida = NULL;
 	unsigned tiempo;
 	bool esLaMayor(void* nodo){
@@ -538,11 +538,10 @@ char* obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 			log_info(LOGGERFS,"Lista vacia");
 			}
 		log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
-		return keyObtenida->value;
 	}else{
 		log_info(LOGGERFS,"No hay ninguna key con ese valor en la tabla");
-		return string_new();
 	}
+	return keyObtenida;
 }
 
 int vaciarListaDeKeys(t_list* keysObtenidas){

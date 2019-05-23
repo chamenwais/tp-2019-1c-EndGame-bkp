@@ -113,7 +113,7 @@ int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){
 	return EXIT_SUCCESS;
 }
 
-char* selectf(char* nombreDeLaTabla, uint16_t key){
+tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	/*
 	 * Ej:
 	 * SELECT [NOMBRE_TABLA] [KEY]
@@ -127,7 +127,7 @@ char* selectf(char* nombreDeLaTabla, uint16_t key){
 	 *	5)Encontradas las entradas para dicha Key, se retorna el valor con el Timestamp
 	 *		más grande.
 	 */
-	char* resultado = NULL;
+	tp_nodoDeLaTabla resultado = NULL;
 	if(exiteLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
 		printf("Se esta intentando seleccionar de una tabla que no existe %s\n", nombreDeLaTabla);

@@ -139,11 +139,18 @@ char** parser_instruccion(char* linea){
 }
 
 int consolaSelect(char* nombreDeLaTabla,uint16_t key){
-	char* value = selectf(nombreDeLaTabla, key);
-	log_info(LOGGERFS,"Resultado del select: %s, para la key %d, de la tabla %s",
-			value, key, nombreDeLaTabla);
-	printf("Resultado del select: %s, para la key %d, de la tabla %s\n",
-			value, key, nombreDeLaTabla);
+	tp_nodoDeLaTabla nodo = selectf(nombreDeLaTabla, key);
+	if(nodo!=NULL){
+		log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s",
+			nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
+		printf("Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s\n",
+			nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
+	}else{
+		log_info(LOGGERFS,"No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)",
+			key, nombreDeLaTabla);
+		printf("No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)\n",
+				key, nombreDeLaTabla);
+	}
 	return EXIT_SUCCESS;
 }
 
