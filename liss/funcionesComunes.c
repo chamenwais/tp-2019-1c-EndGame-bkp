@@ -134,8 +134,8 @@ char* selectf(char* nombreDeLaTabla, uint16_t key){
 	}else{
 		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 		int numeroDeParticionQueContieneLaKey = key%(metadataDeLaTabla.particiones);
-		log_info(LOGGERFS,"Numero de particion que contiene a la key %d",
-				numeroDeParticionQueContieneLaKey);
+		log_info(LOGGERFS,"Numero de particion que contiene a la key es %d, ya que las particiones son %d, y la key vale %d",
+				numeroDeParticionQueContieneLaKey, metadataDeLaTabla.particiones, key);
 		t_list* keysObtenidas = escanearPorLaKeyDeseada(key, nombreDeLaTabla, numeroDeParticionQueContieneLaKey);
 		resultado = obtenerKeyConTimeStampMasGrande(keysObtenidas);
 		vaciarListaDeKeys(keysObtenidas);
