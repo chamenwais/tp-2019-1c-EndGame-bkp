@@ -60,12 +60,55 @@ tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
 	return marco;
 }
 
-void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
-	t_entrada_tabla_segmentos * segmento = buscar_segmento_de_tabla(nom_tabla);
+t_entrada_tabla_segmentos* obtener_segmento_de_tabla(char* nom_tabla) {
+	t_entrada_tabla_segmentos* segmento = buscar_segmento_de_tabla(nom_tabla);
+	if (segmento == NULL) {
+		segmento = crear_segmento_a_tabla(nom_tabla);
+	}
+	return segmento;
+}
 
+int obtener_marco() {
+	int marco_asignado = obtener_marco_libre_del_bitmap();
+	if (marco_asignado == -1) {
+		marco_asignado = ejecutar_algoritmo_reemplazo_y_obtener_marco();
+	}
+	return marco_asignado;
+}
+
+void almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
+		int flag) {
+	t_entrada_tabla_segmentos* segmento = obtener_segmento_de_tabla(nom_tabla);
+	int marco_asignado = obtener_marco();
+	insertar_registro_en_marco(timestamp, key, value, marco_asignado);
+	crear_pagina_en_tabla_paginas(segmento, marco_asignado, flag);
+}
+
+void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+	almacenar_valor(nom_tabla, timestamp, key, value, FLAG_NO_MODIFICADO);
 }
 
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char * nombre_tabla){
+	bool es_segmento_de_tabla(void * un_segmento){
+		return string_equals_ignore_case((*(t_entrada_tabla_segmentos *)un_segmento).tabla,nombre_tabla);
+	}
+	t_entrada_tabla_segmentos * segmento=(t_entrada_tabla_segmentos *) list_find(tabla_de_segmentos, es_segmento_de_tabla);
+	return segmento;
+}
+
+t_entrada_tabla_segmentos * crear_segmento_a_tabla(char * nombre_tabla){
 	t_entrada_tabla_segmentos * segmento=NULL;
 	return segmento;
+}
+
+int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
+	return 0;
+}
+
+void insertar_registro_en_marco(long timestamp, uint16_t key, char *value, int marco){
+
+}
+
+void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos * segmento, int marco, int flag){
+
 }

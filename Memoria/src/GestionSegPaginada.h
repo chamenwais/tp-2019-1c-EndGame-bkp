@@ -31,5 +31,12 @@ void ocupar_marco_en_el_bitmap(int);
 tp_select_rta verificar_existencia_en_MP(char *, uint16_t);
 void colocar_value_en_MP(char *, long, uint16_t,char *);
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char *);
+t_entrada_tabla_segmentos * crear_segmento_a_tabla(char *);
+int ejecutar_algoritmo_reemplazo_y_obtener_marco();
+void insertar_registro_en_marco(long , uint16_t , char *, int );
+void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos *, int, int);
+t_entrada_tabla_segmentos* obtener_segmento_de_tabla(char*);
+int obtener_marco();
+void almacenar_valor(char*, long, uint16_t, char*, int);
 
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */

@@ -83,6 +83,8 @@ extern pthread_mutex_t M_JOURNALING;
 
 #define LFS "LFS"
 #define _KERNEL "KERNEL"
+#define FLAG_NO_MODIFICADO 0
+#define FLAG_MODIFICADO 1
 
 /*** Enums modo de log***/
 enum tipo_logueo {
