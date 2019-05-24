@@ -232,12 +232,12 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 
 	tp_select seleccion = prot_recibir_select(cabecera.tamanio, cliente);
 
-	char* value = selectf(seleccion->nom_tabla, seleccion->key);//pido el value al fs
+	tp_nodoDeLaTabla sel_fs = selectf(seleccion->nom_tabla, seleccion->key);//pido el value al fs
 
-	if(*value != 0){
+	if(sel_fs != NULL && sel_fs->value != 0){
 
-		log_info(LOGGERFS,"[LissServer] Proceso Select: tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",seleccion->nom_tabla,seleccion->key,value);
-		prot_enviar_respuesta_select(value,cliente);
+		log_info(LOGGERFS,"[LissServer] Proceso Select: tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",seleccion->nom_tabla,seleccion->key,sel_fs->value);
+		prot_enviar_respuesta_select(sel_fs->value,sel_fs->key,sel_fs->timeStamp,cliente);
 	}
 	else{
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
