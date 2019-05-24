@@ -5,35 +5,35 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../api.c \
+../compactador.c \
 ../dump.c \
 ../fs.c \
 ../funcionesAuxiliares.c \
 ../funcionesComunes.c \
 ../lissandra.c \
 ../server.c \
-../compactador.c \
 ../variablesGlobales.c 
 
 OBJS += \
 ./api.o \
+./compactador.o \
 ./dump.o \
 ./fs.o \
 ./funcionesAuxiliares.o \
 ./funcionesComunes.o \
 ./lissandra.o \
 ./server.o \
-./compactador.o \
 ./variablesGlobales.o 
 
 C_DEPS += \
 ./api.d \
+./compactador.d \
 ./dump.d \
 ./fs.d \
 ./funcionesAuxiliares.d \
 ./funcionesComunes.d \
 ./lissandra.d \
 ./server.d \
-./compactador.d \
 ./variablesGlobales.d 
 
 
