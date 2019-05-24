@@ -9,7 +9,9 @@
 
 t_configuracionDelKernel configKernel;
 t_log* LOG_KERNEL;
-pthread_t threadConsola, threadPlanif;
+pthread_t threadConsola;
+pthread_t threadPlanif;
+pthread_t threadMemo;
 t_list* listaNew;
 t_list* listaReady;
 t_list* listaExec;
