@@ -194,7 +194,7 @@ int inicializarListas(){
 	listaReady = list_create();
 	listaExec = list_create();
 	listaExit = list_create();
-	listaMemConectadas = list_create(); // va a ser una lista de t_memo_del_pool sumandole socket
+	listaMemConectadas = list_create(); // va a ser una lista de t_memo_del_pool_kernel
 	return EXIT_SUCCESS;
 }
 
@@ -202,10 +202,34 @@ int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONEC
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
-	//validar que el socket sea <0
-	enviarHandshake(KERNEL, MEMORIA, socket_mem);
+	if(socket_mem < 0){
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		close(socket_mem);
+	}
+	enviar_handshake(socket_mem);
+	t_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
+	entrada_tabla_memorias.ip = ip;
+	entrada_tabla_memorias.puerto = puerto;
+	entrada_tabla_memorias.socket = socket_mem;
+	list_add(listaMemConectadas, entrada_tabla_memorias);
+	logger(escribir_loguear, l_info, "Se va a abrir un hilo para la memoria %i", socket_mem);
+	int resultadoHiloMemo = pthread_create( &threadMemo, NULL, funcionHiloMemo, (void*)NULL);
+	pthread_detach(threadMemo);
+	return EXIT_SUCCESS;
+}
 
-	return socket_mem;
+void enviar_handshake(int socket){
+	logger(escribir_loguear, l_info, "Se intenta enviar handshake a memoria");
+	if (enviarHandshake(KERNEL, MEMORIA, socket) == 0) {
+		logger(escribir_loguear, l_error, "No se pudo enviar handshake a memoria");
+		close(socket);
+	}
+	logger(escribir_loguear, l_info, "Se realizo el handshake con la memoria en el socket %i", socket);
+}
+
+int funcionHiloMemo(){
+	//Este hilo deberia esperar que la memoria devuelva algo
+	return EXIT_SUCCESS;
 }
 
 t_operacion parsear(char * linea){
