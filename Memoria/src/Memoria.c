@@ -48,6 +48,9 @@ void iniciar_la_memoria_principal(){
 	int cantidad_marcos = obtener_cantidad_marcos_en_MP(tamanio_marco);
 	logger(escribir_loguear,l_info
 					,"Memoria inicializada con %d marcos",cantidad_marcos);
+	inicializar_bitmap_marcos();
+	inicializar_tabla_segmentos();
+
 }
 
 char *reservar_total_memoria(){

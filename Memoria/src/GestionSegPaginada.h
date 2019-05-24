@@ -38,5 +38,8 @@ void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos *, int, int);
 t_entrada_tabla_segmentos* obtener_segmento_de_tabla(char*);
 int obtener_marco();
 void almacenar_valor(char*, long, uint16_t, char*, int);
+int obtener_1er_byte_marco_en_MP(int);
+long * obtener_timestamp_desde_marco_en_MP(int);
+uint16_t* obtener_key_desde_marco_en_MP(int);
 
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */

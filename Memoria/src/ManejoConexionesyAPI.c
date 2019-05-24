@@ -37,7 +37,7 @@ tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 void realizar_select(char * nombre_tabla, int key){
 	tp_select_rta rta_select = verificar_existencia_en_MP(nombre_tabla, key);
 
-	if(rta_select->value != NULL){
+	if(rta_select!=NULL && rta_select->value != NULL){
 		loguear_value_por_pantalla(rta_select->value);
 	}else{
 		logger(escribir_loguear, l_info, "No contengo el valor de la key solicitada");
@@ -47,7 +47,6 @@ void realizar_select(char * nombre_tabla, int key){
 
 		if(rta_select->value!=NULL){
 			logger(escribir_loguear, l_info, "Recibi valor= %s",rta_select->value);
-			//TODO ¡El timestamp tiene que venir de LFS, no se tiene que calcular!
 			colocar_value_en_MP(nombre_tabla, rta_select->timestamp,(uint16_t)key,rta_select->value);
 		}
 	}
