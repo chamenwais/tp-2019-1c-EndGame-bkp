@@ -13,6 +13,7 @@
 #include "GestionSegPaginada.h"
 
 void realizar_select(char *, int);
+void realizar_insert(char *, long, uint16_t, char *);
 void loguear_value_por_pantalla(char *);
 tp_select_rta pedir_value_a_liss(char *, uint16_t);
 

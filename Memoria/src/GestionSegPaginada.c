@@ -56,7 +56,7 @@ void liberar_tabla_segmentos(){
 			free(pagina);
 		}
 		list_destroy_and_destroy_elements((*(t_entrada_tabla_segmentos *)segmento).base,destructor_pagina);
-		//free((*(t_entrada_tabla_segmentos *)segmento).tabla);
+		free((*(t_entrada_tabla_segmentos *)segmento).tabla);
 		free(segmento);
 	}
 	list_destroy_and_destroy_elements(tabla_de_segmentos, destructor_segmento);
@@ -81,11 +81,10 @@ char * obtener_value_desde_marco_en_MP(int marco){
 	int desplazamiento = obtener_1er_byte_marco_en_MP(marco);
 	desplazamiento += sizeof(long);
 	desplazamiento += sizeof(uint16_t);
-	char * bytes_value_en_MP = malloc(TAMANIO_VALUE);
-	memcpy(bytes_value_en_MP,  MEMORIA_PRINCIPAL + desplazamiento, TAMANIO_VALUE);
+	char * bytes_value_en_MP = malloc(TAMANIO_VALUE+1);
+	memcpy(bytes_value_en_MP,  MEMORIA_PRINCIPAL + desplazamiento, TAMANIO_VALUE+1);
 	return bytes_value_en_MP;
 }
-
 
 tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
 	t_entrada_tabla_segmentos* segmento = buscar_segmento_de_tabla(nombre_tabla);
@@ -151,6 +150,10 @@ void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *va
 	almacenar_valor(nom_tabla, timestamp, key, value, FLAG_NO_MODIFICADO);
 }
 
+void insertar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+	almacenar_valor(nom_tabla, timestamp, key, value, FLAG_MODIFICADO);
+}
+
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char * nombre_tabla){
 	if(list_is_empty(tabla_de_segmentos)){
 		return NULL;
@@ -165,7 +168,7 @@ t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char * nombre_tabla){
 t_entrada_tabla_segmentos * crear_segmento_a_tabla(char * nombre_tabla){
 	t_entrada_tabla_segmentos * segmento=malloc(sizeof(t_entrada_tabla_segmentos));
 	segmento->base=list_create();
-	segmento->tabla=nombre_tabla;
+	segmento->tabla=string_duplicate(nombre_tabla);
 	list_add(tabla_de_segmentos,segmento);
 	return segmento;
 }
@@ -179,12 +182,16 @@ int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
 
 void insertar_registro_en_marco(long timestamp, uint16_t key, char *value, int marco){
 	int desplazamiento=obtener_1er_byte_marco_en_MP(marco);
+	logger(escribir_loguear, l_debug, "El marco %d tiene como primer byte %d",marco,desplazamiento);
 	memcpy(MEMORIA_PRINCIPAL+desplazamiento,&timestamp,sizeof(long));
 	desplazamiento+=sizeof(long);
 	memcpy(MEMORIA_PRINCIPAL+desplazamiento,&key,sizeof(uint16_t));
 	desplazamiento+=sizeof(uint16_t);
-	int tamanio_real_value=strlen(value)+1;
+	int tamanio_real_value=strlen(value);
 	memcpy(MEMORIA_PRINCIPAL+desplazamiento,value,tamanio_real_value);
+	desplazamiento+=tamanio_real_value;
+	char barra_cero='\0';
+	memcpy(MEMORIA_PRINCIPAL+desplazamiento,&barra_cero,1);
 }
 
 int obtener_1er_byte_marco_en_MP(int marco){

@@ -97,9 +97,9 @@ void consola_insert(char * comando_puro, char** comandos){
 		return;
 	}
 
-	loguear_cuatro_parametros_recibidos(nombre_tabla, string_key, value, string_timestamp);
+	loguear_tres_parametros_recibidos(nombre_tabla, string_key, value);
 	char* end_key;
-	int key=strtol(string_key, &end_key, 10);
+	uint16_t key=(uint16_t)strtol(string_key, &end_key, 10);
 	if(*end_key){
 		logeuar_param_err_limpiar_cuatro_restantes(string_key, nombre_tabla,
 				value, string_timestamp);
@@ -128,7 +128,7 @@ void consola_insert(char * comando_puro, char** comandos){
 	}else{
 		pthread_mutex_lock(&M_JOURNALING);
 		loguear_comienzo_ejecucion_sentencia(_INSERT);
-		//TODO hacer algo
+		realizar_insert(nombre_tabla, timestamp, key, value);
 		pthread_mutex_unlock(&M_JOURNALING);
 	}
 
@@ -336,6 +336,10 @@ void obtener_dos_parametros(char** comandos, char** parametro1, char** parametro
 
 void loguear_dos_parametros_recibidos(char * param1, char * param2){
 	logger(escribir_loguear, l_debug,"Los parámetros fueron '%s' y '%s'", param1, param2);
+}
+
+void loguear_tres_parametros_recibidos(char * param1, char * param2, char * param3){
+	logger(escribir_loguear, l_debug,"Los parámetros fueron '%s', '%s' y '%s'", param1, param2, param3);
 }
 
 void obtener_cuatro_parametros(char** comandos, char** parametro1,

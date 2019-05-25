@@ -9,7 +9,7 @@
 #include "ManejoConexionesyAPI.h"
 
 void loguear_value_por_pantalla(char * value){
-	logger(escribir_loguear, l_info, "El value de la key solicitada es '%s", value);
+	logger(escribir_loguear, l_info, "El value de la key solicitada es '%s'", value);
 }
 
 tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
@@ -46,11 +46,16 @@ void realizar_select(char * nombre_tabla, int key){
 		rta_select = pedir_value_a_liss(nombre_tabla, (uint16_t)key);
 
 		if(rta_select->value!=NULL){
-			logger(escribir_loguear, l_info, "Recibi valor= %s",rta_select->value);
+			logger(escribir_loguear, l_info, "Recibi el valor '%s'",rta_select->value);
 			colocar_value_en_MP(nombre_tabla, rta_select->timestamp,(uint16_t)key,rta_select->value);
 		}
 	}
 
 	free(rta_select->value);
 	free(rta_select);
+}
+
+void realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * value){
+	insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
+	logger(escribir_loguear, l_info, "Se insertó el value '%s' en memoria",value);
 }
