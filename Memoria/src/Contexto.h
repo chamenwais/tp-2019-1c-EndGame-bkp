@@ -71,6 +71,7 @@ extern t_list * seeds;
 
 extern int TAMANIO_VALUE;
 extern int SOCKET_LISS;
+extern int SERVER_MEMORIA;
 
 /* Semáforos mutex de variables globales */
 extern pthread_mutex_t M_RETARDO_ACCESO_MEMORIA;

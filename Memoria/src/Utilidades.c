@@ -381,6 +381,8 @@ void terminar_programa(int codigo_finalizacion){
 	free(ruta_archivo_conf);
 	pthread_mutex_unlock(&M_RUTA_ARCHIVO_CONF);
 
+	close(SOCKET_LISS);
+	close(SERVER_MEMORIA);
 
 	apagar_semaforos();
 	exit(codigo_finalizacion);
@@ -398,6 +400,7 @@ int iniciar_servidor(){
 	{
 		logger(escribir_loguear,l_trace,"Socket servidor (%d) escuchando", server_socket);
 	}
+	SERVER_MEMORIA=server_socket;
 
 	return server_socket;
 }
