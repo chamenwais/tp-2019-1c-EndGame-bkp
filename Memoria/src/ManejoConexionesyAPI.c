@@ -15,6 +15,7 @@ void loguear_value_por_pantalla(char * value){
 tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 	tp_select_rta pedido_value;
 
+	usleep(RETARDO_ACCESO_FILESYSTEM*1000);
 	prot_enviar_select(nombre_tabla, key, SOCKET_LISS);
 
 	//Recibo rta

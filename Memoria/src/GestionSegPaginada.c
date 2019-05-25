@@ -82,7 +82,7 @@ char * obtener_value_desde_marco_en_MP(int marco){
 	desplazamiento += sizeof(long);
 	desplazamiento += sizeof(uint16_t);
 	char * bytes_value_en_MP = malloc(TAMANIO_VALUE+1);
-	memcpy(bytes_value_en_MP,  MEMORIA_PRINCIPAL + desplazamiento, TAMANIO_VALUE+1);
+	memcpy(bytes_value_en_MP, MEMORIA_PRINCIPAL + desplazamiento, TAMANIO_VALUE+1);
 	return bytes_value_en_MP;
 }
 
@@ -105,6 +105,7 @@ tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
 			return false;
 		}
 	}
+	usleep(RETARDO_ACCESO_MEMORIA*1000);
 	t_entrada_tabla_paginas * pagina_con_key=list_find(segmento->base,tiene_la_key);
 	if(pagina_con_key==NULL){
 		return NULL;
@@ -142,6 +143,7 @@ void almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
 		int flag) {
 	t_entrada_tabla_segmentos* segmento = obtener_segmento_de_tabla(nom_tabla);
 	int marco_asignado = obtener_marco();
+	usleep(RETARDO_ACCESO_MEMORIA*1000);
 	insertar_registro_en_marco(timestamp, key, value, marco_asignado);
 	crear_pagina_en_tabla_paginas(segmento, marco_asignado, flag);
 }
