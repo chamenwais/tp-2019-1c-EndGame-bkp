@@ -32,6 +32,7 @@ void obtener_un_parametro(char** , char**, char *);
 void loguear_un_parametros_recibido(char * );
 void obtener_dos_parametros(char**, char**, char**, char *);
 void loguear_dos_parametros_recibidos(char *, char * );
+void loguear_tres_parametros_recibidos(char *, char *, char *);
 void obtener_cuatro_parametros(char**, char**, char**, char**, char**, char *);
 void obtener_cuatro_parametros_insert(char *, char**, char**, char**, char**, char**, char *);
 void loguear_cuatro_parametros_recibidos(char *, char *, char *, char*);

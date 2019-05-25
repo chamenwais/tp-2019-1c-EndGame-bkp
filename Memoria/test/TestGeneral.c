@@ -43,6 +43,7 @@ int setup_gestion_seg_pag(){
 }
 
 int clean_gestion_seg_pag(){
+	puts("Limpiando...");
 	free(MEMORIA_PRINCIPAL);
 	log_destroy(g_logger);
 
@@ -72,7 +73,16 @@ void test_colocar_value_en_MP(){
 }
 
 void test_modificar_key_en_MP(){
-
+	setup_gestion_seg_pag();
+	long timestamp = (unsigned) time(NULL);
+	char* value = "Ahi va";
+	uint16_t key = (uint16_t) 1;
+	insertar_value_modificado_en_MP("tabla1", timestamp, key, value);
+	tp_select_rta rta_select=verificar_existencia_en_MP("tabla1",key);
+	CU_ASSERT_STRING_EQUAL(rta_select->value,value);
+	CU_ASSERT_EQUAL(rta_select->timestamp, timestamp);
+	free(rta_select->value);
+	free(rta_select);
 }
 
 int setup_comandos(){

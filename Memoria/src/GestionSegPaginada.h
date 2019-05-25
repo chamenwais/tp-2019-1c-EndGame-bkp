@@ -30,6 +30,7 @@ int obtener_marco_libre_del_bitmap();
 void ocupar_marco_en_el_bitmap(int);
 tp_select_rta verificar_existencia_en_MP(char *, uint16_t);
 void colocar_value_en_MP(char *, long, uint16_t,char *);
+void insertar_value_modificado_en_MP(char *, long, uint16_t,char *);
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char *);
 t_entrada_tabla_segmentos * crear_segmento_a_tabla(char *);
 int ejecutar_algoritmo_reemplazo_y_obtener_marco();
