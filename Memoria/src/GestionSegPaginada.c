@@ -95,18 +95,7 @@ tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
 		return NULL;
 	}
 
-	bool tiene_la_key(void * una_pagina){
-		uint16_t* bytes_key_en_MP = obtener_key_desde_marco_en_MP((*(t_entrada_tabla_paginas*) una_pagina).marco);
-		if(*bytes_key_en_MP==key){
-			free(bytes_key_en_MP);
-			return true;
-		} else {
-			free(bytes_key_en_MP);
-			return false;
-		}
-	}
-	usleep(RETARDO_ACCESO_MEMORIA*1000);
-	t_entrada_tabla_paginas * pagina_con_key=list_find(segmento->base,tiene_la_key);
+	t_entrada_tabla_paginas * pagina_con_key=buscar_pagina_de_key_en_MP(segmento->base, key);
 	if(pagina_con_key==NULL){
 		return NULL;
 	}
@@ -123,6 +112,21 @@ tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
 	return valor_marco;
 }
 
+t_entrada_tabla_paginas * buscar_pagina_de_key_en_MP(t_list* tabla_de_paginas,uint16_t key){
+	bool tiene_la_key(void * una_pagina){
+		uint16_t* bytes_key_en_MP = obtener_key_desde_marco_en_MP((*(t_entrada_tabla_paginas*) una_pagina).marco);
+		if(*bytes_key_en_MP==key){
+			free(bytes_key_en_MP);
+			return true;
+		} else {
+			free(bytes_key_en_MP);
+			return false;
+		}
+	}
+	usleep(RETARDO_ACCESO_MEMORIA*1000);
+	return list_find(tabla_de_paginas,tiene_la_key);
+}
+
 t_entrada_tabla_segmentos* obtener_segmento_de_tabla(char* nom_tabla) {
 	t_entrada_tabla_segmentos* segmento = buscar_segmento_de_tabla(nom_tabla);
 	if (segmento == NULL) {
@@ -131,7 +135,7 @@ t_entrada_tabla_segmentos* obtener_segmento_de_tabla(char* nom_tabla) {
 	return segmento;
 }
 
-int obtener_marco() {
+int obtener_marco_libre() {
 	int marco_asignado = obtener_marco_libre_del_bitmap();
 	if (marco_asignado == -1) {
 		marco_asignado = ejecutar_algoritmo_reemplazo_y_obtener_marco();
@@ -142,7 +146,7 @@ int obtener_marco() {
 void almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
 		int flag) {
 	t_entrada_tabla_segmentos* segmento = obtener_segmento_de_tabla(nom_tabla);
-	int marco_asignado = obtener_marco();
+	int marco_asignado = obtener_marco_libre();
 	usleep(RETARDO_ACCESO_MEMORIA*1000);
 	insertar_registro_en_marco(timestamp, key, value, marco_asignado);
 	crear_pagina_en_tabla_paginas(segmento, marco_asignado, flag);
@@ -154,6 +158,14 @@ void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *va
 
 void insertar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
 	almacenar_valor(nom_tabla, timestamp, key, value, FLAG_MODIFICADO);
+}
+
+void actualizar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+	t_entrada_tabla_segmentos* segmento = buscar_segmento_de_tabla(nom_tabla);
+	t_entrada_tabla_paginas * pagina_con_key=buscar_pagina_de_key_en_MP(segmento->base, key);
+	usleep(RETARDO_ACCESO_MEMORIA*1000);
+	insertar_registro_en_marco(timestamp, key, value, pagina_con_key->marco);
+	pagina_con_key->flag=FLAG_MODIFICADO;
 }
 
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char * nombre_tabla){

@@ -57,6 +57,12 @@ void realizar_select(char * nombre_tabla, int key){
 }
 
 void realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * value){
-	insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
+	tp_select_rta rta_select = verificar_existencia_en_MP(nombre_tabla, key);
+
+	if(rta_select != NULL && rta_select->value != NULL){
+		actualizar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
+	} else {
+		insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
+	}
 	logger(escribir_loguear, l_info, "Se insertó el value '%s' en memoria",value);
 }
