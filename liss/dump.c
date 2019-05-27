@@ -14,8 +14,19 @@ int dump(char* nombreDeLaTabla){
 	char* bloques = string_new(); //va a tener el formato: [2,3,7,10]
 	string_append(&bloques, "[");
 	int sizeDelTemporal = 0;
+	int ocupadoPorElBloque=0;
+	int bloqueActual=-1;
+	bool esMiNodo(void* nodo) {
+		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+		}
 
 	void dumpearTabla(void* nodo) {
+		int sizeDeLaDataADumpear;
+		int ocupadoHastaElMomento=metadataDelFS.blockSize-ocupadoHastaElMomento;
+		if((bloqueActual==-1)||(sizeDeLaDataADumpear<ocupadoHastaElMomento)){
+			//necesito un bloque nuevo para llenar
+
+			}
 
 
 		return;
