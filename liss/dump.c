@@ -25,9 +25,21 @@ int dump(char* nombreDeLaTabla){
 		int ocupadoHastaElMomento=metadataDelFS.blockSize-ocupadoHastaElMomento;
 		if((bloqueActual==-1)||(sizeDeLaDataADumpear<ocupadoHastaElMomento)){
 			//necesito un bloque nuevo para llenar
-
+			bloqueActual=obtenerBloqueLibreDelBitMap();
+			if(bloqueActual!=-1){
+				log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
+			}else{
+				string_append(&bloques, ",");
+				string_append(&bloques, string_itoa(bloqueActual));
+				}
 			}
-
+		char* cadenaAInsertar = string_new();
+		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp));
+		string_append(&cadenaAInsertar, ";");
+		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->key));
+		string_append(&cadenaAInsertar, ";");
+		string_append(&cadenaAInsertar, ((tp_nodoDeLaTabla)nodo)->value);
+		string_append(&cadenaAInsertar, "\n");
 
 		return;
 	}
