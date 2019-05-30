@@ -222,7 +222,7 @@ void consola_drop(char** comandos){
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_DROP);
-	//TODO hacer algo
+	realizar_drop(nombre_tabla);
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla

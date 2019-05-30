@@ -282,6 +282,7 @@ void clasificar_y_atender_cabecera(int socket_cliente, int tipoDeMensaje, int ta
 			break;
 		case DESCRIBE: atender_describe(socket_cliente, tamanio);
 			break;
+		//falta JOURNAL
 	}
 }
 

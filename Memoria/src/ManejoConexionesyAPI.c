@@ -46,19 +46,62 @@ void atender_insert(int cliente, int tamanio){
 }
 
 void atender_drop(int cliente, int tamanio){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un drop");
+	tp_drop dropeo = prot_recibir_drop(tamanio, cliente);
+	realizar_drop(dropeo->nom_tabla);
 
+	prot_enviar_respuesta_drop(cliente);
+
+	free(dropeo->nom_tabla);
+	free(dropeo);
 }
 
 void atender_describe(int cliente, int tamanio){
+	tp_describe descripcion = prot_recibir_describe(cliente, tamanio);
 
+	if(descripcion->nom_tabla!=NULL){
+		atender_describe_tabla_particular(descripcion);
+		free(descripcion->nom_tabla);
+	}else{
+		atender_describe_de_todas_las_tablas(descripcion);
+	}
+
+	free(descripcion);
 }
 
-void atender_describe_de_todas_las_tablas(int cliente, int tamanio){
-
+void atender_describe_de_todas_las_tablas(tp_describe paquete_describe){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un describe de todas las tablas");
+	realizar_describe_de_todas_las_tablas();
+	//Debo reenviarle lo que me envie el FS?
 }
 
-void atender_describe_tabla_particular(char * nom_tabla){
+void atender_describe_tabla_particular(tp_describe paquete_describe){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un describe de una tabla en particular");
+	realizar_describe_para_tabla_particular(paquete_describe->nom_tabla);
 
+	//QUe le tengo que contestar al kernel?
+}
+
+void realizar_drop(char * nombre_tabla){
+	t_entrada_tabla_segmentos * segmento = buscar_segmento_de_tabla(nombre_tabla);
+
+	if(segmento!=NULL){
+		liberar_segmento_de_MP(segmento);
+	}else{
+		logger(escribir_loguear, l_info, "No existe un segmento correspondiente a '%s' en memoria principal", nombre_tabla);
+	}
+
+	prot_enviar_drop(nombre_tabla, SOCKET_LISS);
+	logger(escribir_loguear, l_info, "Se envio a liss la solicitud para borrar la tabla: '%s':", nombre_tabla);
+
+	int respuesta = prot_recibir_respuesta_drop(SOCKET_LISS);
+
+	switch(respuesta){
+		case REQUEST_SUCCESS: logger(escribir_loguear, l_info, "La tabla fue borrada exitosamente de liss");
+			break;
+		case TABLA_NO_EXISTIA: logger(escribir_loguear, l_info, "Liss dice que no exite la tabla que queres borrar");
+			break;
+	}
 }
 
 void realizar_describe_de_todas_las_tablas(){
@@ -79,7 +122,7 @@ void realizar_describe_de_todas_las_tablas(){
 		list_iterate(info_de_las_tablas->lista, imprimir_informacion_tabla_particular);
 
 		//Libero la lista
-		//prot_free_tp_describeAll_rta(info_de_las_tablas->lista);
+		prot_free_tp_describeAll_rta(info_de_las_tablas);
 	}
 
 	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
