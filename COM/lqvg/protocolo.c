@@ -347,10 +347,19 @@ void prot_free_tp_describeAll_rta(tp_describeAll_rta descriptores){
 	free(descriptores);
 }
 
+void prot_enviar_journal(int socket){
+	t_paquete* paquete = crear_paquete(JOURNAL);
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
 
+void prot_enviar_respuesta_journaling(int socket){
+	t_paquete* paquete = crear_paquete(REQUEST_SUCCESS);
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
 
-
-
-
-
-
+enum MENSAJES prot_recibir_respuesta_journal(int socket){
+	t_cabecera cabecera = recibirCabecera(socket);
+	return cabecera.tipoDeMensaje;
+}

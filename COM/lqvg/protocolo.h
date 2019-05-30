@@ -102,4 +102,9 @@ tp_describeAll_rta prot_recibir_respuesta_describeAll(int,int);
 void prot_free_tp_describeAll_rta(tp_describeAll_rta);//para eliminar la lista una vez se usó
 
 void prot_enviar_error(enum MENSAJES, int);//usarlo cada que vez que la respuesta a cualquier pedido no sea correcta
+
+void prot_enviar_journal(int);
+void prot_enviar_respuesta_journaling(int);
+enum MENSAJES prot_recibir_respuesta_journal(int);//@NO necesita antes hacer un recibirCabecera
+
 #endif
