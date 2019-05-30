@@ -14,7 +14,10 @@ void atender_create(int cliente, int tamanio){
 	realizar_create(creacion->nom_tabla, creacion->numero_particiones, creacion->tiempo_compactacion, creacion->tipo_consistencia);
 
 	prot_enviar_respuesta_create(cliente);
-	//Ver si hay memory leaks
+
+	free(creacion->nom_tabla);
+	free(creacion->tipo_consistencia);
+	free(creacion);
 }
 
 void atender_select(int cliente, int tamanio){
@@ -24,7 +27,9 @@ void atender_select(int cliente, int tamanio){
 
 	tp_select_rta rta_select = verificar_existencia_en_MP(seleccion->nom_tabla, seleccion->key);
 	prot_enviar_respuesta_select(rta_select->value, rta_select->key, rta_select->timestamp, cliente);
-	//Ver si hay memory leaks
+
+	free(seleccion->nom_tabla);
+	free(seleccion);
 }
 
 void atender_insert(int cliente, int tamanio){
@@ -33,7 +38,11 @@ void atender_insert(int cliente, int tamanio){
 	realizar_insert(insercion->nom_tabla, insercion->timestamp, insercion->key, insercion->value);
 
 	prot_enviar_respuesta_insert(cliente);
-	//Ver si hay memory leaks
+
+	free(insercion->nom_tabla);
+	free(insercion->value);
+	free(insercion);
+
 }
 
 void atender_drop(int cliente, int tamanio){
@@ -41,6 +50,78 @@ void atender_drop(int cliente, int tamanio){
 }
 
 void atender_describe(int cliente, int tamanio){
+
+}
+
+void atender_describe_de_todas_las_tablas(int cliente, int tamanio){
+
+}
+
+void atender_describe_tabla_particular(char * nom_tabla){
+
+}
+
+void realizar_describe_de_todas_las_tablas(){
+	logger(escribir_loguear, l_info, "Se solicito hacer un describe de todas las tablas que tiene liss");
+
+	prot_enviar_describeAll(SOCKET_LISS);
+
+	//Recibo rta
+	t_cabecera rta_pedido = recibirCabecera(SOCKET_LISS);
+
+	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_debug, "Existen tablas en el FS");
+
+		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, SOCKET_LISS);
+
+		logger(escribir_loguear, l_info, "Liss ha enviado la sgte informacion:");
+
+		list_iterate(info_de_las_tablas->lista, imprimir_informacion_tabla_particular);
+
+		//Libero la lista
+		//prot_free_tp_describeAll_rta(info_de_las_tablas->lista);
+	}
+
+	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+		logger(escribir_loguear, l_error, "No hay tablas en el FS");
+	}
+
+}
+
+void imprimir_informacion_tabla_particular(tp_describe_rta info_tabla){
+	logger(escribir_loguear, l_info, "El nombre de la tabla es: %s", info_tabla->nombre);
+	logger(escribir_loguear, l_info, "La consistencia es: %s", info_tabla->consistencia);
+	logger(escribir_loguear, l_info, "El numero de particiones es: %d", info_tabla->particiones);
+	logger(escribir_loguear, l_info, "El tiempo de compactacion es: %d\n", info_tabla->tiempoDeCompactacion);
+}
+
+void realizar_describe_para_tabla_particular(char * nom_tabla){
+	tp_describe_rta info_tabla;
+
+	logger(escribir_loguear, l_info, "Se solicito hacer un describe de la tabla '%s'", nom_tabla);
+	logger(escribir_loguear, l_info, "Le voy a pedir a liss la informacion de: '%s'", nom_tabla);
+
+	prot_enviar_describe(nom_tabla, SOCKET_LISS);
+
+	//Recibo rta
+	t_cabecera rta_pedido = recibirCabecera(SOCKET_LISS);
+
+	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_debug, "Informacion recibida correctamente");
+		info_tabla = prot_recibir_respuesta_describe(rta_pedido.tamanio, SOCKET_LISS);
+
+		logger(escribir_loguear, l_info, "Liss ha enviado la sgte informacion:");
+		imprimir_informacion_tabla_particular(info_tabla);
+
+		free(info_tabla->consistencia);
+		free(info_tabla->nombre);
+		free(info_tabla);
+
+	}
+
+	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+		logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
+	}
 
 }
 
