@@ -172,7 +172,7 @@ void consola_create(char** comandos){
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_CREATE);
-	//TODO hacer algo
+	realizar_create(nombre_tabla, tipo_consistencia, numero_particiones, compaction_time);
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla

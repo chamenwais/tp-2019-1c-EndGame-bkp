@@ -8,8 +8,59 @@
 
 #include "ManejoConexionesyAPI.h"
 
+void atender_create(int cliente, int tamanio){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un create");
+	tp_create creacion = prot_recibir_create(tamanio, cliente);
+	realizar_create(creacion->nom_tabla, creacion->numero_particiones, creacion->tiempo_compactacion, creacion->tipo_consistencia);
+
+	prot_enviar_respuesta_create(cliente);
+	//Ver si hay memory leaks
+}
+
+void atender_select(int cliente, int tamanio){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un select");
+	tp_select seleccion = prot_recibir_select(tamanio, cliente);
+	realizar_select(seleccion->nom_tabla, seleccion->key);
+
+	tp_select_rta rta_select = verificar_existencia_en_MP(seleccion->nom_tabla, seleccion->key);
+	prot_enviar_respuesta_select(rta_select->value, rta_select->key, rta_select->timestamp, cliente);
+	//Ver si hay memory leaks
+}
+
+void atender_insert(int cliente, int tamanio){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un insert");
+	tp_insert insercion = prot_recibir_insert(tamanio, cliente);
+	realizar_insert(insercion->nom_tabla, insercion->timestamp, insercion->key, insercion->value);
+
+	prot_enviar_respuesta_insert(cliente);
+	//Ver si hay memory leaks
+}
+
+void atender_drop(int cliente, int tamanio){
+
+}
+
+void atender_describe(int cliente, int tamanio){
+
+}
+
 void loguear_value_por_pantalla(char * value){
 	logger(escribir_loguear, l_info, "El value de la key solicitada es '%s'", value);
+}
+
+void realizar_create(char * nombre_tabla, char * tipo_consistencia, int numero_particiones, int tiempo_compactacion){
+	prot_enviar_create(nombre_tabla, tipo_consistencia, numero_particiones, tiempo_compactacion, SOCKET_LISS);
+	logger(escribir_loguear, l_info, "Se envio a liss la solicitud para crear una tabla...");
+
+	int respuesta = prot_recibir_respuesta_create(SOCKET_LISS);
+
+	switch(respuesta){
+		case REQUEST_SUCCESS: logger(escribir_loguear, l_info, "La tabla fue creada correctamente.");
+			break;
+		case TABLA_YA_EXISTIA: logger(escribir_loguear, l_info, "La tabla ya existe!");
+			break;
+	}
+
 }
 
 tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
