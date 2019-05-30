@@ -13,6 +13,7 @@
 int dump(char* nombreDeLaTabla);
 char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla);
 int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo);
+int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual);
 int crearElTemp(char* nombreDelArchivo,char* bloques,int size);
 
 #endif /* DUMP_H_ */

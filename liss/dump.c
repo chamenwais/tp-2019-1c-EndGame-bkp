@@ -7,18 +7,52 @@
 
 #include "dump.h"
 
-
-
 int dump(char* nombreDeLaTabla){
 	char* nombreDelArchivoTemp;
 	char* bloques = string_new(); //va a tener el formato: [2,3,7,10]
 	string_append(&bloques, "[");
 	int sizeDelTemporal = 0;
+	int ocupadoPorElBloque=0;
+	int bloqueActual=-1;
+	bool esElPrimero=true;
+	bool hayBloquesLibres=true;
 
-	void dumpearTabla(void* nodo) {
+	bool esMiNodo(void* nodo) {
+		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
+		}
 
-
-		return;
+	void dumpearTabla(void* nodo){
+		if(hayBloquesLibres){
+		char* cadenaAInsertar = string_new();
+		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp));
+		string_append(&cadenaAInsertar, ";");
+		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->key));
+		string_append(&cadenaAInsertar, ";");
+		string_append(&cadenaAInsertar, ((tp_nodoDeLaTabla)nodo)->value);
+		string_append(&cadenaAInsertar, "\n");
+		int sizeDeLaDataADumpear = string_length(cadenaAInsertar);
+		sizeDelTemporal=sizeDelTemporal+sizeDeLaDataADumpear;
+		int libreHastaElMomento=metadataDelFS.blockSize-ocupadoPorElBloque;
+		if((bloqueActual==-1)||(sizeDeLaDataADumpear<libreHastaElMomento)){
+			//necesito un bloque nuevo para llenar
+			bloqueActual=obtenerBloqueLibreDelBitMap();
+			ocuparBloqueDelBitmap(bloqueActual);
+			bajarADiscoBitmap();
+			if(bloqueActual==-1){
+				log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
+				hayBloquesLibres=false;
+			}else{
+				if(esElPrimero){
+					esElPrimero=false;
+				}else{
+					string_append(&bloques, ",");
+					}
+				string_append(&bloques, string_itoa(bloqueActual));
+				crearArchivoDeBloque(bloqueActual);
+				}
+			}
+		insertarDatosEnElBloque(cadenaAInsertar,bloqueActual);
+		}
 	}
 
 
@@ -31,10 +65,31 @@ int dump(char* nombreDeLaTabla){
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
-	return EXIT_SUCCESS;
+	if(hayBloquesLibres){
+		return DUMP_CORRECTO;
+	}else{
+		log_error(LOGGERFS,"Se hizo el dump pero en em medio del proceso se acabaron los bloques libres, no se puede asegurar la consistencia de los datos");
+		return NO_HAY_MAS_BLOQUES_EN_EL_FS;
+	}
 }
 
 int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
+	return EXIT_SUCCESS;
+}
+
+
+int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual){
+	//le pasas un numero de bloque y una cadena con los datos a insertar y los manda
+	//a continuacion de lo q haya
+	char* nombreDelArchivoDeBloque=string_new();
+	string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
+	string_append(&nombreDelArchivoDeBloque, "/Blocks/");
+	string_append(&nombreDelArchivoDeBloque, string_itoa(bloqueActual));
+	string_append(&nombreDelArchivoDeBloque, ".bin");
+	FILE* archivo=fopen(nombreDelArchivoDeBloque,"a");
+	log_info(LOGGERFS,"Guardando %s en el archivo %s", cadenaAInsertar, nombreDelArchivoDeBloque);
+	fprintf(archivo,"%s",cadenaAInsertar);
+	fclose(archivo);
 	return EXIT_SUCCESS;
 }
 
