@@ -21,6 +21,7 @@ void recibir_insert(int, int);
 void procesarSelect(int,t_cabecera);
 void procesarInsert(int,t_cabecera);
 void procesarCreate(int,t_cabecera);
+void procesarJournal(int);
 void* procesarMensaje(void*);
 
 #define METODO 2 //@@Metodo a usar, el 2 es el mas nuevo
@@ -109,6 +110,9 @@ void* procesarMensaje(void* args){
 
 
 		break;
+	case JOURNAL:
+		procesarJournal(p->cliente);
+		break;
 	default:
 		break;
 	}
@@ -130,7 +134,7 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 		printf("[TestServer] Enviada respuesta de select a %d con error= TABLA_NO_EXISTIA\n",cliente);
 
 	} else{
-		prot_enviar_respuesta_select(value,cliente);
+		prot_enviar_respuesta_select(value,(uint16_t)seleccion->key, (long)321321,cliente);
 		printf("[TestServer] Enviada respuesta de select a %d con value= %s\n",cliente,value);
 	}
 	free(seleccion->nom_tabla);
@@ -172,6 +176,11 @@ void procesarCreate(int cliente, t_cabecera cabecera){
 		printf("[TestServer] Error Create: tabla= %s ya existe\n",creacion->nom_tabla);
 	}
 
+}
+
+void procesarJournal(int cliente){
+	//"Ejecuto" el journaling y limpio la memoria
+	prot_enviar_respuesta_journaling(cliente);
 }
 
 void recibir_select(int tamanio, int cliente_fd){

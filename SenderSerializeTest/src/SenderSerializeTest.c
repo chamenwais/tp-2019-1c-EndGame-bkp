@@ -20,6 +20,7 @@ void mandar_insert(int);
 void mandar_create(int);
 void mandar_describe(int);
 void mandar_drop(int);
+void mandar_journal(int);
 
 #define METODO 2 //el 2 es el nuevo, usar otro numero para el metodo viejo
 
@@ -82,6 +83,10 @@ int main(int argc, char ** argv) {
 		puts("Vamos a mandar un drop");
 		mandar_drop(receiver_fd);
 	}
+	if(string_equals_ignore_case(comando, "journal")){
+		puts("Vamos a mandar un journal");
+		mandar_journal(receiver_fd);
+	}
 	close(receiver_fd);
 	return EXIT_SUCCESS;
 }
@@ -104,4 +109,14 @@ void mandar_describe(int server_fd){
 
 void mandar_drop(int server_fd){
 	enviarCabecera(server_fd, DROP, 1);
+}
+
+void mandar_journal(int server_fd){
+	prot_enviar_journal(server_fd);
+	enum MENSAJES respuesta = prot_recibir_respuesta_journal(server_fd);
+	if(respuesta == REQUEST_SUCCESS){
+		puts("Journal realizado correctamente");
+	} else {
+		puts("Error");
+	}
 }
