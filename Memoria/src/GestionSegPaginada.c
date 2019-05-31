@@ -50,15 +50,16 @@ void inicializar_tabla_segmentos(){
 	tabla_de_segmentos=list_create();
 }
 
-void liberar_tabla_segmentos(){
-	void destructor_segmento(void * segmento){
-		void destructor_pagina(void * pagina){
-			free(pagina);
-		}
-		list_destroy_and_destroy_elements((*(t_entrada_tabla_segmentos *)segmento).base,destructor_pagina);
-		free((*(t_entrada_tabla_segmentos *)segmento).tabla);
-		free(segmento);
+void destructor_segmento(void * segmento){
+	void destructor_pagina(void * pagina){
+		free(pagina);
 	}
+	list_destroy_and_destroy_elements((*(t_entrada_tabla_segmentos *)segmento).base,destructor_pagina);
+	free((*(t_entrada_tabla_segmentos *)segmento).tabla);
+	free(segmento);
+}
+
+void liberar_tabla_segmentos(){
 	list_destroy_and_destroy_elements(tabla_de_segmentos, destructor_segmento);
 }
 
@@ -222,16 +223,15 @@ void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos * segmento, int mar
 	bitarray_set_bit(bitmap_marcos,marco);
 }
 
-void liberar_segmento(t_entrada_tabla_segmentos * segmento){
-	void destructor_pagina(void * pagina){
-		free(pagina);
-	}
-	list_destroy_and_destroy_elements((*(t_entrada_tabla_segmentos *)segmento).base,destructor_pagina);
-	free((*(t_entrada_tabla_segmentos *)segmento).tabla);
-	free(segmento);
-
-}
-
 void liberar_segmento_de_MP(t_entrada_tabla_segmentos * segmento){
-	//list_remove_and_destroy_element(tabla_de_segmentos,INDICEEE,liberar_segmento);
+	if(!list_is_empty(segmento->base)){
+		void liberar_marco(void * entrada_pagina){
+			bitarray_clean_bit(bitmap_marcos,(*(t_entrada_tabla_paginas *)entrada_pagina).marco);
+		}
+		list_iterate(segmento->base, liberar_marco);
+	}
+	bool es_segmento_de_tabla(void * un_segmento){
+		return string_equals_ignore_case((*(t_entrada_tabla_segmentos *)un_segmento).tabla,segmento->tabla);
+	}
+	list_remove_and_destroy_by_condition(tabla_de_segmentos,es_segmento_de_tabla,destructor_segmento);
 }

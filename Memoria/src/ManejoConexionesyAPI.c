@@ -11,7 +11,7 @@
 void atender_create(int cliente, int tamanio){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un create");
 	tp_create creacion = prot_recibir_create(tamanio, cliente);
-	realizar_create(creacion->nom_tabla, creacion->numero_particiones, creacion->tiempo_compactacion, creacion->tipo_consistencia);
+	realizar_create(creacion->nom_tabla, creacion->tipo_consistencia, creacion->numero_particiones, creacion->tiempo_compactacion);
 
 	prot_enviar_respuesta_create(cliente);
 
@@ -131,11 +131,11 @@ void realizar_describe_de_todas_las_tablas(){
 
 }
 
-void imprimir_informacion_tabla_particular(tp_describe_rta info_tabla){
-	logger(escribir_loguear, l_info, "El nombre de la tabla es: %s", info_tabla->nombre);
-	logger(escribir_loguear, l_info, "La consistencia es: %s", info_tabla->consistencia);
-	logger(escribir_loguear, l_info, "El numero de particiones es: %d", info_tabla->particiones);
-	logger(escribir_loguear, l_info, "El tiempo de compactacion es: %d\n", info_tabla->tiempoDeCompactacion);
+void imprimir_informacion_tabla_particular(void * info_tabla){
+	logger(escribir_loguear, l_info, "El nombre de la tabla es: %s", (*(t_describe_rta*)info_tabla).nombre);
+	logger(escribir_loguear, l_info, "La consistencia es: %s", (*(t_describe_rta*)info_tabla).consistencia);
+	logger(escribir_loguear, l_info, "El numero de particiones es: %d", (*(t_describe_rta*)info_tabla).particiones);
+	logger(escribir_loguear, l_info, "El tiempo de compactacion es: %d\n", (*(t_describe_rta*)info_tabla).tiempoDeCompactacion);
 }
 
 void realizar_describe_para_tabla_particular(char * nom_tabla){

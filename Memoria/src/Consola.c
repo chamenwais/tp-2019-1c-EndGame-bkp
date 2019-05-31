@@ -190,7 +190,6 @@ void consola_create(char** comandos){
 }
 
 void consola_describe(char** comandos){
-	char** cant_param;
 	char *nombre_tabla = NULL;
 	obtener_un_parametro(comandos, &nombre_tabla, _DESCRIBE);
 
