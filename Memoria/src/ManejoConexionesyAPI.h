@@ -14,7 +14,19 @@
 
 void realizar_select(char *, int);
 void realizar_insert(char *, long, uint16_t, char *);
+void realizar_create(char *, char *, int, int);
 void loguear_value_por_pantalla(char *);
 tp_select_rta pedir_value_a_liss(char *, uint16_t);
+void atender_create(int, int);
+void atender_select(int, int);
+void atender_insert(int, int);
+void atender_drop(int, int);
+void atender_describe(int, int);
+void atender_describe_de_todas_las_tablas(tp_describe);
+void atender_describe_tabla_particular(tp_describe);
+void realizar_describe_de_todas_las_tablas();
+void realizar_describe_para_tabla_particular(char *);
+void imprimir_informacion_tabla_particular(tp_describe_rta);
+void realizar_drop(char *);
 
 #endif /* SRC_MANEJOCONEXIONESYAPI_H_ */

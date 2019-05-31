@@ -172,7 +172,7 @@ void consola_create(char** comandos){
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_CREATE);
-	//TODO hacer algo
+	realizar_create(nombre_tabla, tipo_consistencia, numero_particiones, compaction_time);
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
@@ -190,20 +190,18 @@ void consola_create(char** comandos){
 }
 
 void consola_describe(char** comandos){
-	int cant_param_correcta = 0;
+	char** cant_param;
 	char *nombre_tabla = NULL;
 	obtener_un_parametro(comandos, &nombre_tabla, _DESCRIBE);
-	cant_param_correcta=validar_parametro_consola(&nombre_tabla);
-	if(cant_param_correcta<0){
-		loguear_cant_menor_params(_DESCRIBE);
-		return;
-	}
-
-	loguear_un_parametros_recibido(nombre_tabla);
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_DESCRIBE);
-	//TODO hacer algo
+	if(nombre_tabla==NULL){
+		realizar_describe_de_todas_las_tablas();
+	}else{
+		loguear_un_parametros_recibido(nombre_tabla);
+		realizar_describe_para_tabla_particular(nombre_tabla);
+	}
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
@@ -224,7 +222,7 @@ void consola_drop(char** comandos){
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_DROP);
-	//TODO hacer algo
+	realizar_drop(nombre_tabla);
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla

@@ -221,3 +221,17 @@ void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos * segmento, int mar
 	bitarray_clean_bit(bitmap_marcos,marco);
 	bitarray_set_bit(bitmap_marcos,marco);
 }
+
+void liberar_segmento(t_entrada_tabla_segmentos * segmento){
+	void destructor_pagina(void * pagina){
+		free(pagina);
+	}
+	list_destroy_and_destroy_elements((*(t_entrada_tabla_segmentos *)segmento).base,destructor_pagina);
+	free((*(t_entrada_tabla_segmentos *)segmento).tabla);
+	free(segmento);
+
+}
+
+void liberar_segmento_de_MP(t_entrada_tabla_segmentos * segmento){
+	//list_remove_and_destroy_element(tabla_de_segmentos,INDICEEE,liberar_segmento);
+}

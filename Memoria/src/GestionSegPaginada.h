@@ -44,5 +44,6 @@ int obtener_1er_byte_marco_en_MP(int);
 long * obtener_timestamp_desde_marco_en_MP(int);
 uint16_t* obtener_key_desde_marco_en_MP(int);
 t_entrada_tabla_paginas * buscar_pagina_de_key_en_MP(t_list*,uint16_t);
-
+void liberar_segmento(t_entrada_tabla_segmentos *);
+void liberar_segmento_de_MP(t_entrada_tabla_segmentos *);
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */

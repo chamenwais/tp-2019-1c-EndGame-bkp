@@ -318,7 +318,7 @@ tp_describeAll_rta prot_recibir_respuesta_describeAll(int tamanio_paq, int socke
 		desplazamiento+=sizeof(int);
 		descriptor->nombre = malloc(tamanio_nombre);
 		memcpy(descriptor->nombre,buffer+desplazamiento,tamanio_nombre);
-		desplazamiento+=sizeof(int);
+		desplazamiento+=tamanio_nombre;
 		memcpy(&descriptor->particiones, buffer+desplazamiento, sizeof(int));
 		desplazamiento+=sizeof(int);
 		memcpy(&tamanio_consistencia, buffer+desplazamiento, sizeof(int));
