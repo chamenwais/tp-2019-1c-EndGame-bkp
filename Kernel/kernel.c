@@ -15,7 +15,7 @@ int main(int argc,char** argv) {
 	configurar_signals();
 	if(conectarse_con_memoria(configKernel.ipMemoria, configKernel.puertoMemoria)==EXIT_SUCCESS){
 	if(lanzarConsola()==EXIT_SUCCESS){
-	if(lanzarPlanificador()){//TODO
+	if(lanzarPlanificador()==EXIT_SUCCESS){//TODO
 	if(esperarAQueTermineLaConsola()==EXIT_FAILURE){
 		liberarRecursos();
 	}}}}}}

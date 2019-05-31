@@ -105,7 +105,7 @@ typedef struct {
 
 extern t_configuracionDelKernel configKernel;
 extern t_log* LOG_KERNEL;
-extern pthread_t threadConsola
+extern pthread_t threadConsola;
 extern pthread_t threadPlanif;
 extern pthread_t threadMemo;
 extern t_list* listaNew;

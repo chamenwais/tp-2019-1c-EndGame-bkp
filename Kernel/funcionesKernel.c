@@ -207,10 +207,10 @@ int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONEC
 		close(socket_mem);
 	}
 	enviar_handshake(socket_mem);
-	t_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
-	entrada_tabla_memorias.ip = ip;
-	entrada_tabla_memorias.puerto = puerto;
-	entrada_tabla_memorias.socket = socket_mem;
+	t_memo_del_pool_kernel* entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
+	entrada_tabla_memorias->ip = ip;
+	entrada_tabla_memorias->puerto = puerto;
+	entrada_tabla_memorias->socket = socket_mem;
 	list_add(listaMemConectadas, entrada_tabla_memorias);
 	logger(escribir_loguear, l_info, "Se va a abrir un hilo para la memoria %i", socket_mem);
 	int resultadoHiloMemo = pthread_create( &threadMemo, NULL, funcionHiloMemo, (void*)NULL);
@@ -298,7 +298,15 @@ t_operacion parsear(char * linea){
 }
 
 
-/*void conocer_pool_memorias(int socket){
+void conocer_pool_memorias(){
 	logger(escribir_loguear, l_info, "Voy a consultar el pool de memorias");
-	enviarCabecera(socket, POOL_REQUEST, sizeof(int));
-}*/
+	t_memo_del_pool_kernel* primera_memo = list_get(listaMemConectadas, 0);
+	//TODO controlar si la primera sigue conectada, sino sacarla de la lista y pedirsela a la segunda.Quizas algun flag marcando que existe la q tomé?
+	enviarCabecera(primera_memo->socket, POOL_REQUEST, sizeof(int));
+
+}
+
+int lanzarPlanificador(){
+
+	return EXIT_SUCCESS;
+}
