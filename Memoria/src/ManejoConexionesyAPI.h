@@ -26,7 +26,7 @@ void atender_describe_de_todas_las_tablas(tp_describe);
 void atender_describe_tabla_particular(tp_describe);
 void realizar_describe_de_todas_las_tablas();
 void realizar_describe_para_tabla_particular(char *);
-void imprimir_informacion_tabla_particular(tp_describe_rta);
+void imprimir_informacion_tabla_particular(void *);
 void realizar_drop(char *);
 
 #endif /* SRC_MANEJOCONEXIONESYAPI_H_ */
