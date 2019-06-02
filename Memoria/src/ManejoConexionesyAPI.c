@@ -11,9 +11,10 @@
 void atender_create(int cliente, int tamanio){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un create");
 	tp_create creacion = prot_recibir_create(tamanio, cliente);
-	realizar_create(creacion->nom_tabla, creacion->tipo_consistencia, creacion->numero_particiones, creacion->tiempo_compactacion);
+	enum MENSAJES respuesta_create=realizar_create(creacion->nom_tabla, creacion->tipo_consistencia,
+			creacion->numero_particiones, creacion->tiempo_compactacion);
 
-	prot_enviar_respuesta_create(cliente);
+	retornar_respuesta_al_kernel(respuesta_create, prot_enviar_respuesta_create, cliente);
 
 	free(creacion->nom_tabla);
 	free(creacion->tipo_consistencia);
@@ -48,9 +49,9 @@ void atender_insert(int cliente, int tamanio){
 void atender_drop(int cliente, int tamanio){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un drop");
 	tp_drop dropeo = prot_recibir_drop(tamanio, cliente);
-	realizar_drop(dropeo->nom_tabla);
+	enum MENSAJES respuesta_drop=realizar_drop(dropeo->nom_tabla);
 
-	prot_enviar_respuesta_drop(cliente);
+	retornar_respuesta_al_kernel(respuesta_drop, prot_enviar_respuesta_drop, cliente);
 
 	free(dropeo->nom_tabla);
 	free(dropeo);
@@ -82,7 +83,15 @@ void atender_describe_tabla_particular(tp_describe paquete_describe){
 	//QUe le tengo que contestar al kernel?
 }
 
-void realizar_drop(char * nombre_tabla){
+void retornar_respuesta_al_kernel(enum MENSAJES respuesta, void(*enviador_respuesta_ok)(int), int socket_kernel){
+	if(respuesta==REQUEST_SUCCESS){
+		enviador_respuesta_ok(socket_kernel);
+	} else {
+		prot_enviar_error(respuesta,socket_kernel);
+	}
+}
+
+enum MENSAJES realizar_drop(char * nombre_tabla){
 	t_entrada_tabla_segmentos * segmento = buscar_segmento_de_tabla(nombre_tabla);
 
 	if(segmento!=NULL){
@@ -94,14 +103,17 @@ void realizar_drop(char * nombre_tabla){
 	prot_enviar_drop(nombre_tabla, SOCKET_LISS);
 	logger(escribir_loguear, l_info, "Se envio a liss la solicitud para borrar la tabla: '%s':", nombre_tabla);
 
-	int respuesta = prot_recibir_respuesta_drop(SOCKET_LISS);
+	enum MENSAJES respuesta = prot_recibir_respuesta_drop(SOCKET_LISS);
 
 	switch(respuesta){
 		case REQUEST_SUCCESS: logger(escribir_loguear, l_info, "La tabla fue borrada exitosamente de liss");
 			break;
 		case TABLA_NO_EXISTIA: logger(escribir_loguear, l_info, "Liss dice que no exite la tabla que queres borrar");
 			break;
+		default:
+			break;
 	}
+	return respuesta;
 }
 
 void realizar_describe_de_todas_las_tablas(){
@@ -172,19 +184,21 @@ void loguear_value_por_pantalla(char * value){
 	logger(escribir_loguear, l_info, "El value de la key solicitada es '%s'", value);
 }
 
-void realizar_create(char * nombre_tabla, char * tipo_consistencia, int numero_particiones, int tiempo_compactacion){
+enum MENSAJES realizar_create(char * nombre_tabla, char * tipo_consistencia, int numero_particiones, int tiempo_compactacion){
 	prot_enviar_create(nombre_tabla, tipo_consistencia, numero_particiones, tiempo_compactacion, SOCKET_LISS);
 	logger(escribir_loguear, l_info, "Se envio a liss la solicitud para crear una tabla...");
 
-	int respuesta = prot_recibir_respuesta_create(SOCKET_LISS);
+	enum MENSAJES respuesta = prot_recibir_respuesta_create(SOCKET_LISS);
 
 	switch(respuesta){
 		case REQUEST_SUCCESS: logger(escribir_loguear, l_info, "La tabla fue creada correctamente.");
 			break;
 		case TABLA_YA_EXISTIA: logger(escribir_loguear, l_info, "La tabla ya existe!");
 			break;
+		default:
+			break;
 	}
-
+	return respuesta;
 }
 
 tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
@@ -239,5 +253,5 @@ void realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * v
 	} else {
 		insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
 	}
-	logger(escribir_loguear, l_info, "Se insertó el value '%s' en memoria",value);
+	logger(escribir_loguear, l_info, "Se insertó el value '%s' para la key %d en memoria",value, key);
 }
