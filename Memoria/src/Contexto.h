@@ -125,6 +125,14 @@ struct entrada_tabla_paginas{
 };
 typedef struct entrada_tabla_paginas t_entrada_tabla_paginas;
 
+typedef struct struSelectRtaAKernel{
+	enum MENSAJES respuesta;
+	unsigned int timestamp;
+	uint16_t key;
+	char* value;
+} t_select_rta_a_kernel;
+typedef t_select_rta_a_kernel* tp_select_rta_a_kernel;
+
 extern t_bitarray *bitmap_marcos;
 extern t_list * tabla_de_segmentos;
 

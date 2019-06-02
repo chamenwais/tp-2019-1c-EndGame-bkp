@@ -24,10 +24,16 @@ void atender_create(int cliente, int tamanio){
 void atender_select(int cliente, int tamanio){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un select");
 	tp_select seleccion = prot_recibir_select(tamanio, cliente);
-	realizar_select(seleccion->nom_tabla, seleccion->key);
+	tp_select_rta_a_kernel rta_select = realizar_select(seleccion->nom_tabla, seleccion->key);
 
-	tp_select_rta rta_select = verificar_existencia_en_MP(seleccion->nom_tabla, seleccion->key);
-	prot_enviar_respuesta_select(rta_select->value, rta_select->key, rta_select->timestamp, cliente);
+	if(rta_select->respuesta==REQUEST_SUCCESS){
+		prot_enviar_respuesta_select(rta_select->value, rta_select->key, rta_select->timestamp, cliente);
+		free(rta_select->value);
+		free(rta_select);
+	} else {
+		prot_enviar_error(rta_select->respuesta,cliente);
+		free(rta_select);
+	}
 
 	free(seleccion->nom_tabla);
 	free(seleccion);
@@ -201,8 +207,8 @@ enum MENSAJES realizar_create(char * nombre_tabla, char * tipo_consistencia, int
 	return respuesta;
 }
 
-tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
-	tp_select_rta pedido_value;
+tp_select_rta_a_kernel pedir_value_a_liss(char * nombre_tabla, uint16_t key){
+	tp_select_rta_a_kernel rta_select_a_kernel = malloc(sizeof(t_select_rta_a_kernel));
 
 	usleep(RETARDO_ACCESO_FILESYSTEM*1000);
 	prot_enviar_select(nombre_tabla, key, SOCKET_LISS);
@@ -212,37 +218,52 @@ tp_select_rta pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 
 	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
 		logger(escribir_loguear, l_debug, "Value recibido correctamente");
-		pedido_value = prot_recibir_respuesta_select(rta_pedido.tamanio, SOCKET_LISS);
-		return pedido_value;
-	}
-	pedido_value = malloc(sizeof(t_select_rta));
-	pedido_value->value=NULL;
-	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
-		logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
+		tp_select_rta pedido_value = prot_recibir_respuesta_select(rta_pedido.tamanio, SOCKET_LISS);
+		convertir_respuesta_select(rta_select_a_kernel, pedido_value,
+				rta_pedido.tipoDeMensaje);
+		free(pedido_value);
+	} else {
+		rta_select_a_kernel->value=NULL;
+		rta_select_a_kernel->respuesta=rta_pedido.tipoDeMensaje;
+		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
+		}
+		//TODO si agregan KEY_NO_EXISTE se podría agregar un mensaje indicándolo
 	}
 
-	return pedido_value;
+	return rta_select_a_kernel;
 }
 
-void realizar_select(char * nombre_tabla, int key){
-	tp_select_rta rta_select = verificar_existencia_en_MP(nombre_tabla, key);
+void convertir_respuesta_select(tp_select_rta_a_kernel respuesta_a_kernel,
+		tp_select_rta respuesta_memoria, enum MENSAJES mensaje_respuesta) {
+	respuesta_a_kernel->key = respuesta_memoria->key;
+	respuesta_a_kernel->timestamp = respuesta_memoria->timestamp;
+	respuesta_a_kernel->value = respuesta_memoria->value;
+	respuesta_a_kernel->respuesta = mensaje_respuesta;
+}
 
-	if(rta_select!=NULL && rta_select->value != NULL){
-		loguear_value_por_pantalla(rta_select->value);
+tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
+	tp_select_rta rta_select_MP = verificar_existencia_en_MP(nombre_tabla, key);
+	tp_select_rta_a_kernel rta_select_a_kernel;
+
+	if(rta_select_MP!=NULL && rta_select_MP->value != NULL){
+		loguear_value_por_pantalla(rta_select_MP->value);
+		rta_select_a_kernel = malloc(sizeof(t_select_rta_a_kernel));
+		convertir_respuesta_select(rta_select_a_kernel, rta_select_MP,
+				REQUEST_SUCCESS);
 	}else{
 		logger(escribir_loguear, l_info, "No contengo el valor de la key solicitada");
 		logger(escribir_loguear, l_info, "Se enviara una solicitud al FS para obtener dicho valor");
 
-		rta_select = pedir_value_a_liss(nombre_tabla, (uint16_t)key);
+		rta_select_a_kernel = pedir_value_a_liss(nombre_tabla, (uint16_t)key);
 
-		if(rta_select->value!=NULL){
-			logger(escribir_loguear, l_info, "Recibi el valor '%s'",rta_select->value);
-			colocar_value_en_MP(nombre_tabla, rta_select->timestamp,(uint16_t)key,rta_select->value);
+		if(rta_select_a_kernel->value!=NULL){
+			logger(escribir_loguear, l_info, "Recibi el valor '%s'",rta_select_a_kernel->value);
+			colocar_value_en_MP(nombre_tabla, rta_select_a_kernel->timestamp,(uint16_t)key,rta_select_a_kernel->value);
 		}
 	}
 
-	free(rta_select->value);
-	free(rta_select);
+	return rta_select_a_kernel;
 }
 
 void realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * value){
