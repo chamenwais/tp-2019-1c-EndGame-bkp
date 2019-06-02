@@ -75,7 +75,13 @@ int journalConsola(){
 }
 
 int runConsola(char* path){
-	//run
+	logger(escribir_loguear, l_info, "Ingresa al Kernel un archivo LQL en el path %s/n", path);
+	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	pthread_mutex_unlock(&mutex_New);
+	pthread_mutex_unlock(&mutexDePausaDePlanificacion);//habilito PLP
+	logger(escribir_loguear, l_info, "Se agrega el nuevo LQL a la cola de NEW");
 	return EXIT_SUCCESS;
 }
 
@@ -86,6 +92,15 @@ void metricsConsola(){
 int addConsola(int memnum, char* criterio){
 	//add
 	return EXIT_SUCCESS;
+}
+
+tp_lql_pcb crear_PCB(char* path){
+	tp_lql_pcb nuevo_LQL = calloc(1, sizeof(t_lql_pcb));
+	logger(escribir_loguear, l_info, "Se crea el PCB para el LQL en el path %s/n", path);
+	nuevo_LQL->path = malloc(strlen(path)+1);
+	strcpy(nuevo_LQL->path, path);
+	nuevo_LQL->ultima_linea_leida = 0;
+	return nuevo_LQL;
 }
 
 void *funcionHiloConsola(void *arg){
@@ -163,7 +178,7 @@ void *funcionHiloConsola(void *arg){
 						}
 				}else{
 					if((strcmp(instruccion[0],"journal")==0) || (strcmp(instruccion[0], "JOURNAL")==0)){
-						printf("Voy a enviar journal a todas las memorias")
+						printf("Voy a enviar journal a todas las memorias");
 						journalConsola();
 				}else{
 					if(strcmp(instruccion[0],"man")==0){

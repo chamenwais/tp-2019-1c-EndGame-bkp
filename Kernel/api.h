@@ -28,6 +28,7 @@ int journalConsola();
 int runConsola(char* path);
 void metricsConsola();
 int addConsola(int memnum, char* criterio);
+tp_lql_pcb crear_PCB(char* path);
 
 
 #endif /* API_H_ */

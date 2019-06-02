@@ -198,6 +198,17 @@ int inicializarListas(){
 	return EXIT_SUCCESS;
 }
 
+int inicializarSemaforos(){
+	logger(escribir_loguear, l_info, "Inicializando semaforos del kernel");
+	pthread_mutex_init(&mutex_New, NULL);
+	pthread_mutex_init(&mutex_Ready, NULL);
+	pthread_mutex_init(&mutex_Exec, NULL);
+	pthread_mutex_init(&mutex_Exit, NULL);
+	pthread_mutex_init(&mutex_MemConectadas, NULL);
+	pthread_mutex_init(&mutexDePausaDePlanificacion, NULL);
+	return EXIT_SUCCESS;
+}
+
 int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONECTARSE!
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
@@ -207,7 +218,7 @@ int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONEC
 		close(socket_mem);
 	}
 	enviar_handshake(socket_mem);
-	t_memo_del_pool_kernel* entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
+	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
 	entrada_tabla_memorias->ip = ip;
 	entrada_tabla_memorias->puerto = puerto;
 	entrada_tabla_memorias->socket = socket_mem;
@@ -258,28 +269,28 @@ t_operacion parsear(char * linea){
 	}
 
 	if(string_equals_ignore_case(tipo_de_operacion, "select")){
-		resultado_de_parsear.tipo_de_operacion = SELECT;
+		resultado_de_parsear.tipo_de_operacion = _SELECT;
 		resultado_de_parsear.parametros.select.nombre_tabla = split[1];
 		resultado_de_parsear.parametros.select.key = split[2];
 	} else if(string_equals_ignore_case(tipo_de_operacion, "insert")){
-		resultado_de_parsear.tipo_de_operacion = INSERT;
+		resultado_de_parsear.tipo_de_operacion = _INSERT;
 		resultado_de_parsear.parametros.insert.nombre_tabla = split[1];
 		resultado_de_parsear.parametros.insert.key = split[2];
 		resultado_de_parsear.parametros.insert.value = split[3];
 	} else if(string_equals_ignore_case(tipo_de_operacion, "create")){
-		resultado_de_parsear.tipo_de_operacion = CREATE;
+		resultado_de_parsear.tipo_de_operacion = _CREATE;
 		resultado_de_parsear.parametros.create.nombre_tabla = split[1];
 		resultado_de_parsear.parametros.create.tipo_consistencia = split[2];
 		resultado_de_parsear.parametros.create.num_particiones = split[3];
 		resultado_de_parsear.parametros.create.compaction_time = split[4];
 	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
-		resultado_de_parsear.tipo_de_operacion = DESCRIBE;
+		resultado_de_parsear.tipo_de_operacion = _DESCRIBE;
 		resultado_de_parsear.parametros.describe.nombre_tabla = split[1];
 	} else if(string_equals_ignore_case(tipo_de_operacion, "drop")){
-		resultado_de_parsear.tipo_de_operacion = DROP;
+		resultado_de_parsear.tipo_de_operacion = _DROP;
 		resultado_de_parsear.parametros.drop.nombre_tabla = split[1];
 	} else if(string_equals_ignore_case(tipo_de_operacion, "journal")){
-		resultado_de_parsear.tipo_de_operacion = JOURNAL;
+		resultado_de_parsear.tipo_de_operacion = _JOURNAL;
 	} else if(string_equals_ignore_case(tipo_de_operacion, "add")){
 		resultado_de_parsear.tipo_de_operacion = ADD;
 		resultado_de_parsear.parametros.add.memory = split[1];
@@ -300,10 +311,64 @@ t_operacion parsear(char * linea){
 
 void conocer_pool_memorias(){
 	logger(escribir_loguear, l_info, "Voy a consultar el pool de memorias");
-	t_memo_del_pool_kernel* primera_memo = list_get(listaMemConectadas, 0);
+	tp_memo_del_pool_kernel primera_memo = list_get(listaMemConectadas, 0);
 	//TODO controlar si la primera sigue conectada, sino sacarla de la lista y pedirsela a la segunda.Quizas algun flag marcando que existe la q tomé?
 	enviarCabecera(primera_memo->socket, POOL_REQUEST, sizeof(int));
 
+}
+
+void operacion_select(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+
+}
+
+void operacion_insert(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+
+}
+
+void operacion_create(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+
+}
+
+void operacion_describe(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+
+}
+
+void operacion_drop(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+
+}
+
+void operacion_journal(){
+
+}
+
+void operacion_add(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+
+}
+
+void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+	switch(resultado_del_parseado.tipo_de_operacion){
+		case SELECT:
+			operacion_select(resultado_del_parseado.parametros.select, pcb);
+			break;
+		case INSERT:
+			operacion_insert(resultado_del_parseado.parametros.insert, pcb);
+			break;
+		case CREATE:
+			operacion_create(resultado_del_parseado.parametros.create, pcb);
+			break;
+		case DESCRIBE:
+			operacion_describe(resultado_del_parseado.parametros.describe,pcb);
+			break;
+		case DROP:
+			operacion_drop(resultado_del_parseado.parametros.drop,pcb);
+			break;
+		case JOURNAL:
+			operacion_journal();
+			break;
+		case ADD:
+			operacion_add(resultado_del_parseado.parametros, pcb);
+			break;
+	}
 }
 
 int lanzarPlanificador(){

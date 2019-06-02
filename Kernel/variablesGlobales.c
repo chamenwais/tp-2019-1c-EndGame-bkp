@@ -17,6 +17,12 @@ t_list* listaReady;
 t_list* listaExec;
 t_list* listaExit;
 t_list* listaMemConectadas;
+pthread_mutex_t mutex_New;
+pthread_mutex_t mutex_Ready;
+pthread_mutex_t mutex_Exec;
+pthread_mutex_t mutex_Exit;
+pthread_mutex_t mutex_MemConectadas;
+pthread_mutex_t mutexDePausaDePlanificacion;
 
 int inicializarVariablesGlobales(){
 

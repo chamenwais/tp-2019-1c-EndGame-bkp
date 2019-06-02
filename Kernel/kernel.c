@@ -10,6 +10,7 @@
 int main(int argc,char** argv) {
 	if(inicializarVariablesGlobales()==EXIT_SUCCESS){
 	inicializarLogKernel();
+	inicializarSemaforos();
 	inicializarListas();
 	if(levantarConfiguracionInicialDelKernel()==EXIT_SUCCESS){
 	configurar_signals();
