@@ -317,23 +317,23 @@ void conocer_pool_memorias(){
 
 }
 
-void operacion_select(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void operacion_select(char* nombre_tabla, int key, tp_lql_pcb pcb){
 
 }
 
-void operacion_insert(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb){
 
 }
 
-void operacion_create(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void operacion_create(char* nombre_tabla, int tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb){
 
 }
 
-void operacion_describe(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb){
 
 }
 
-void operacion_drop(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb){
 
 }
 
@@ -341,32 +341,34 @@ void operacion_journal(){
 
 }
 
-void operacion_add(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void operacion_add(int num_memoria, int tipo_consistencia, tp_lql_pcb pcb){
 
 }
 
 void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
 	switch(resultado_del_parseado.tipo_de_operacion){
 		case SELECT:
-			operacion_select(resultado_del_parseado.parametros.select, pcb);
+			operacion_select(resultado_del_parseado.parametros.select.nombre_tabla, resultado_del_parseado.parametros.select.key, pcb);
 			break;
 		case INSERT:
-			operacion_insert(resultado_del_parseado.parametros.insert, pcb);
+			operacion_insert(resultado_del_parseado.parametros.insert.nombre_tabla, resultado_del_parseado.parametros.insert.key,
+					resultado_del_parseado.parametros.insert.value, pcb);
 			break;
 		case CREATE:
-			operacion_create(resultado_del_parseado.parametros.create, pcb);
+			operacion_create(resultado_del_parseado.parametros.create.nombre_tabla, resultado_del_parseado.parametros.create.tipo_consistencia,
+					resultado_del_parseado.parametros.create.num_particiones, resultado_del_parseado.parametros.create.compaction_time, pcb);
 			break;
 		case DESCRIBE:
-			operacion_describe(resultado_del_parseado.parametros.describe,pcb);
+			operacion_describe(resultado_del_parseado.parametros.describe.nombre_tabla,pcb);
 			break;
 		case DROP:
-			operacion_drop(resultado_del_parseado.parametros.drop,pcb);
+			operacion_drop(resultado_del_parseado.parametros.drop.nombre_tabla,pcb);
 			break;
 		case JOURNAL:
 			operacion_journal();
 			break;
 		case ADD:
-			operacion_add(resultado_del_parseado.parametros, pcb);
+			operacion_add(resultado_del_parseado.parametros.add.num_memoria, resultado_del_parseado.parametros.add.tipo_consistencia, pcb);
 			break;
 	}
 }
