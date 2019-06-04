@@ -12,16 +12,15 @@ int dump(char* nombreDeLaTabla){
 	char* bloques = string_new(); //va a tener el formato: [2,3,7,10]
 	string_append(&bloques, "[");
 	int sizeDelTemporal = 0;
-	int ocupadoPorElBloque=0;
+	int punteroDelBloque=0;
 	int bloqueActual=-1;
-	bool esElPrimero=true;
 	bool hayBloquesLibres=true;
 
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
 
-	void dumpearTabla(void* nodo){
+	void dumpearDatoDeLaTabla(void* nodo){
 		char* cadenaAInsertar = string_new();
 		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp));
 		string_append(&cadenaAInsertar, ";");
@@ -29,28 +28,52 @@ int dump(char* nombreDeLaTabla){
 		string_append(&cadenaAInsertar, ";");
 		string_append(&cadenaAInsertar, ((tp_nodoDeLaTabla)nodo)->value);
 		string_append(&cadenaAInsertar, "\n");
+		log_info(LOGGERFS,"Voy a dumpear el insert: %s",cadenaAInsertar);
 		int sizeDeLaDataADumpear = string_length(cadenaAInsertar);
-		sizeDelTemporal=sizeDelTemporal+sizeDeLaDataADumpear;
-		int libreHastaElMomento=metadataDelFS.blockSize-ocupadoPorElBloque;
-		if((bloqueActual==-1)||(sizeDeLaDataADumpear<libreHastaElMomento)){
-			//necesito un bloque nuevo para llenar
-			bloqueActual=obtenerBloqueLibreDelBitMap();
-			ocuparBloqueDelBitmap(bloqueActual);
-			bajarADiscoBitmap();
-			if(bloqueActual==-1){
-				log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
-				hayBloquesLibres=false;
-			}else{
-				if(esElPrimero){
-					esElPrimero=false;
-				}else{
-					string_append(&bloques, ",");
+		for(int caracteresInsertados=0;caracteresInsertados<sizeDeLaDataADumpear;){
+			if((punteroDelBloque==0)||(punteroDelBloque==metadataDelFS.blockSize)){
+				//tengo q buscar un archivo de bloque libre
+				bloqueActual=obtenerBloqueLibreDelBitMap();
+				ocuparBloqueDelBitmap(bloqueActual);
+				bajarADiscoBitmap();
+				punteroDelBloque=0;
+				if(bloqueActual==-1){
+					log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
+					hayBloquesLibres=false;
 					}
-				string_append(&bloques, string_itoa(bloqueActual));
-				crearArchivoDeBloque(bloqueActual);
 				}
+			char* nombreDelArchivoDeBloque=string_new();
+			string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
+			string_append(&nombreDelArchivoDeBloque, "/Blocks/");
+			string_append(&nombreDelArchivoDeBloque, string_itoa(bloqueActual));
+			string_append(&nombreDelArchivoDeBloque, ".bin");
+			FILE* archivo=fopen(nombreDelArchivoDeBloque,"a");
+			int length;
+			if(punteroDelBloque+sizeDeLaDataADumpear>metadataDelFS.blockSize){
+				//Tengo que ocupar todo el bloque
+				length=metadataDelFS.blockSize-punteroDelBloque;
+			}else{
+				//Ocupo solo parte del bloque
+				length=sizeDeLaDataADumpear;
 			}
-		insertarDatosEnElBloque(cadenaAInsertar,bloqueActual);
+			log_info(LOGGERFS,"Cadena a insertar: %s",cadenaAInsertar);
+			char* data=string_substring(cadenaAInsertar, 0, length);
+			if(length<string_length(cadenaAInsertar)){
+				char* aux=string_substring_from(cadenaAInsertar, length);
+				free(cadenaAInsertar);
+				cadenaAInsertar=aux;
+			}else{
+				free(cadenaAInsertar);
+				}
+			caracteresInsertados=caracteresInsertados+length;
+			log_info(LOGGERFS,"Guardando %s en el archivo %s",
+					data, nombreDelArchivoDeBloque);
+			fprintf(archivo,"%s",data);
+			punteroDelBloque=punteroDelBloque+length;
+			free(data);
+			fclose(archivo);
+		}
+
 	}
 
 	log_info(LOGGERFS,"Duempeando la tabla %s",nombreDeLaTabla);
@@ -59,7 +82,7 @@ int dump(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Voy a dumpear la tabla", nodoDeLaMem->nombreDeLaTabla);
 	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
 	nombreDelArchivoTemp=buscarNombreDelTempParaDumpear(nodoDeLaMem->nombreDeLaTabla);
-	list_iterate(nodoDeLaMem->listaDeDatosDeLaTabla,dumpearTabla);
+	list_iterate(nodoDeLaMem->listaDeDatosDeLaTabla,dumpearDatoDeLaTabla);
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
