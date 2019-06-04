@@ -34,6 +34,7 @@ int dump(char* nombreDeLaTabla){
 
 	int insertarCadenaEnLosBloques(){
 		bool termine=false;
+		bool esElPrimero=true;
 		while(termine==false){
 			bloqueActual=obtenerBloqueLibreDelBitMap();
 			ocuparBloqueDelBitmap(bloqueActual);
@@ -66,6 +67,13 @@ int dump(char* nombreDeLaTabla){
 				log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
 						data, bloqueActual);
 				insertarDatosEnElBloque(data, bloqueActual);
+				//Actulizo la cadena de bloques
+				if(esElPrimero){
+					esElPrimero=false;
+				}else{
+					string_append(&bloques, ",");
+					}
+				string_append(&bloques, string_itoa(bloqueActual));
 				}
 			}
 		return EXIT_SUCCESS;
@@ -80,12 +88,14 @@ int dump(char* nombreDeLaTabla){
 	cadenaFinal = string_new();
 	//meto todo en un gran bodoque (en cadena cadenaFinal)
 	list_iterate(nodoDeLaMem->listaDeDatosDeLaTabla,agregarALaCadenaFinal);
+	sizeDelTemporal=string_length(cadenaFinal);
 	log_info(LOGGERFS,"Cadena final a insertar: \n%s",cadenaFinal);
 	insertarCadenaEnLosBloques();
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
+	free(bloques);
 	if(hayBloquesLibres){
 		return DUMP_CORRECTO;
 	}else{
