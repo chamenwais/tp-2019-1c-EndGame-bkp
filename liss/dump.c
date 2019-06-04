@@ -15,12 +15,13 @@ int dump(char* nombreDeLaTabla){
 	int punteroDelBloque=0;
 	int bloqueActual=-1;
 	bool hayBloquesLibres=true;
+	char* cadenaFinal;
 
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
 
-	void dumpearDatoDeLaTabla(void* nodo){
+	void agregarALaCadenaFinal(void* nodo){
 		char* cadenaAInsertar = string_new();
 		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp));
 		string_append(&cadenaAInsertar, ";");
@@ -28,53 +29,47 @@ int dump(char* nombreDeLaTabla){
 		string_append(&cadenaAInsertar, ";");
 		string_append(&cadenaAInsertar, ((tp_nodoDeLaTabla)nodo)->value);
 		string_append(&cadenaAInsertar, "\n");
-		log_info(LOGGERFS,"Voy a dumpear el insert: %s",cadenaAInsertar);
-		int sizeDeLaDataADumpear = string_length(cadenaAInsertar);
-		for(int caracteresInsertados=0;caracteresInsertados<sizeDeLaDataADumpear;){
-			if((punteroDelBloque==0)||(punteroDelBloque==metadataDelFS.blockSize)){
-				//tengo q buscar un archivo de bloque libre
-				bloqueActual=obtenerBloqueLibreDelBitMap();
-				ocuparBloqueDelBitmap(bloqueActual);
-				bajarADiscoBitmap();
-				punteroDelBloque=0;
-				if(bloqueActual==-1){
-					log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
-					hayBloquesLibres=false;
-					}
-				}
-			char* nombreDelArchivoDeBloque=string_new();
-			string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
-			string_append(&nombreDelArchivoDeBloque, "/Blocks/");
-			string_append(&nombreDelArchivoDeBloque, string_itoa(bloqueActual));
-			string_append(&nombreDelArchivoDeBloque, ".bin");
-			FILE* archivo=fopen(nombreDelArchivoDeBloque,"a");
-			int length;
-			if(punteroDelBloque+sizeDeLaDataADumpear>metadataDelFS.blockSize){
-				//Tengo que ocupar todo el bloque
-				length=metadataDelFS.blockSize-punteroDelBloque;
-			}else{
-				//Ocupo solo parte del bloque
-				length=sizeDeLaDataADumpear;
-			}
-			log_info(LOGGERFS,"Cadena a insertar: %s",cadenaAInsertar);
-			char* data=string_substring(cadenaAInsertar, 0, length);
-			if(length<string_length(cadenaAInsertar)){
-				char* aux=string_substring_from(cadenaAInsertar, length);
-				free(cadenaAInsertar);
-				cadenaAInsertar=aux;
-			}else{
-				free(cadenaAInsertar);
-				}
-			caracteresInsertados=caracteresInsertados+length;
-			log_info(LOGGERFS,"Guardando %s en el archivo %s",
-					data, nombreDelArchivoDeBloque);
-			fprintf(archivo,"%s",data);
-			punteroDelBloque=punteroDelBloque+length;
-			free(data);
-			fclose(archivo);
-		}
-
+		string_append(&cadenaFinal, cadenaAInsertar);
 	}
+
+	int insertarCadenaEnLosBloques(){
+		bool termine=false;
+		while(termine==false){
+			bloqueActual=obtenerBloqueLibreDelBitMap();
+			ocuparBloqueDelBitmap(bloqueActual);
+			bajarADiscoBitmap();
+			if(bloqueActual==-1){
+				log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
+				hayBloquesLibres=false;
+				return NO_HAY_MAS_BLOQUES_EN_EL_FS;
+			}else{
+
+				int length=0;
+				if(metadataDelFS.blockSize<=string_length(cadenaFinal)){
+					//lleno todo el bloque
+					length=metadataDelFS.blockSize;
+				}else{
+					//lleno parte del bloque, es el ultimo
+					length=string_length(cadenaFinal);
+					}
+				char* data=string_substring(cadenaFinal, 0, length);
+				if(metadataDelFS.blockSize<=string_length(cadenaFinal)){
+					//no es el ultimo a insertar
+					char* aux=string_substring_from(cadenaFinal, length);
+					free(cadenaFinal);
+					cadenaFinal=aux;
+				}else{
+					//es el ultimo, ya termine
+					free(cadenaFinal);
+					termine=true;
+					}
+				log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
+						data, bloqueActual);
+				insertarDatosEnElBloque(data, bloqueActual);
+				}
+			}
+		return EXIT_SUCCESS;
+		}
 
 	log_info(LOGGERFS,"Duempeando la tabla %s",nombreDeLaTabla);
 	log_info(LOGGERFS,"Block size del FS %d",metadataDelFS.blockSize);
@@ -82,7 +77,11 @@ int dump(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Voy a dumpear la tabla", nodoDeLaMem->nombreDeLaTabla);
 	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
 	nombreDelArchivoTemp=buscarNombreDelTempParaDumpear(nodoDeLaMem->nombreDeLaTabla);
-	list_iterate(nodoDeLaMem->listaDeDatosDeLaTabla,dumpearDatoDeLaTabla);
+	cadenaFinal = string_new();
+	//meto todo en un gran bodoque (en cadena cadenaFinal)
+	list_iterate(nodoDeLaMem->listaDeDatosDeLaTabla,agregarALaCadenaFinal);
+	log_info(LOGGERFS,"Cadena final a insertar: \n%s",cadenaFinal);
+	insertarCadenaEnLosBloques();
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
