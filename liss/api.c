@@ -213,7 +213,7 @@ int consolaDescribeDeTabla(char* nombreDeLaTabla){
 }
 
 int consolaDrop(char* nombreDeLaTabla){
-	log_info(LOGGERFS,"Haciendo un create por consola");
+	log_info(LOGGERFS,"Haciendo un drop por consola");
 	if(drop(nombreDeLaTabla)==TABLA_BORRADA){
 		log_info(LOGGERFS,"Tabla %s borrada exitosamente", nombreDeLaTabla);
 		return EXIT_SUCCESS;
