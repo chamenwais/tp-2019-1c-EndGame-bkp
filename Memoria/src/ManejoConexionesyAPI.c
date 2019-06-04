@@ -77,9 +77,31 @@ void atender_describe(int cliente, int tamanio){
 }
 
 void atender_describe_de_todas_las_tablas(tp_describe paquete_describe, int cliente){
-	logger(escribir_loguear, l_info, "El kernel solicito realizar un describe de todas las tablas");
-	realizar_describe_de_todas_las_tablas();
-	//Debo reenviarle lo que me envie el FS?
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un describe de todas las tablas que tiene liss");
+
+	usleep(RETARDO_ACCESO_FILESYSTEM*1000);
+	prot_enviar_describeAll(SOCKET_LISS);
+
+	//Recibo rta
+	t_cabecera rta_pedido = recibirCabecera(SOCKET_LISS);
+
+	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_debug, "Existen tablas en el FS");
+		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, SOCKET_LISS);
+
+		prot_enviar_respuesta_describeAll(*info_de_las_tablas, cliente);
+		logger(escribir_loguear, l_info, "Se ha enviado la sgte informacion al kernel:");
+		list_iterate(info_de_las_tablas->lista, imprimir_informacion_tabla_particular);
+
+		//Libero la lista
+		prot_free_tp_describeAll_rta(info_de_las_tablas);
+	}
+
+	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+		logger(escribir_loguear, l_error, "No hay tablas en el FS");
+		prot_enviar_error(rta_pedido.tipoDeMensaje,cliente);
+	}
+
 }
 
 void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente){
@@ -173,7 +195,6 @@ void convertir_respuesta_describe_particular(tp_describe_particular_rta_a_kernel
 	respuesta_a_kernel->tiempoDeCompactacion = info_tabla->tiempoDeCompactacion;
 	respuesta_a_kernel->respuesta = mensaje_respuesta;
 }
-
 
 tp_describe_particular_rta_a_kernel realizar_describe_para_tabla_particular(char * nom_tabla){
 	tp_describe_rta info_tabla;
