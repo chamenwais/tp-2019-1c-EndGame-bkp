@@ -27,9 +27,19 @@ void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida);
 int inicializarListas();
 t_operacion parsear(char * linea);
-//void conocer_pool_memorias(int socket);
+void conocer_pool_memorias();
 void enviar_handshake(int socket);
 int funcionHiloMemo();
+int lanzarPlanificador();
+int inicializarSemaforos();
+void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb);
+void operacion_select(char* nombre_tabla, int key, tp_lql_pcb pcb);
+void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb);
+void operacion_create(char* nombre_tabla, int tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb);
+void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb);
+void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb);
+void operacion_journal();
+void operacion_add(int num_memoria, int tipo_consistencia, tp_lql_pcb pcb);
 
 
 

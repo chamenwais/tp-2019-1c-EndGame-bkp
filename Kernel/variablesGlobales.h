@@ -38,12 +38,18 @@ typedef struct definicionConfiguracionDelKernel {
 	int retardoCiclo;
 } t_configuracionDelKernel;
 
-struct memo_del_pool_kernel {
+typedef struct memo_del_pool_kernel {
 	char * ip;
 	char * puerto;
 	int socket;
-};
-typedef struct memo_del_pool_kernel t_memo_del_pool_kernel;
+}t_memo_del_pool_kernel;
+typedef t_memo_del_pool_kernel* tp_memo_del_pool_kernel;
+
+typedef struct lql_pcb{
+	char* path; //el path del archivo LQL
+	int ultima_linea_leida; //ultima linea leida del LQL
+}t_lql_pcb;
+typedef t_lql_pcb* tp_lql_pcb;
 
 enum tipo_consistencia {
 	SC,
@@ -53,16 +59,16 @@ enum tipo_consistencia {
 
 typedef struct {
 	enum {
-		/*SELECT,
-		INSERT,
-		CREATE,
-		DESCRIBE,
-		DROP,
-		JOURNAL,*/
+		_SELECT,
+		_INSERT,
+		_CREATE,
+		_DESCRIBE,
+		_DROP,
+		_JOURNAL,
 		ADD,
 		RUN,
 		METRICS,
-		MEMORY, //ver si memory y to sirven desde aca, sino sacarlos en otro enum TODO
+		MEMORY,
 		TO
 	} tipo_de_operacion;
 	union {
@@ -105,7 +111,7 @@ typedef struct {
 
 extern t_configuracionDelKernel configKernel;
 extern t_log* LOG_KERNEL;
-extern pthread_t threadConsola
+extern pthread_t threadConsola;
 extern pthread_t threadPlanif;
 extern pthread_t threadMemo;
 extern t_list* listaNew;
@@ -113,6 +119,12 @@ extern t_list* listaReady;
 extern t_list* listaExec;
 extern t_list* listaExit;
 extern t_list* listaMemConectadas;
+extern pthread_mutex_t mutex_New;
+extern pthread_mutex_t mutex_Ready;
+extern pthread_mutex_t mutex_Exec;
+extern pthread_mutex_t mutex_Exit;
+extern pthread_mutex_t mutex_MemConectadas;
+extern pthread_mutex_t mutexDePausaDePlanificacion;
 
 int inicializarVariablesGlobales();
 int liberarRecursos();
