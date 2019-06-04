@@ -22,7 +22,6 @@ int dump(char* nombreDeLaTabla){
 		}
 
 	void dumpearTabla(void* nodo){
-		if(hayBloquesLibres){
 		char* cadenaAInsertar = string_new();
 		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp));
 		string_append(&cadenaAInsertar, ";");
@@ -52,10 +51,10 @@ int dump(char* nombreDeLaTabla){
 				}
 			}
 		insertarDatosEnElBloque(cadenaAInsertar,bloqueActual);
-		}
 	}
 
-
+	log_info(LOGGERFS,"Duempeando la tabla %s",nombreDeLaTabla);
+	log_info(LOGGERFS,"Block size del FS %d",metadataDelFS.blockSize);
 	tp_nodoDeLaMemTable nodoDeLaMem = list_remove_by_condition(memTable,esMiNodo);
 	log_info(LOGGERFS,"Voy a dumpear la tabla", nodoDeLaMem->nombreDeLaTabla);
 	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
