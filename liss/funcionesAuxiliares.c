@@ -534,12 +534,17 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 		if(keyObtenida!=NULL){
 			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %d, con un value de: %s",
 				keyObtenida->key, keyObtenida->timeStamp, keyObtenida->value);
+			keyObtenida->resultado=KEY_OBTENIDA;
 		}else{
-			log_info(LOGGERFS,"Lista vacia");
+			log_info(LOGGERFS,"Lista vacia, key no existia");
+			keyObtenida=malloc(sizeof(t_nodoDeLaTabla));
+			keyObtenida->resultado=KEY_NO_EXISTE;
 			}
 		log_info(LOGGERFS,"El key con el timestamp mas grande es: %s", keyObtenida->value);
 	}else{
 		log_info(LOGGERFS,"No hay ninguna key con ese valor en la tabla");
+		keyObtenida=malloc(sizeof(t_nodoDeLaTabla));
+		keyObtenida->resultado=KEY_NO_EXISTE;
 	}
 	return keyObtenida;
 }
