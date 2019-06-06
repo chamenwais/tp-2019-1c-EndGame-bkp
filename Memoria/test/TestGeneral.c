@@ -34,7 +34,7 @@ int setup_gestion_seg_pag(){
 	TAMANIO_VALUE=7;
 	MEMORIA_PRINCIPAL = reservar_total_memoria();
 	g_logger= log_create("/home/utnso/TestsMemoria.log", "TestsMemoria", true, LOG_LEVEL_DEBUG);
-	RETARDO_ACCESO_MEMORIA=10000;
+	RETARDO_ACCESO_MEMORIA=600;
 
 	inicializar_bitmap_marcos();
 	inicializar_tabla_segmentos();
@@ -43,7 +43,7 @@ int setup_gestion_seg_pag(){
 }
 
 int clean_gestion_seg_pag(){
-	puts("Limpiando...");
+	puts("\nLimpiando...");
 	free(MEMORIA_PRINCIPAL);
 	log_destroy(g_logger);
 
