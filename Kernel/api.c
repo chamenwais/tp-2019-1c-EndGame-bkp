@@ -29,37 +29,40 @@ int esperarAQueTermineLaConsola(){
 	return EXIT_SUCCESS;
 }
 
-int selectConsola(char* nombreDeLaTabla,uint16_t key){
+int selectConsola(char* linea){
 //TODO
 	return EXIT_SUCCESS;
 }
 
-int insertConsola(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp){
+int insertConsola(char* linea){
 	//insert()
 	return EXIT_SUCCESS;
 }
 
-int insertConsolaNoTime(char* nombreDeLaTabla,uint16_t key,char* valor){
+int insertConsolaNoTime(char* linea){
 	//insertNoTime()
 	return EXIT_SUCCESS;
 }
 
-int createConsola(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDeParticiones,int tiempoDeCompactacion){
-	//create()
+int createConsola(char* linea){
+	//parsear la linea y obtener tabla
+	//existeTabla(tabla)?
+	//si no existe agregarla a la listaTablasCreadas y continuar con el create
+	//si existe falla
 	return EXIT_SUCCESS;
 }
 
-int describeConsola(char* nombreTabla){
+int describeConsola(char* linea){
 	//describe
 	return EXIT_SUCCESS;
 }
 
-int describeConsolaAll(){
+int describeConsolaAll(char *linea){
 	//describeAll()
 	return EXIT_SUCCESS;
 }
 
-int dropConsola(char* nombreTabla){
+int dropConsola(char* linea){
 	//drop
 	return EXIT_SUCCESS;
 }
@@ -69,7 +72,7 @@ int realoadConfig(){
 	return EXIT_SUCCESS;
 }
 
-int journalConsola(){
+int journalConsola(char* linea){
 	//journal
 	return EXIT_SUCCESS;
 }
@@ -100,8 +103,82 @@ tp_lql_pcb crear_PCB(char* path){
 	nuevo_LQL->path = malloc(strlen(path)+1);
 	strcpy(nuevo_LQL->path, path);
 	nuevo_LQL->ultima_linea_leida = 0;
+	nuevo_LQL->lista = obtener_lista_lineas_desde_archivo(nuevo_LQL->path);
 	return nuevo_LQL;
 }
+
+int man(){
+	/*printf("Mostrando funciones disponibles de la consola:\n");
+	printf("1) \"exit\" finaliza el programa\n");
+	printf("2) SELECT [NOMBRE_TABLA] [KEY]\n");
+	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
+	printf("4) CREATE [NOMBRE_TABLA] [TIPO_CONSISTENCIA] [NUMERO_PARTICIONES] [COMPACTION_TIME]\n");
+	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
+	printf("6) DESCRIBE, da la info de todas las tablas\n");
+	printf("7) DROP [NOMBRE_TABLA]\n");
+	printf("8) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
+	printf("9) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
+	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
+	printf("12) \"pmemtable\", imprime los datos de la memtable en pantalla\n");
+	printf("13) \"dumpear\" [NOMBRE DE LA TABLA], fuerza el dumpeo de la tabla\n");*/
+	return EXIT_SUCCESS;
+}
+
+int reloadConfig(){
+	//Actualiza los datos lissandra con las modificaciones que se le hayan hecho a los achivos de configuracion
+	/* Solamente se pueden actualizar los valores:
+	 * retardo
+	 * tiempo_dump
+	 * en tiempo de ejecucion
+	char* pathCompleto;
+	pathCompleto=string_new();
+	string_append(&pathCompleto, pathDeMontajeDelPrograma);
+	string_append(&pathCompleto, "configuracionFS.cfg");
+
+	t_config* configuracion = config_create(pathCompleto);
+
+	if(configuracion!=NULL){
+		log_info(LOGGERFS,"El archivo de configuracion existe");
+	}else{
+		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompleto);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompleto);
+
+	//Recupero el tiempo dump
+	if(!config_has_property(configuracion,"TIEMPO_DUMP")) {
+		log_error(LOGGERFS,"No esta el TIEMPO_DUMP en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	int tiempoDump;
+	tiempoDump = config_get_int_value(configuracion,"TIEMPO_DUMP");
+	actualizarTiempoDump(tiempoDump);
+	log_info(LOGGERFS,"Tiempo dump del archivo de configuracion del FS recuperado: %d",
+			obtenerTiempoDump());
+
+	//Recupero el retardo
+	if(!config_has_property(configuracion,"RETARDO")) {
+		log_error(LOGGERFS,"No esta el RETARDO en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		return EXIT_FAILURE;
+		}
+	int retardo;
+	retardo = config_get_int_value(configuracion,"RETARDO");
+	actualizarRetardo(retardo);
+	log_info(LOGGERFS,"Retardo del archivo de configuracion del FS recuperado: %d",
+			obtenerRetardo());
+
+	config_destroy(configuracion);
+	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");*/
+
+	return EXIT_SUCCESS;
+}
+
 
 void *funcionHiloConsola(void *arg){
 		char * linea;
@@ -129,7 +206,7 @@ void *funcionHiloConsola(void *arg){
 				if((strcmp(instruccion[0],"select")==0) || (strcmp(instruccion[0],"SELECT")==0)){
 					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)){
 						printf("Voy a hacer un select por consola de la tabla %s, con la key %d\n",instruccion[1],atoi(instruccion[2]));
-						selectConsola(instruccion[1],atoi(instruccion[2]));//chequear si la tabla la conoce, si no da error TODO
+						selectConsola(linea);//chequear si la tabla la conoce, si no da error TODO
 					}else{
 						printf("Faltan parametros para poder hacer un select\n");
 						}
@@ -139,13 +216,13 @@ void *funcionHiloConsola(void *arg){
 							&&(instruccion[4]!=NULL)){
 						printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y el timestamp %d\n",
 								instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
-						insertConsola(instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));//chequear si la tabla la conoce, si no da error TODO
+						insertConsola(linea);//chequear si la tabla la conoce, si no da error TODO
 					}else{
 						if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&
 								(instruccion[3]!=NULL)&&(instruccion[4]==NULL)){
 							printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y sin timestamp\n",
 									instruccion[1],atoi(instruccion[2]),instruccion[3]);
-							insertConsolaNoTime(instruccion[1],atoi(instruccion[2]),instruccion[3]);//chequear si la tabla la conoce, si no da error TODO
+							insertConsolaNoTime(linea);//chequear si la tabla la conoce, si no da error TODO
 						}else{
 							printf("Faltan parametros para poder hacer un insert\n");}
 						}
@@ -155,7 +232,7 @@ void *funcionHiloConsola(void *arg){
 							&&(instruccion[4]!=NULL)){
 							printf("Voy a hacer un create por consola de la tabla %s, del tipo de consitencia %s, con %d particiones, y tiempo de compactacion de %d\n",
 									instruccion[1],instruccion[2],atoi(instruccion[3]),atoi(instruccion[4]));
-							createConsola(instruccion[1],instruccion[2],atoi(instruccion[3]),atoi(instruccion[4]));
+							createConsola(linea);
 						}else{
 							printf("Faltan parametros para poder hacer un create\n");
 							}
@@ -163,28 +240,28 @@ void *funcionHiloConsola(void *arg){
 					if((strcmp(instruccion[0],"describe")==0) || (strcmp(instruccion[0],"DESCRIBE")==0)){
 						if((instruccion[1]!=NULL)){
 							printf("Voy a hacer un describe por consola de la tabla %s\n", instruccion[1]);
-							describeConsola(instruccion[1]);
+							describeConsola(linea);
 						}else{
 							printf("Voy a hacer un describe por consola de todas las tablas\n");
-							describeConsolaAll();
+							describeConsolaAll(linea);
 							}
 				}else{
 					if((strcmp(instruccion[0],"drop")==0) || (strcmp(instruccion[0],"DROP")==0)){
 						if((instruccion[1]!=NULL)){
 							printf("Voy a hacer un drop de la tabla %s\n", instruccion[1]);
-							dropConsola(instruccion[1]);//chequear si la tabla la conoce, si no da error TODO
+							dropConsola(linea);//chequear si la tabla la conoce, si no da error TODO
 						}else{
 							printf("Faltan parametros para poder hacer un drop\n");
 						}
 				}else{
 					if((strcmp(instruccion[0],"journal")==0) || (strcmp(instruccion[0], "JOURNAL")==0)){
 						printf("Voy a enviar journal a todas las memorias");
-						journalConsola();
+						journalConsola(linea);
 				}else{
 					if(strcmp(instruccion[0],"man")==0){
 						man();
 				}else{
-					if(strcmp(instruccion[0],"reloadconfig")==0){
+					if(strcmp(instruccion[0],"reloadConfig")==0){
 						reloadConfig();
 				}else{
 					if((strcmp(instruccion[0],"run")==0) || (strcmp(instruccion[0], "RUN")==0)){

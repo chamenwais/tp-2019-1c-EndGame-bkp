@@ -17,6 +17,7 @@
 #include <commons/string.h> // Para manejo de strings
 #include <signal.h>			// Para manejo de señales
 #include <commons/collections/list.h>
+#include <lqvg/utils.h>
 
 enum tipo_logueo {
 	escribir,
@@ -41,15 +42,24 @@ typedef struct definicionConfiguracionDelKernel {
 typedef struct memo_del_pool_kernel {
 	char * ip;
 	char * puerto;
+	int numero_memoria;
 	int socket;
+	int tipo_const;
 }t_memo_del_pool_kernel;
 typedef t_memo_del_pool_kernel* tp_memo_del_pool_kernel;
 
 typedef struct lql_pcb{
 	char* path; //el path del archivo LQL
 	int ultima_linea_leida; //ultima linea leida del LQL
+	t_list* lista;//lista con las requests
 }t_lql_pcb;
 typedef t_lql_pcb* tp_lql_pcb;
+
+typedef struct entrada_tabla_creada {
+	char* nombre_tabla;
+	int criterio;
+}t_entrada_tabla_creada;
+typedef t_entrada_tabla_creada* tp_entrada_tabla_creada;
 
 enum tipo_consistencia {
 	SC,
@@ -98,7 +108,7 @@ typedef struct {
 			int memory; //enum
 			int num_memoria;
 			int to; //enum
-			int tipo_consistencia; //es un tipo_consistencia del enum anterior
+			int tipo_consistencia; //es un tipo_consistencia del enum anterior... o deberia ser char*?
 		} add;
 		struct {
 			char* path;
@@ -113,18 +123,21 @@ extern t_configuracionDelKernel configKernel;
 extern t_log* LOG_KERNEL;
 extern pthread_t threadConsola;
 extern pthread_t threadPlanif;
-extern pthread_t threadMemo;
+extern pthread_t threadRequest;
+extern pthread_t threadPCP;
 extern t_list* listaNew;
 extern t_list* listaReady;
 extern t_list* listaExec;
 extern t_list* listaExit;
 extern t_list* listaMemConectadas;
+extern t_list* listaTablasCreadas;
 extern pthread_mutex_t mutex_New;
 extern pthread_mutex_t mutex_Ready;
 extern pthread_mutex_t mutex_Exec;
 extern pthread_mutex_t mutex_Exit;
 extern pthread_mutex_t mutex_MemConectadas;
 extern pthread_mutex_t mutexDePausaDePlanificacion;
+extern int quantum;
 
 int inicializarVariablesGlobales();
 int liberarRecursos();

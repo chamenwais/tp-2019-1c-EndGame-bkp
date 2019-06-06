@@ -10,21 +10,22 @@
 
 #include <pthread.h>
 #include <readline/readline.h>
-#include "kernel.h"
+#include "variablesGlobales.h"
 
 int lanzarConsola();
 int esperarAQueTermineLaConsola();
 void *funcionHiloConsola(void *arg);
 char** parser_instruccion(char* linea);
-int selectConsola(char* nombreDeLaTabla,uint16_t key);
-int insertConsola(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp);
-int insertConsolaNoTime(char* nombreDeLaTabla,uint16_t key,char* valor);
-int createConsola(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDeParticiones,int tiempoDeCompactacion);
-int describeConsola(char* nombreTabla);
-int describeConsolaAll();
-int dropConsola(char* nombreTabla);
+int selectConsola(char* linea);
+int insertConsola(char* linea);
+int insertConsolaNoTime(char* linea);
+int createConsola(char* linea);
+int describeConsola(char* linea);
+int describeConsolaAll(char* linea);
+int dropConsola(char* linea);
 int realoadConfig();
-int journalConsola();
+int man();
+int journalConsola(char* linea);
 int runConsola(char* path);
 void metricsConsola();
 int addConsola(int memnum, char* criterio);
