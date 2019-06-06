@@ -108,6 +108,10 @@ int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 	return EXIT_SUCCESS;
 }
 
+int lanzarDumps(){
+
+	return EXIT_SUCCESS;
+}
 
 int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual){
 	//le pasas un numero de bloque y una cadena con los datos a insertar y los manda

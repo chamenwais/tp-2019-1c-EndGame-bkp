@@ -65,6 +65,7 @@ extern char * srcMmap;
 extern char * bufferArchivo;
 extern pthread_t threadServer;
 extern t_list* memTable;
+extern t_list* dumpTables;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();
