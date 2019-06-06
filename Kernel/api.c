@@ -78,7 +78,7 @@ int journalConsola(char* linea){
 }
 
 int runConsola(char* path){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel un archivo LQL en el path %s/n", path);
+	logger(escribir_loguear, l_info, "Ingresa al Kernel un archivo LQL en el path %s", path);
 	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
 	pthread_mutex_lock(&mutex_New);
 	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
@@ -266,7 +266,7 @@ void *funcionHiloConsola(void *arg){
 				}else{
 					if((strcmp(instruccion[0],"run")==0) || (strcmp(instruccion[0], "RUN")==0)){
 						if((instruccion[1]!=NULL)){
-							printf("Voy a ejecutar el LQL en el path %s%n", instruccion[1]);
+							printf("Voy a ejecutar el LQL en el path %s\n", instruccion[1]);
 							runConsola(instruccion[1]);//TODO el file esta en el filesystem de la maquina
 						}else{
 								printf("Te comiste el path\n");

@@ -88,7 +88,7 @@ typedef struct {
 		} select;
 		struct {
 			char* nombre_tabla;
-			int key;
+			uint16_t key;
 			char* value;
 		} insert;
 		struct {
