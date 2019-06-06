@@ -37,3 +37,27 @@ char * obtener_value_a_insertar(char * comando_insert){
 	value_a_insertar[i-1]='\0';
 	return value_a_insertar;
 }
+
+t_list * obtener_lista_lineas_desde_archivo(char * path_archivo){
+	t_list * lista_lineas=list_create();
+	FILE* archivo;
+	if ((archivo=fopen(path_archivo,"r"))==NULL){
+		//Si no pude leer el archivo devuelvo NULL
+		return NULL;
+	}
+	ssize_t linea_size;
+	size_t linea_buf_size = 0;
+	char *linea = NULL;
+	char * linea_sucia=NULL;
+	linea_size = getline(&linea_sucia, &linea_buf_size, archivo);
+	while(!feof(archivo)&&linea_size >= 0){
+		linea=(string_split(linea_sucia,"\n"))[0];
+		list_add(lista_lineas, linea);
+		linea_buf_size = 0;
+		linea = NULL;
+		linea_sucia=NULL;
+		linea_size = getline(&linea_sucia, &linea_buf_size, archivo);
+	}
+	fclose(archivo);
+	return lista_lineas;
+}
