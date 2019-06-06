@@ -42,6 +42,7 @@ t_list * obtener_lista_lineas_desde_archivo(char * path_archivo){
 	t_list * lista_lineas=list_create();
 	FILE* archivo;
 	if ((archivo=fopen(path_archivo,"r"))==NULL){
+		list_destroy(lista_lineas);
 		//Si no pude leer el archivo devuelvo NULL
 		return NULL;
 	}
