@@ -291,6 +291,7 @@ void convertir_respuesta_select(tp_select_rta_a_kernel respuesta_a_kernel,
 	respuesta_a_kernel->timestamp = respuesta_memoria->timestamp;
 	respuesta_a_kernel->value = respuesta_memoria->value;
 	respuesta_a_kernel->respuesta = mensaje_respuesta;
+	free(respuesta_memoria);
 }
 
 tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){

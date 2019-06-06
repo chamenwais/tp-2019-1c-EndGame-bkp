@@ -54,15 +54,19 @@ void consola_select(char** comandos){
 
 	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_SELECT);
-	realizar_select(nombre_tabla, key);
+	tp_select_rta_a_kernel rta_select = realizar_select(nombre_tabla, key);
 	pthread_mutex_unlock(&M_JOURNALING);
+
+	if(rta_select->value!=NULL){
+		free(rta_select->value);
+	}
+	free(rta_select);
 
 	limpiar_dos_parametros(nombre_tabla, string_key);
 }
 
 void limpiar_cuatro_parametros(char* param1, char* param2, char* param3,
 		char* param4) {
-	//TODO hacer algo
 	//Limpio el nombre_tabla
 	limpiar_parametro(param1);
 	//Limpio la key
@@ -199,7 +203,13 @@ void consola_describe(char** comandos){
 		realizar_describe_de_todas_las_tablas();
 	}else{
 		loguear_un_parametros_recibido(nombre_tabla);
-		realizar_describe_para_tabla_particular(nombre_tabla);
+		tp_describe_particular_rta_a_kernel rta_describe_particular = realizar_describe_para_tabla_particular(nombre_tabla);
+
+		if(rta_describe_particular->respuesta==REQUEST_SUCCESS){
+			free(rta_describe_particular->nombre);
+			free(rta_describe_particular->consistencia);
+		}
+		free(rta_describe_particular);
 	}
 	pthread_mutex_unlock(&M_JOURNALING);
 
