@@ -142,11 +142,6 @@ typedef struct struDescribeParticularRtaAKernel{
 }t_describe_particular_rta_a_kernel;
 typedef t_describe_particular_rta_a_kernel* tp_describe_particular_rta_a_kernel;
 
-typedef struct listaDescribeAllKernel{
-	t_list *lista;
-}t_describeAll_rta_para_kernel;
-typedef t_describeAll_rta_para_kernel* tp_describeAll_rta_para_kernel;
-
 extern t_bitarray *bitmap_marcos;
 extern t_list * tabla_de_segmentos;
 

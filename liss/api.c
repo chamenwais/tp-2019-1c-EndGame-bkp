@@ -50,8 +50,10 @@ void *funcionHiloConsola(void *arg){
 					printf("Voy a hacer un select por consola de la tabla %s, con la key %d\n",instruccion[1],atoi(instruccion[2]));
 					consolaSelect(instruccion[1],atoi(instruccion[2]));
 				}else{
+					if(instruccion[1]==NULL){
 					printf("Faltan parametros para poder hacer un select\n");
 					}
+				}
 			}else{
 			if((strcmp(instruccion[0],"insert")==0) || (strcmp(instruccion[0],"INSERT")==0)){
 				if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&(instruccion[3]!=NULL)
@@ -211,7 +213,7 @@ int consolaDescribeDeTabla(char* nombreDeLaTabla){
 }
 
 int consolaDrop(char* nombreDeLaTabla){
-	log_info(LOGGERFS,"Haciendo un create por consola");
+	log_info(LOGGERFS,"Haciendo un drop por consola");
 	if(drop(nombreDeLaTabla)==TABLA_BORRADA){
 		log_info(LOGGERFS,"Tabla %s borrada exitosamente", nombreDeLaTabla);
 		return EXIT_SUCCESS;
