@@ -138,10 +138,8 @@ extern pthread_mutex_t mutex_Ready;
 extern pthread_mutex_t mutex_Exec;
 extern pthread_mutex_t mutex_Exit;
 extern pthread_mutex_t mutex_MemConectadas;
-extern pthread_mutex_t mutexDePausaDePlanificacion;
-extern pthread_mutex_t mutexPCP;
-extern sem_t hay_request;
 extern sem_t NEW;
+extern sem_t READY;
 extern int quantum;
 
 int inicializarVariablesGlobales();
