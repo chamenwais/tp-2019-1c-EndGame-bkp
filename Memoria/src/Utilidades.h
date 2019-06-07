@@ -50,7 +50,7 @@ void mandar_handshake_a(char *, int, enum PROCESO);
 void recibir_handshake_kernel(int);
 void construir_lista_seeds();
 void apagar_semaforos();
-void notificar_escrituras_en_memoria_LFS(int);
+enum MENSAJES notificar_escrituras_en_memoria_LFS(int);
 void separar_path_pasado_por_parametro(char **, char **, char ** parametros);
 
 /*Globales inotify para liberar recursos*/

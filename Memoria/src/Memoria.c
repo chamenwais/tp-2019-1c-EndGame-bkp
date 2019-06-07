@@ -270,7 +270,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 	}
 }
 
-void clasificar_y_atender_cabecera(int socket_cliente, int tipoDeMensaje, int tamanio){
+void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensaje, int tamanio){
 	switch(tipoDeMensaje){
 		case CREATE: atender_create(socket_cliente, tamanio);
 			break;
@@ -282,7 +282,10 @@ void clasificar_y_atender_cabecera(int socket_cliente, int tipoDeMensaje, int ta
 			break;
 		case DESCRIBE: atender_describe(socket_cliente, tamanio);
 			break;
-		//falta JOURNAL
+		case  JOURNAL: atender_journal(socket_cliente);
+			break;
+		default:
+			break;
 	}
 }
 

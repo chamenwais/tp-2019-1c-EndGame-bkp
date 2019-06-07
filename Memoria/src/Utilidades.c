@@ -480,10 +480,13 @@ void apagar_semaforos(){
 	pthread_mutex_destroy(&M_JOURNALING);
 }
 
-void notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
+enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
+	enum MENSAJES resultado = REQUEST_SUCCESS;
+
 	pthread_mutex_lock(&M_JOURNALING);
 
 	//TODO revisar flags de páginas y mandárselos a LFS
 
 	pthread_mutex_unlock(&M_JOURNALING);
+	return resultado;
 }

@@ -120,6 +120,18 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	}
 }
 
+void atender_journal(int cliente){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un journal");
+	enum MENSAJES resultado_journaling=notificar_escrituras_en_memoria_LFS(SOCKET_LISS);
+	if(resultado_journaling==REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "Journal pedido por socket finalizado correctamente");
+		prot_enviar_respuesta_journaling(cliente);
+	} else {
+		logger(escribir_loguear, l_info, "Journal pedido por socket finalizado pero con algún con error");
+		prot_enviar_error(resultado_journaling,cliente);
+	}
+}
+
 void retornar_respuesta_al_kernel(enum MENSAJES respuesta, void(*enviador_respuesta_ok)(int), int socket_kernel){
 	if(respuesta==REQUEST_SUCCESS){
 		enviador_respuesta_ok(socket_kernel);
