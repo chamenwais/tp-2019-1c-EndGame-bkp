@@ -64,7 +64,7 @@ void atender_drop(int cliente, int tamanio){
 }
 
 void atender_describe(int cliente, int tamanio){
-	tp_describe descripcion = prot_recibir_describe(cliente, tamanio);
+	tp_describe descripcion = prot_recibir_describe(tamanio, cliente);
 
 	if(descripcion->nom_tabla!=NULL){
 		atender_describe_tabla_particular(descripcion, cliente);
@@ -111,12 +111,12 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	if(rta_describe_particular->respuesta==REQUEST_SUCCESS){
 		prot_enviar_respuesta_describe(rta_describe_particular->nombre, rta_describe_particular->particiones, rta_describe_particular->consistencia,
 				rta_describe_particular->tiempoDeCompactacion, cliente);
-		free(rta_describe_particular->nombre);
-		free(rta_describe_particular->consistencia);
-		free(rta_describe_particular);
+		//free(rta_describe_particular->nombre);
+		//free(rta_describe_particular->consistencia);
+		//free(rta_describe_particular);
 	} else {
 		prot_enviar_error(rta_describe_particular->respuesta,cliente);
-		free(rta_describe_particular);
+		//free(rta_describe_particular);
 	}
 }
 
