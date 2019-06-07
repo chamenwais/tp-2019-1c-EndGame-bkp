@@ -205,6 +205,10 @@ int inicializarListas(){
 
 int inicializarSemaforos(){
 	logger(escribir_loguear, l_info, "Inicializando semaforos del kernel");
+
+	sem_init(&hay_request,0,0);
+	sem_init(&NEW,0,0);
+
 	pthread_mutex_init(&mutex_New, NULL);
 	pthread_mutex_init(&mutex_Ready, NULL);
 	pthread_mutex_init(&mutex_Exec, NULL);
@@ -224,12 +228,16 @@ int conectarse_con_memoria(int ip, int puerto){
 		close(socket_mem);
 	}
 	enviar_handshake(socket_mem);
+
+	int tu_variable_de_numero_de_memoria = prot_recibir_int(socket_mem);
+
 	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
 	entrada_tabla_memorias->ip = ip;
 	entrada_tabla_memorias->puerto = puerto;
-	entrada_tabla_memorias->numero_memoria = 0;
+	entrada_tabla_memorias->numero_memoria = tu_variable_de_numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
 	list_add(listaMemConectadas, entrada_tabla_memorias);
+	list_add(listaSC, entrada_tabla_memorias); //BORRAR LUEGO, ES PARA PROBAR
 	return EXIT_SUCCESS;
 }
 
@@ -279,7 +287,7 @@ t_operacion parsear(char * linea){
 	} else if(string_equals_ignore_case(tipo_de_operacion, "create")){
 		resultado_de_parsear.tipo_de_operacion = _CREATE;
 		resultado_de_parsear.parametros.create.nombre_tabla = split[1];
-		resultado_de_parsear.parametros.create.tipo_consistencia = atoi(split[2]);//es un ENUM
+		resultado_de_parsear.parametros.create.tipo_consistencia = split[2];
 		resultado_de_parsear.parametros.create.num_particiones = atoi(split[3]);
 		resultado_de_parsear.parametros.create.compaction_time = atoi(split[4]);
 	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
@@ -393,7 +401,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 }
 
-void operacion_create(char* nombre_tabla, int tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
+void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
 
 	if(!existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Se le solicita a la memoria crear la tabla: %s", nombre_tabla);
@@ -550,16 +558,18 @@ void* funcionHiloPLP(){
 	char *ret="Cerrando hilo PLP";
 	while(1){
 		logger(escribir_loguear, l_info, "El PLP esta bloqueado\n"); /// para salto de linea es barra invertida
-		pthread_mutex_lock(&mutexDePausaDePlanificacion);
+		//pthread_mutex_lock(&mutexDePausaDePlanificacion);
 		logger(escribir_loguear, l_info, "Se desbloqueo el PLP\n");
 		tp_lql_pcb nuevo_pcb;
+
+		sem_wait(&NEW);
 		pthread_mutex_lock(&mutex_New);
 		nuevo_pcb = list_remove(listaNew, 0); //remueve el primer elemento y lo retorna
 		pthread_mutex_unlock(&mutex_New);
 		pthread_mutex_lock(&mutex_Ready);
 		list_add(listaReady, nuevo_pcb); //pasa el nuevo pcb a Ready
 		pthread_mutex_unlock(&mutex_Ready);
-		logger(escribir_loguear, l_info, "El LQL %s pasa a Ready\n", nuevo_pcb->path);
+		//logger(escribir_loguear, l_info, "El LQL %s pasa a Ready\n", nuevo_pcb->path);
 		pthread_mutex_unlock(&mutexPCP);// paso un LQL a ready, habilito PCP
 	}
 
@@ -595,9 +605,11 @@ void* funcionHiloPCP(){
 			pthread_mutex_lock(&mutex_Exec);
 			list_add(listaExec, pcb_a_planificar);//Agrega el pcb a la lista de ejecutando
 			pthread_mutex_unlock(&mutex_Exec);
+
+			sem_wait(&hay_request);
 			lanzarHiloRequest(pcb_a_planificar);
 
-			}
+		}
 	}
 
 	pthread_exit(ret);
@@ -626,7 +638,7 @@ void* funcionHiloRequest(void* pcb){
 	char* linea_a_ejecutar;
 	for (i = 0; i < quantum; ++i) {
 		logger(escribir_loguear, l_info, "Se va a enviar la linea %i", i);
-		linea_a_ejecutar = list_remove(((tp_lql_pcb) pcb)->lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos la prox linea a ejecutar
+		linea_a_ejecutar = list_remove((*(tp_lql_pcb) pcb).lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos la prox linea a ejecutar
 
 		//Parsear la linea
 		t_operacion rdo_del_parseado = parsear(linea_a_ejecutar);
@@ -659,19 +671,19 @@ void* funcionHiloRequest(void* pcb){
 char* obtenerTabla(t_operacion resultado_del_parseado){
 	char* tabla = string_new();
 	switch(resultado_del_parseado.tipo_de_operacion){
-		case SELECT:
+		case _SELECT:
 			strcpy(tabla, resultado_del_parseado.parametros.select.nombre_tabla);
 			break;
-		case INSERT:
+		case _INSERT:
 			strcpy(tabla, resultado_del_parseado.parametros.insert.nombre_tabla);
 			break;
-		case CREATE:
+		case _CREATE:
 			strcpy(tabla, resultado_del_parseado.parametros.create.nombre_tabla);
 			break;
-		case DESCRIBE:
+		case _DESCRIBE:
 			strcpy(tabla, resultado_del_parseado.parametros.describe.nombre_tabla);
 			break;
-		case DROP:
+		case _DROP:
 			strcpy(tabla, resultado_del_parseado.parametros.drop.nombre_tabla);
 			break;
 	}
@@ -706,22 +718,26 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(char* nombre_tabla){
 	//buscar tabla en listaTablasCreadas y obtener el criterio
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", nombre_tabla);
 	tp_entrada_tabla_creada entrada = list_find(listaTablasCreadas, existeTabla);
-	int criterio = entrada->criterio;
+	memoria = list_get(listaSC, 0);
 
+/*
 	//buscar las memorias que tengan ese criterio asignado y elegir
-	switch (criterio) {
-		case SC:
-			memoria = list_get(listaSC, 0);
-			logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
-			break;
-		case HC:
-			logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
-			break;
-		case EC:
-			logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
-			break;
-	}
-
+	if(entrada != NULL){
+		int criterio = entrada->criterio;
+		switch (criterio) {
+			case SC:
+				memoria = list_get(listaSC, 0);
+				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
+				break;
+			case HC:
+				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
+				break;
+			case EC:
+				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
+				break;
+		}
+	}  FACU, EL CRITERIO ES UN CHAR* !!!!! SINO LAS FUNCIONES DE COM NO FUNCAN
+*/
 	return memoria;
 }
 

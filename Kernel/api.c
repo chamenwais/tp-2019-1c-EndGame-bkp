@@ -82,9 +82,14 @@ int runConsola(char* path){
 	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
 	pthread_mutex_lock(&mutex_New);
 	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	pthread_mutex_unlock(&mutex_New);
-	pthread_mutex_unlock(&mutexDePausaDePlanificacion);//habilito PLP
 	logger(escribir_loguear, l_info, "Se agrega el nuevo LQL a la cola de NEW");
+	sem_post(&NEW);
+
+	pthread_mutex_unlock(&mutex_New);
+	//pthread_mutex_unlock(&mutexDePausaDePlanificacion);//habilito PLP
+	logger(escribir_loguear, l_info, "Se agrega el nuevo LQL a la cola de NEW");
+
+	sem_post(&hay_request);
 	return EXIT_SUCCESS;
 }
 

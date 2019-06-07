@@ -18,6 +18,7 @@
 #include <signal.h>			// Para manejo de señales
 #include <commons/collections/list.h>
 #include <lqvg/utils.h>
+#include <semaphore.h>
 
 enum tipo_logueo {
 	escribir,
@@ -91,7 +92,7 @@ typedef struct {
 		} insert;
 		struct {
 			char* nombre_tabla;
-			int tipo_consistencia; //es un tipo_consistencia del enum anterior
+			char* tipo_consistencia; //es un tipo_consistencia del enum anterior
 			int num_particiones;
 			int compaction_time;
 		} create;
@@ -139,6 +140,8 @@ extern pthread_mutex_t mutex_Exit;
 extern pthread_mutex_t mutex_MemConectadas;
 extern pthread_mutex_t mutexDePausaDePlanificacion;
 extern pthread_mutex_t mutexPCP;
+extern sem_t hay_request;
+extern sem_t NEW;
 extern int quantum;
 
 int inicializarVariablesGlobales();

@@ -29,6 +29,10 @@ pthread_mutex_t mutex_Exit;
 pthread_mutex_t mutex_MemConectadas;
 pthread_mutex_t mutexDePausaDePlanificacion;
 pthread_mutex_t mutexPCP;
+
+sem_t hay_request;
+sem_t NEW;
+
 int quantum;
 
 int inicializarVariablesGlobales(){
