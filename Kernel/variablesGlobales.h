@@ -44,13 +44,11 @@ typedef struct memo_del_pool_kernel {
 	char * puerto;
 	int numero_memoria;
 	int socket;
-	int tipo_const;
 }t_memo_del_pool_kernel;
 typedef t_memo_del_pool_kernel* tp_memo_del_pool_kernel;
 
 typedef struct lql_pcb{
 	char* path; //el path del archivo LQL
-	int ultima_linea_leida; //ultima linea leida del LQL
 	t_list* lista;//lista con las requests
 }t_lql_pcb;
 typedef t_lql_pcb* tp_lql_pcb;
@@ -131,12 +129,16 @@ extern t_list* listaExec;
 extern t_list* listaExit;
 extern t_list* listaMemConectadas;
 extern t_list* listaTablasCreadas;
+extern t_list* listaEC;
+extern t_list* listaSC;
+extern t_list* listaHC;
 extern pthread_mutex_t mutex_New;
 extern pthread_mutex_t mutex_Ready;
 extern pthread_mutex_t mutex_Exec;
 extern pthread_mutex_t mutex_Exit;
 extern pthread_mutex_t mutex_MemConectadas;
 extern pthread_mutex_t mutexDePausaDePlanificacion;
+extern pthread_mutex_t mutexPCP;
 extern int quantum;
 
 int inicializarVariablesGlobales();
