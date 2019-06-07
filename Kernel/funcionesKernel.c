@@ -32,10 +32,13 @@ void captura_signal(int signo){
     {
     	logger(escribir_loguear, l_warning,"Finalizando proceso kernel...");
     	//terminar_programa(EXIT_SUCCESS); TODO
+    	exit(EXIT_SUCCESS);
     }
     else if(signo == SIGPIPE)
     {
     	logger(escribir_loguear, l_error," Se desconectó un proceso al que se quizo enviar.");
+    	//terminar_programa(EXIT_FAILURE); TODO
+    	exit(EXIT_FAILURE);
     }
 
 }
@@ -206,16 +209,14 @@ int inicializarListas(){
 int inicializarSemaforos(){
 	logger(escribir_loguear, l_info, "Inicializando semaforos del kernel");
 
-	sem_init(&hay_request,0,0);
 	sem_init(&NEW,0,0);
+	sem_init(&READY,0,0);
 
 	pthread_mutex_init(&mutex_New, NULL);
 	pthread_mutex_init(&mutex_Ready, NULL);
 	pthread_mutex_init(&mutex_Exec, NULL);
 	pthread_mutex_init(&mutex_Exit, NULL);
 	pthread_mutex_init(&mutex_MemConectadas, NULL);
-	pthread_mutex_init(&mutexDePausaDePlanificacion, NULL);
-	pthread_mutex_init(&mutexPCP, NULL);
 	return EXIT_SUCCESS;
 }
 
@@ -259,7 +260,6 @@ t_operacion parsear(char * linea){
 	char** split = string_n_split(linea_auxiliar, 5, " ");
 
 	char* tipo_de_operacion = split[0];
-	char* parametros = split[1];
 
 	if(linea == NULL || string_equals_ignore_case(linea, "")){
 		//TODO ver que hacer aca
@@ -282,9 +282,16 @@ t_operacion parsear(char * linea){
 		resultado_de_parsear.parametros.create.compaction_time = atoi(split[4]);
 	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
 		resultado_de_parsear.tipo_de_operacion = _DESCRIBE;
-		resultado_de_parsear.parametros.describe.nombre_tabla = split[1];
+		char * tabla=split[1];
+		size_t tamanio_nombre_tabla = strlen(tabla);
+		tabla = realloc(tabla, tamanio_nombre_tabla + 1);
+		char barra_cero='\0';
+		memcpy(tabla+ tamanio_nombre_tabla, &barra_cero,1);
+		resultado_de_parsear.parametros.describe.nombre_tabla = tabla;
 	} else if(string_equals_ignore_case(tipo_de_operacion, "drop")){
 		resultado_de_parsear.tipo_de_operacion = _DROP;
+		//Le agrego un \0 al final porque parece que no lo pone en el describe
+
 		resultado_de_parsear.parametros.drop.nombre_tabla = split[1];
 	} else if(string_equals_ignore_case(tipo_de_operacion, "journal")){
 		resultado_de_parsear.tipo_de_operacion = _JOURNAL;
@@ -311,12 +318,10 @@ void conocer_pool_memorias(){
 
 void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
 	int i = 0;
-	void coincidePath(void* nodo){
-			if(strcmp(((tp_lql_pcb) nodo)->path, pcb->path)==0){
-				list_remove(lista, i);
-			}
-			i++;
-		}
+	bool coincidePath(void* nodo){
+		return string_equals_ignore_case(((tp_lql_pcb) nodo)->path, pcb->path);
+	}
+	list_remove_by_condition(lista,coincidePath);
 }
 
 void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria){
@@ -550,19 +555,18 @@ void* funcionHiloPLP(){
 	char *ret="Cerrando hilo PLP";
 	while(1){
 		logger(escribir_loguear, l_info, "El PLP esta bloqueado\n"); /// para salto de linea es barra invertida
-		//pthread_mutex_lock(&mutexDePausaDePlanificacion);
-		logger(escribir_loguear, l_info, "Se desbloqueo el PLP\n");
-		tp_lql_pcb nuevo_pcb;
 
 		sem_wait(&NEW);
+		logger(escribir_loguear, l_info, "Se desbloqueo el PLP\n");
+		tp_lql_pcb nuevo_pcb;
 		pthread_mutex_lock(&mutex_New);
 		nuevo_pcb = list_remove(listaNew, 0); //remueve el primer elemento y lo retorna
 		pthread_mutex_unlock(&mutex_New);
 		pthread_mutex_lock(&mutex_Ready);
 		list_add(listaReady, nuevo_pcb); //pasa el nuevo pcb a Ready
 		pthread_mutex_unlock(&mutex_Ready);
-		//logger(escribir_loguear, l_info, "El LQL %s pasa a Ready\n", nuevo_pcb->path);
-		pthread_mutex_unlock(&mutexPCP);// paso un LQL a ready, habilito PCP
+		sem_post(&READY);// paso un LQL a ready, habilito PCP
+		logger(escribir_loguear, l_info, "El LQL %s pasa a Ready\n", nuevo_pcb->path);
 	}
 
 	pthread_exit(ret);
@@ -587,7 +591,7 @@ int lanzarPCP(){
 void* funcionHiloPCP(){
 	char *ret="Cerrando hilo PCP";
 	while(1){
-		pthread_mutex_lock(&mutexPCP);
+		sem_wait(&READY);
 		if(list_size(listaReady) > 0 && list_size(listaExec) < configKernel.multiprocesamiento){
 			logger(escribir_loguear, l_info, "Se activa el PCP");
 			tp_lql_pcb pcb_a_planificar;
@@ -598,7 +602,6 @@ void* funcionHiloPCP(){
 			list_add(listaExec, pcb_a_planificar);//Agrega el pcb a la lista de ejecutando
 			pthread_mutex_unlock(&mutex_Exec);
 
-			sem_wait(&hay_request);
 			lanzarHiloRequest(pcb_a_planificar);
 
 		}
@@ -653,6 +656,7 @@ void* funcionHiloRequest(void* pcb){
 		list_add(listaReady, pcb);
 		pthread_mutex_unlock(&mutex_Ready);
 		logger(escribir_loguear, l_info, "El PCB %s vuelve a READY\n", ((tp_lql_pcb) pcb)->path);
+		sem_post(&READY);
 		pthread_exit(ret);
 		return EXIT_SUCCESS;
 	}
