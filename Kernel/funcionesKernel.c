@@ -265,16 +265,6 @@ t_operacion parsear(char * linea){
 		//TODO ver que hacer aca
 	}
 
-	if(string_equals_ignore_case(tipo_de_operacion, "#")){
-		logger(escribir_loguear, l_warning,"Es un comentario, sera ignorado");
-		//no se hace nada...
-	}
-
-	if(tipo_de_operacion[0]=='#'){
-		logger(escribir_loguear, l_warning,"Es un comentario, sera ignorado");
-		//no se hace nada...
-	}
-
 	if(string_equals_ignore_case(tipo_de_operacion, "select")){
 		resultado_de_parsear.tipo_de_operacion = _SELECT;
 		resultado_de_parsear.parametros.select.nombre_tabla = split[1];
@@ -331,7 +321,7 @@ void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
 
 void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria){
 
-	if(existeTabla(nombre_tabla)){
+	//if(existeTabla(nombre_tabla)){
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion select");
 		prot_enviar_select(nombre_tabla, key, socket_memoria);
@@ -357,8 +347,8 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 			logger(escribir_loguear, l_error, "No existe la tabla en el FS");
 		}
 
-	}else{//termino el script
-		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
+	//}else{//termino el script
+	/*	logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
 		pthread_mutex_unlock(&mutex_Exec);
@@ -366,13 +356,13 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		list_add(listaExit, pcb);
 		pthread_mutex_unlock(&mutex_Exit);
 		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
-	}
+	}*/
 
-	}
+}
 
 void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, int socket_memoria){
 
-	if(existeTabla(nombre_tabla)){
+	//if(existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
 
 		long timestamp;
@@ -387,8 +377,8 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		if(insercion == REQUEST_SUCCESS){
 			logger(escribir_loguear, l_info, "La memoria realizo el insert correctamente");
 		}
-	}else{//terminar script
-		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
+	//}else{//terminar script
+	/*	logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
 		pthread_mutex_unlock(&mutex_Exec);
@@ -396,14 +386,14 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		list_add(listaExit, pcb);
 		pthread_mutex_unlock(&mutex_Exit);
 		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
-
-	}
+*/
+	//}
 
 }
 
 void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
 
-	if(!existeTabla(nombre_tabla)){
+	//if(!existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Se le solicita a la memoria crear la tabla: %s", nombre_tabla);
 		prot_enviar_create(nombre_tabla, tipo_consistencia, num_particiones, compaction_time, socket_memoria);
 
@@ -417,17 +407,18 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 			logger(escribir_loguear, l_info, "Ya existe la tabla que queres crear");
 		}
 
-	}else{//terminar script
-			logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
-			pthread_mutex_lock(&mutex_Exec);
-			remover_pcb_de_lista(listaExec, pcb);
-			pthread_mutex_unlock(&mutex_Exec);
-			pthread_mutex_lock(&mutex_Exit);
-			list_add(listaExit, pcb);
-			pthread_mutex_unlock(&mutex_Exit);
-			logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
-
-		}
+	//}else{//terminar script
+/*
+		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
+		pthread_mutex_lock(&mutex_Exec);
+		remover_pcb_de_lista(listaExec, pcb);
+		pthread_mutex_unlock(&mutex_Exec);
+		pthread_mutex_lock(&mutex_Exit);
+		list_add(listaExit, pcb);
+		pthread_mutex_unlock(&mutex_Exit);
+		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
+*/
+	//}
 }
 
 void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
@@ -460,8 +451,9 @@ void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 		/*
 		 * HACER LO QUE TENGAS QUE HACER CON EL PCB
 		 */
+	}
 
-	}else{
+	if(nombre_tabla == NULL){
 		//PIDIERON UN DESCRIBE ALL
 		prot_enviar_describeAll(socket_memoria);
 
@@ -619,16 +611,17 @@ void* funcionHiloPCP(){
 int lanzarHiloRequest(tp_lql_pcb pcb){
 	int resultadoDeCrearHilo = pthread_create(&threadRequest, NULL, funcionHiloRequest, pcb);
 	pthread_detach(threadRequest);
-				if(resultadoDeCrearHilo){
-					logger(escribir_loguear, l_error,"Error: no se pudo crear el hilo para la planificacion del LQL %s\n", pcb->path);
-					exit(EXIT_FAILURE);
-					}
-				else{
-					logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion del LQL (aca no puede mostrar el path bien)");//%s\n", pcb->path);
-					return EXIT_SUCCESS;
-					}
 
-			return EXIT_SUCCESS;
+	if(resultadoDeCrearHilo){
+		logger(escribir_loguear, l_error,"Error: no se pudo crear el hilo para la planificacion del LQL %s\n", pcb->path);
+		exit(EXIT_FAILURE);
+		}
+	else{
+		logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion del LQL %s\n", pcb->path);
+		return EXIT_SUCCESS;
+		}
+
+return EXIT_SUCCESS;
 
 }
 
@@ -650,9 +643,8 @@ void* funcionHiloRequest(void* pcb){
 		//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
 		realizar_operacion(rdo_del_parseado, pcb, memoria->socket);
-
-
 	}
+
 	if(!pcbEstaEnLista(listaExit, pcb)){
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
@@ -664,6 +656,7 @@ void* funcionHiloRequest(void* pcb){
 		pthread_exit(ret);
 		return EXIT_SUCCESS;
 	}
+
 	pthread_exit(ret);
 	return EXIT_SUCCESS;
 }
@@ -754,6 +747,3 @@ tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
 	return memo;
 
 }
-
-
-
