@@ -82,9 +82,14 @@ int runConsola(char* path){
 	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
 	pthread_mutex_lock(&mutex_New);
 	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	pthread_mutex_unlock(&mutex_New);
-	pthread_mutex_unlock(&mutexDePausaDePlanificacion);//habilito PLP
 	logger(escribir_loguear, l_info, "Se agrega el nuevo LQL a la cola de NEW");
+	sem_post(&NEW);
+
+	pthread_mutex_unlock(&mutex_New);
+	//pthread_mutex_unlock(&mutexDePausaDePlanificacion);//habilito PLP
+	logger(escribir_loguear, l_info, "Se agrega el nuevo LQL a la cola de NEW");
+
+	sem_post(&hay_request);
 	return EXIT_SUCCESS;
 }
 
@@ -93,16 +98,40 @@ void metricsConsola(){
 }
 
 int addConsola(int memnum, char* criterio){
-	//add
+	logger(escribir_loguear, l_info, "Se va a agregar el criterio %s a la memoria %i", criterio, memnum);
+	if(existeMemoria(memnum)){
+		tp_memo_del_pool_kernel memoria = buscar_memorias_segun_numero(listaMemConectadas, memnum);
+		if(criterio == "SC") {
+			list_add(listaSC, memoria);
+			printf("Se agrego la memoria %i al criterio SC", memnum);
+		}else if(criterio == "EC"){
+			list_add(listaEC, memoria);
+			printf("Se agrego la memoria %i al criterio EC", memnum);
+		}else if(criterio == "HC"){
+			list_add(listaHC, memoria);
+			printf("Se agrego la memoria %i al criterio HC", memnum);
+		}else{
+			printf("Pifiaste el criterio amigue");
+		}
+	}
 	return EXIT_SUCCESS;
+}
+
+bool existeMemoria(int numero){
+	bool coincideElNumero(void* nodo){
+			if(((tp_memo_del_pool_kernel) nodo)->numero_memoria == numero){
+				return true;
+				}
+				return false;
+			}
+	return list_any_satisfy(listaMemConectadas, coincideElNumero);
 }
 
 tp_lql_pcb crear_PCB(char* path){
 	tp_lql_pcb nuevo_LQL = calloc(1, sizeof(t_lql_pcb));
-	logger(escribir_loguear, l_info, "Se crea el PCB para el LQL en el path %s/n", path);
+	logger(escribir_loguear, l_info, "Se crea el PCB para el LQL en el path %s\n", path);
 	nuevo_LQL->path = malloc(strlen(path)+1);
 	strcpy(nuevo_LQL->path, path);
-	nuevo_LQL->ultima_linea_leida = 0;
 	nuevo_LQL->lista = obtener_lista_lineas_desde_archivo(nuevo_LQL->path);
 	return nuevo_LQL;
 }

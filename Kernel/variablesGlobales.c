@@ -19,12 +19,20 @@ t_list* listaExec;
 t_list* listaExit;
 t_list* listaMemConectadas;
 t_list* listaTablasCreadas;
+t_list* listaEC;
+t_list* listaSC;
+t_list* listaHC;
 pthread_mutex_t mutex_New;
 pthread_mutex_t mutex_Ready;
 pthread_mutex_t mutex_Exec;
 pthread_mutex_t mutex_Exit;
 pthread_mutex_t mutex_MemConectadas;
 pthread_mutex_t mutexDePausaDePlanificacion;
+pthread_mutex_t mutexPCP;
+
+sem_t hay_request;
+sem_t NEW;
+
 int quantum;
 
 int inicializarVariablesGlobales(){
