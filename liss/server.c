@@ -234,17 +234,23 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 
 	tp_nodoDeLaTabla sel_fs = selectf(seleccion->nom_tabla, seleccion->key);//pido el value al fs
 
-	if(sel_fs != NULL && sel_fs->value != 0){
-
-		log_info(LOGGERFS,"[LissServer] Proceso Select: tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",seleccion->nom_tabla,seleccion->key,sel_fs->value);
+	if(sel_fs->resultado==KEY_OBTENIDA){
+		log_info(LOGGERFS,"[LissServer] Proceso Select(cliente %d): tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",cliente,seleccion->nom_tabla,seleccion->key,sel_fs->value);
 		prot_enviar_respuesta_select(sel_fs->value,sel_fs->key,sel_fs->timeStamp,cliente);
+		free(sel_fs->value);
+	}
+	else if(sel_fs->resultado==KEY_NO_EXISTE){
+
+		log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] con key= [%hu] no existe",cliente,seleccion->nom_tabla,seleccion->key);
+		prot_enviar_error(KEY_NO_EXISTE,cliente);
 	}
 	else{
+		log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] no existe",cliente,seleccion->nom_tabla);
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Select: tabla= %s no existe",seleccion->nom_tabla);
 	}
 	free(seleccion->nom_tabla);
 	free(seleccion);
+	free(sel_fs);
 	//free(value); //@necesita free el value q manda selectf???
 }
 
@@ -257,10 +263,10 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 
 	if (result == EXIT_SUCCESS){
 		prot_enviar_respuesta_insert(cliente);
-		log_info(LOGGERFS,"[LissServer] Insert: tabla= %s , value= %s",insercion->nom_tabla,insercion->value);
+		log_info(LOGGERFS,"[LissServer] Insert(cliente %d): tabla= [%s] , value= [%s]",cliente,insercion->nom_tabla,insercion->value);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Insert: tabla= %s no existe",insercion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Error Insert(cliente %d): tabla= %s no existe",cliente,insercion->nom_tabla);
 	}
 
 	free(insercion->nom_tabla);
@@ -276,10 +282,10 @@ void procesarCreate(int cliente, t_cabecera cabecera){
 			creacion->tiempo_compactacion);
 	if(result == TABLA_CREADA){
 		prot_enviar_respuesta_create(cliente);
-		log_info(LOGGERFS,"[LissServer] Create: tabla= %s",creacion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Create(cliente %d): tabla= %s",cliente,creacion->nom_tabla);
 	} else {
 		prot_enviar_error(TABLA_YA_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Create: tabla= %s ya existe",creacion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Error Create(cliente %d): tabla= %s ya existe",cliente,creacion->nom_tabla);
 	}
 	free(creacion->nom_tabla);
 	free(creacion->tipo_consistencia);
@@ -292,10 +298,10 @@ void procesarDescribe(int cliente, t_cabecera cabecera){
 	t_metadataDeLaTabla metadata = describe(descripcion->nom_tabla);
 	if(metadata.consistencia!=NULL){
 		prot_enviar_respuesta_describe(descripcion->nom_tabla,metadata.particiones,metadata.consistencia,metadata.tiempoDeCompactacion,cliente);
-		log_info(LOGGERFS,"[LissServer] Describe: tabla= %s",descripcion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Describe(cliente %d): tabla= %s",cliente,descripcion->nom_tabla);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Describe: tabla= %s no existe",descripcion->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Error Describe(cliente %d): tabla= %s no existe",cliente,descripcion->nom_tabla);
 	}
 	free(descripcion->nom_tabla);
 	free(descripcion);
@@ -307,10 +313,10 @@ void procesarDescribeAll(int cliente){
 
 	if(descripciones.lista!=NULL){
 		prot_enviar_respuesta_describeAll(descripciones,cliente);
-		log_info(LOGGERFS,"[LissServer] DescribeAll");
+		log_info(LOGGERFS,"[LissServer] DescribeAll(cliente %d)",cliente);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error DescribeAll: no hay tablas en el fs");
+		log_info(LOGGERFS,"[LissServer] Error DescribeAll(cliente %d): no hay tablas en el fs",cliente);
 	}
 	liberarYDestruirTablaDeMetadata(descripciones.lista);
 }
@@ -323,10 +329,10 @@ void procesarDrop(int cliente, t_cabecera cabecera){
 
 	if(result==TABLA_BORRADA){
 		prot_enviar_respuesta_drop(cliente);
-		log_info(LOGGERFS,"[LissServer] Drop: tabla= %s",dropeo->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Drop(cliente %d): tabla= %s",cliente,dropeo->nom_tabla);
 	} else{
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-		log_info(LOGGERFS,"[LissServer] Error Drop: tabla= %s no existe",dropeo->nom_tabla);
+		log_info(LOGGERFS,"[LissServer] Error Drop(cliente %d): tabla= %s no existe",cliente,dropeo->nom_tabla);
 	}
 	free(dropeo->nom_tabla);
 	free(dropeo);
