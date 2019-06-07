@@ -56,7 +56,7 @@ void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida) {
 	if ((tipo_esc == loguear) || (tipo_esc == escribir_loguear)) {
 		if (tipo_log == l_info) {
-			log_info(LOG_KERNEL, escribir_loguear, l_info, msj_salida);
+			log_info(LOG_KERNEL, msj_salida);
 		} else if (tipo_log == l_warning) {
 			log_warning(LOG_KERNEL, msj_salida);
 		} else if (tipo_log == l_error) {
@@ -148,6 +148,7 @@ int levantarConfiguracionInicialDelKernel(){
 	configKernel.quantum = config_get_int_value(configuracion,"QUANTUM");
 	logger(escribir_loguear, l_info,"Quantum del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.quantum);
+	quantum = configKernel.quantum;
 
 	//Recupero el valor de multiprocesamiento
 	if(!config_has_property(configuracion,"MULTIPROCESAMIENTO")) {
@@ -195,6 +196,7 @@ int inicializarListas(){
 	listaExec = list_create();
 	listaExit = list_create();
 	listaMemConectadas = list_create(); // va a ser una lista de t_memo_del_pool_kernel
+	listaTablasCreadas = list_create(); // se va a guardar las tablas a las q se les hace create t_entrada_tabla_creada
 	return EXIT_SUCCESS;
 }
 
@@ -209,7 +211,7 @@ int inicializarSemaforos(){
 	return EXIT_SUCCESS;
 }
 
-int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONECTARSE!
+int conectarse_con_memoria(int ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
@@ -221,11 +223,10 @@ int conectarse_con_memoria(int ip, int puerto){//ESTA DEBE ABRIR UN HILO Y CONEC
 	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
 	entrada_tabla_memorias->ip = ip;
 	entrada_tabla_memorias->puerto = puerto;
+	entrada_tabla_memorias->numero_memoria = 0;
 	entrada_tabla_memorias->socket = socket_mem;
+	entrada_tabla_memorias->tipo_const = NULL;
 	list_add(listaMemConectadas, entrada_tabla_memorias);
-	logger(escribir_loguear, l_info, "Se va a abrir un hilo para la memoria %i", socket_mem);
-	int resultadoHiloMemo = pthread_create( &threadMemo, NULL, funcionHiloMemo, (void*)NULL);
-	pthread_detach(threadMemo);
 	return EXIT_SUCCESS;
 }
 
@@ -238,18 +239,13 @@ void enviar_handshake(int socket){
 	logger(escribir_loguear, l_info, "Se realizo el handshake con la memoria en el socket %i", socket);
 }
 
-int funcionHiloMemo(){
-	//Este hilo deberia esperar que la memoria devuelva algo
-	return EXIT_SUCCESS;
-}
-
 t_operacion parsear(char * linea){
 
 	t_operacion resultado_de_parsear;
 	char* linea_auxiliar = string_duplicate(linea);
 	string_trim(&linea_auxiliar);
 
-	char** split = string_n_split(linea_auxiliar, 4, " ");
+	char** split = string_n_split(linea_auxiliar, 5, " ");
 
 	char* tipo_de_operacion = split[0];
 	char* parametros = split[1];
@@ -271,18 +267,18 @@ t_operacion parsear(char * linea){
 	if(string_equals_ignore_case(tipo_de_operacion, "select")){
 		resultado_de_parsear.tipo_de_operacion = _SELECT;
 		resultado_de_parsear.parametros.select.nombre_tabla = split[1];
-		resultado_de_parsear.parametros.select.key = split[2];
+		resultado_de_parsear.parametros.select.key = atoi(split[2]);
 	} else if(string_equals_ignore_case(tipo_de_operacion, "insert")){
 		resultado_de_parsear.tipo_de_operacion = _INSERT;
 		resultado_de_parsear.parametros.insert.nombre_tabla = split[1];
-		resultado_de_parsear.parametros.insert.key = split[2];
-		resultado_de_parsear.parametros.insert.value = split[3];
+		resultado_de_parsear.parametros.insert.key = atoi(split[2]);
+		resultado_de_parsear.parametros.insert.value = obtener_value_a_insertar(linea_auxiliar); //si esta mal devuelve NULL
 	} else if(string_equals_ignore_case(tipo_de_operacion, "create")){
 		resultado_de_parsear.tipo_de_operacion = _CREATE;
 		resultado_de_parsear.parametros.create.nombre_tabla = split[1];
-		resultado_de_parsear.parametros.create.tipo_consistencia = split[2];
-		resultado_de_parsear.parametros.create.num_particiones = split[3];
-		resultado_de_parsear.parametros.create.compaction_time = split[4];
+		resultado_de_parsear.parametros.create.tipo_consistencia = atoi(split[2]);//es un ENUM
+		resultado_de_parsear.parametros.create.num_particiones = atoi(split[3]);
+		resultado_de_parsear.parametros.create.compaction_time = atoi(split[4]);
 	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
 		resultado_de_parsear.tipo_de_operacion = _DESCRIBE;
 		resultado_de_parsear.parametros.describe.nombre_tabla = split[1];
@@ -293,15 +289,10 @@ t_operacion parsear(char * linea){
 		resultado_de_parsear.tipo_de_operacion = _JOURNAL;
 	} else if(string_equals_ignore_case(tipo_de_operacion, "add")){
 		resultado_de_parsear.tipo_de_operacion = ADD;
-		resultado_de_parsear.parametros.add.memory = split[1];
-		resultado_de_parsear.parametros.add.num_memoria = split[2];
-		resultado_de_parsear.parametros.add.to = split[3];
-		resultado_de_parsear.parametros.add.tipo_consistencia = split[4];
-	} else if(string_equals_ignore_case(tipo_de_operacion, "run")){
-		resultado_de_parsear.tipo_de_operacion = RUN;
-		resultado_de_parsear.parametros.run.path = split[1];
-	} else if(string_equals_ignore_case(tipo_de_operacion, "metrics")){
-		resultado_de_parsear.tipo_de_operacion = METRICS;
+		resultado_de_parsear.parametros.add.memory = atoi(split[1]);//enum
+		resultado_de_parsear.parametros.add.num_memoria = atoi(split[2]);
+		resultado_de_parsear.parametros.add.to = atoi(split[3]);//enum
+		resultado_de_parsear.parametros.add.tipo_consistencia = atoi(split[4]);
 	}
 
 	free(linea_auxiliar);
@@ -317,23 +308,153 @@ void conocer_pool_memorias(){
 
 }
 
-void operacion_select(char* nombre_tabla, int key, tp_lql_pcb pcb){
+void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria){ //pasar t_operacion
+	logger(escribir_loguear, l_info, "Voy a realizar la operacion select");
+	prot_enviar_select(nombre_tabla, key, socket_memoria);
+
+	logger(escribir_loguear, l_info, "Espero la rta de memoria...");
+	t_cabecera rta_pedido = recibirCabecera(socket_memoria);
+
+	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "La memoria realizo el select correctamente");
+		tp_select_rta seleccion = prot_recibir_respuesta_select(rta_pedido.tamanio, socket_memoria);
+
+		logger(escribir_loguear, l_info, "Esta es la informacion recibida:");
+		logger(escribir_loguear, l_info, "Value: %s", seleccion->value);
+
+		/*
+		 * HACER LO QUE HAYA QUE HACER CON EL VALUE Y EL PCB
+		 */
+
+		//Libero la estructura que recibi
+		free(seleccion->value);
+		free(seleccion);
+
+	}
+
+	if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+		logger(escribir_loguear, l_error, "No existe la tabla en el FS");
+	}
 
 }
 
-void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb){
+void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, int socket_memoria){
+	logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
+
+	long timestamp;
+	timestamp=(unsigned)time(NULL);
+	logger(escribir_loguear, l_debug,"El timestamp fue '%d'",timestamp);
+
+	prot_enviar_insert(nombre_tabla, key, value, timestamp, socket_memoria);
+
+	logger(escribir_loguear, l_info, "Espero la rta de memoria...");
+	enum MENSAJES insercion = prot_recibir_respuesta_insert(socket_memoria);
+
+	if(insercion == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "La memoria realizo el insert correctamente");
+	}
+
+	/*
+	 * HACER LO QUE TENGAS QUE HACER CON EL PCB
+	 */
 
 }
 
-void operacion_create(char* nombre_tabla, int tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb){
+void operacion_create(char* nombre_tabla, int tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
+	logger(escribir_loguear, l_info, "Se le solicita a la memoria crear la tabla: %s", nombre_tabla);
+	prot_enviar_create(nombre_tabla, tipo_consistencia, num_particiones, compaction_time, socket_memoria);
 
+	logger(escribir_loguear, l_info, "Espero la rta de memoria...");
+	enum MENSAJES rta_creacion = prot_recibir_respuesta_create(socket_memoria);
+
+	if(rta_creacion == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "La memoria realizo el create correctamente");
+	}
+	if(rta_creacion == TABLA_YA_EXISTIA){
+		logger(escribir_loguear, l_info, "Ya existe la tabla que queres crear");
+	}
+
+	/*
+	 * HACER LO QUE TENGAS QUE HACER CON EL PCB
+	 */
 }
 
-void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb){
+void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
+	if(nombre_tabla != NULL){
+		logger(escribir_loguear, l_info, "Se le solicita a la memoria el describe de la tabla: %s", nombre_tabla);
+		prot_enviar_describe(nombre_tabla, socket_memoria);
 
+		logger(escribir_loguear, l_info, "Espero la rta de memoria...");
+		//Recibo rta
+		t_cabecera rta_pedido = recibirCabecera(socket_memoria);
+
+		if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+			logger(escribir_loguear, l_debug, "Informacion recibida correctamente");
+			tp_describe_rta info_tabla = prot_recibir_respuesta_describe(rta_pedido.tamanio, socket_memoria);
+
+			logger(escribir_loguear, l_info, "Liss ha enviado la sgte informacion:");
+			logger(escribir_loguear, l_info, "El nombre de la tabla es: %s", nombre_tabla);
+			logger(escribir_loguear, l_info, "La consistencia es: %s", info_tabla->consistencia);
+			logger(escribir_loguear, l_info, "El numero de particiones es: %d", info_tabla->particiones);
+			logger(escribir_loguear, l_info, "El tiempo de compactacion es: %d\n", (*(t_describe_rta*)info_tabla).tiempoDeCompactacion);
+
+			free(info_tabla->consistencia);
+			free(info_tabla);
+		}
+
+		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+			logger(escribir_loguear, l_error, "No existe la tabla");
+		}
+
+		/*
+		 * HACER LO QUE TENGAS QUE HACER CON EL PCB
+		 */
+
+	}else{
+		//PIDIERON UN DESCRIBE ALL
+		prot_enviar_describeAll(socket_memoria);
+
+		//Recibo rta
+		t_cabecera rta_pedido = recibirCabecera(socket_memoria);
+
+		if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+			tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, socket_memoria);
+
+			/*
+			 * HACER LO QUE TENGAS QUE HACER CON EL PCB
+			 * EN INFO_DE_LAS_TABLAS TENES TODA LA INFORMACION QUE LLEGA DEL FILESYSTEM
+			 */
+
+			//Libero la lista
+			prot_free_tp_describeAll_rta(info_de_las_tablas);
+		}
+
+		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
+			logger(escribir_loguear, l_error, "No hay tablas en el FS");
+		}
+
+	}
 }
 
-void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb){
+void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
+	logger(escribir_loguear, l_info, "Voy a realizar la operacion drop");
+
+	prot_enviar_drop(nombre_tabla, socket_memoria);
+
+	logger(escribir_loguear, l_info, "Espero la rta de memoria...");
+	enum MENSAJES rta_drop = prot_recibir_respuesta_drop(socket_memoria);
+
+	if(rta_drop == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "La memoria realizo el drop de la tabla pedida correctamente");
+	}
+
+	if(rta_drop == TABLA_NO_EXISTIA){
+		logger(escribir_loguear, l_error, "No existe la tabla que queres borrar");
+	}
+
+	/*
+	 * HACER LO QUE TENGAS QUE HACER CON EL PCB
+	 */
 
 }
 
@@ -345,24 +466,24 @@ void operacion_add(int num_memoria, int tipo_consistencia, tp_lql_pcb pcb){
 
 }
 
-void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
+void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int socket_memoria){
 	switch(resultado_del_parseado.tipo_de_operacion){
 		case SELECT:
-			operacion_select(resultado_del_parseado.parametros.select.nombre_tabla, resultado_del_parseado.parametros.select.key, pcb);
+			operacion_select(resultado_del_parseado.parametros.select.nombre_tabla, resultado_del_parseado.parametros.select.key, pcb, socket_memoria);
 			break;
 		case INSERT:
 			operacion_insert(resultado_del_parseado.parametros.insert.nombre_tabla, resultado_del_parseado.parametros.insert.key,
-					resultado_del_parseado.parametros.insert.value, pcb);
+					resultado_del_parseado.parametros.insert.value, pcb, socket_memoria);
 			break;
 		case CREATE:
 			operacion_create(resultado_del_parseado.parametros.create.nombre_tabla, resultado_del_parseado.parametros.create.tipo_consistencia,
-					resultado_del_parseado.parametros.create.num_particiones, resultado_del_parseado.parametros.create.compaction_time, pcb);
+					resultado_del_parseado.parametros.create.num_particiones, resultado_del_parseado.parametros.create.compaction_time, pcb, socket_memoria);
 			break;
 		case DESCRIBE:
-			operacion_describe(resultado_del_parseado.parametros.describe.nombre_tabla,pcb);
+			operacion_describe(resultado_del_parseado.parametros.describe.nombre_tabla, pcb, socket_memoria);
 			break;
 		case DROP:
-			operacion_drop(resultado_del_parseado.parametros.drop.nombre_tabla,pcb);
+			operacion_drop(resultado_del_parseado.parametros.drop.nombre_tabla,pcb, socket_memoria);
 			break;
 		case JOURNAL:
 			operacion_journal();
@@ -374,6 +495,140 @@ void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb){
 }
 
 int lanzarPlanificador(){
+	int resultadoDeCrearHilo = pthread_create(&threadPlanif, NULL, funcionHiloPLP, NULL);
+	pthread_detach(threadPlanif);
+		if(resultadoDeCrearHilo){
+			logger(escribir_loguear, l_error,"Error: no se pudo crear el hilo para la planificacion a largo plazo");
+			exit(EXIT_FAILURE);
+			}
+		else{
+			logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion a largo plazo");
+			return EXIT_SUCCESS;
+			}
 
 	return EXIT_SUCCESS;
 }
+
+void* funcionHiloPLP(){
+	char *ret="Cerrando hilo PLP";
+	while(1){
+		logger(escribir_loguear, l_info, "El PLP esta bloqueado/n"); /// para salto de linea es barra invertida
+		pthread_mutex_lock(&mutexDePausaDePlanificacion);
+		logger(escribir_loguear, l_info, "Se desbloqueo el PLP/n");
+		tp_lql_pcb nuevo_pcb;
+		pthread_mutex_lock(&mutex_New);
+		nuevo_pcb = list_remove(listaNew, 0); //remueve el primer elemento y lo retorna
+		pthread_mutex_unlock(&mutex_New);
+		pthread_mutex_lock(&mutex_Ready);
+		list_add(listaReady, nuevo_pcb); //pasa el nuevo pcb a Ready
+		pthread_mutex_unlock(&mutex_Ready);
+		//logger(escribir_loguear, l_info, "El LQL %s pasa a Ready/n", nuevo_pcb->path);
+	}
+
+	pthread_exit(ret);
+	return EXIT_SUCCESS;
+}
+
+int lanzarPCP(){
+	int resultadoDeCrearHilo = pthread_create(&threadPCP, NULL, funcionHiloPCP, NULL);
+	pthread_detach(threadPCP);
+			if(resultadoDeCrearHilo){
+				logger(escribir_loguear, l_error,"Error: no se pudo crear el hilo para la planificacion a corto plazo");
+				exit(EXIT_FAILURE);
+				}
+			else{
+				logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion a corto plazo");
+				return EXIT_SUCCESS;
+				}
+
+		return EXIT_SUCCESS;
+}
+
+void* funcionHiloPCP(){
+	char *ret="Cerrando hilo PCP";
+
+	while(list_size(listaReady) > 0 && list_size(listaExec) < configKernel.multiprocesamiento){
+		logger(escribir_loguear, l_info, "Se activa el PCP");
+		tp_lql_pcb pcb_a_planificar;
+		pthread_mutex_lock(&mutex_Ready);
+		pcb_a_planificar = list_remove(listaReady, 0); //devuelve el primer elemento de la lista de Ready
+		pthread_mutex_unlock(&mutex_Ready);
+		pthread_mutex_lock(&mutex_Exec);
+		list_add(listaExec, pcb_a_planificar);//Agrega el pcb a la lista de ejecutando
+		pthread_mutex_unlock(&mutex_Exec);
+		lanzarHiloRequest(pcb_a_planificar);
+
+	}
+
+	pthread_exit(ret);
+	return EXIT_SUCCESS;
+}
+
+int lanzarHiloRequest(tp_lql_pcb pcb){
+	int resultadoDeCrearHilo = pthread_create(&threadRequest, NULL, funcionHiloRequest, &pcb->lista);
+	pthread_detach(threadRequest);
+				if(resultadoDeCrearHilo){
+					logger(escribir_loguear, l_error,"Error: no se pudo crear el hilo para la planificacion del LQL %s/n", pcb->path);
+					exit(EXIT_FAILURE);
+					}
+				else{
+					logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion del LQL (aca no puede mostrar el path bien)");//%s/n", pcb->path);
+					return EXIT_SUCCESS;
+					}
+
+			return EXIT_SUCCESS;
+
+}
+
+void* funcionHiloRequest(void* lista){
+	char *ret="Cerrando hilo PCP";
+	int i;
+	char* linea_a_ejecutar;
+	for (i = 0; i < quantum; ++i) {
+		logger(escribir_loguear, l_info, "Se va a enviar la linea %i", i);
+		linea_a_ejecutar = list_remove(lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos el quantum
+
+		//Parsear la linea
+		t_operacion rdo_del_parseado = parsear(linea_a_ejecutar);
+
+		//Elegir memoria de acuerdo a la tabla
+
+		/*
+		 * En algun lado necesito que metas el socket_memoria
+		 */
+
+
+		/*
+		 * ACA HACER LO QUE SE HAYA QUE HACER CON EL PCB Y PASARSELO A LA FUNCION QUE PONGO ABAJO:
+		 *
+		 * realizar_operacion(resultado_del_parseado, pcb, socket_memoria);
+		 */
+
+	}
+
+	pthread_exit(ret);
+	return EXIT_SUCCESS;
+}
+
+bool existeTabla(char* tabla){
+
+	bool coincideNombre(void* nombre){
+		if(strcmp(tabla, nombre)==0){
+			return true;
+		}
+		return false;
+	}
+
+	return list_any_satisfy(listaTablasCreadas, coincideNombre);
+}
+
+int decidir_memoria_a_utilizar(char* nombre_tabla){
+	int memoria;
+//buscar tabla en listaTablasCreadas y obtener el criterio
+//buscar las memorias que tengan ese criterio asignado y elegir
+
+	return memoria;
+}
+
+
+

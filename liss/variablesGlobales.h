@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdint.h>
+#include "../COM/lqvg/com.h"
 
 typedef struct definicionConfiguracionDelFS {
 	int puertoEscucha;
@@ -45,6 +46,7 @@ typedef struct definicionNodoDeLaTabla {
 	uint16_t key;
 	char* value;
 	unsigned timeStamp;
+	enum MENSAJES resultado;
 } t_nodoDeLaTabla;
 typedef t_nodoDeLaTabla* tp_nodoDeLaTabla;
 
@@ -63,6 +65,7 @@ extern char * srcMmap;
 extern char * bufferArchivo;
 extern pthread_t threadServer;
 extern t_list* memTable;
+extern t_list* dumpTables;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();

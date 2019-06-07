@@ -21,6 +21,7 @@ int sizeDelBitmap;
 char * srcMmap;
 char * bufferArchivo;
 t_list* memTable;
+t_list* dumpTables;
 
 pthread_t threadServer;//thread para el server de lissandra
 
@@ -55,6 +56,7 @@ int inicializarVariablesGlobales(){
 	archivoDeBitmap=NULL;
 	archivoDeLaMetadata=NULL;
 	memTable=list_create();
+	dumpTables=list_create();
 	return EXIT_SUCCESS;
 }
 
@@ -74,6 +76,7 @@ void liberarRecursos(){
 	//free(srcMmap);
 	free(bufferArchivo);
 	vaciarMemTable();
+	vaciarDumpTable();
 	log_destroy(LOGGERFS);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
@@ -100,5 +103,10 @@ int vaciarMemTable(){
 		}
 	list_destroy(memTable);
 	log_info(LOGGERFS,"Memtable liberada");
+	return EXIT_SUCCESS;
+}
+
+int vaciarDumpTable(){
+	//implementar
 	return EXIT_SUCCESS;
 }

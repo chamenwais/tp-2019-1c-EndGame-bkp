@@ -143,15 +143,23 @@ char** parser_instruccion(char* linea){
 int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 	tp_nodoDeLaTabla nodo = selectf(nombreDeLaTabla, key);
 	if(nodo!=NULL){
-		log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s",
-			nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-		printf("Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s\n",
-			nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-	}else{
-		log_info(LOGGERFS,"No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)",
-			key, nombreDeLaTabla);
-		printf("No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)\n",
+		if(nodo->resultado==KEY_NO_EXISTE ){
+			log_info(LOGGERFS,"No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)",
 				key, nombreDeLaTabla);
+			printf("No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)\n",
+				key, nombreDeLaTabla);
+		}else{
+			if(nodo->resultado==KEY_OBTENIDA){
+				log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s",
+					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
+				printf("Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s\n",
+					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
+			}else{
+				log_error(LOGGERFS,"Resultado insaperado, alerta!!!");
+			}
+		}
+	}else{
+		log_error(LOGGERFS,"Resultado insaperado, alerta!!!, resultado del selectf==NULL");
 	}
 	return EXIT_SUCCESS;
 }

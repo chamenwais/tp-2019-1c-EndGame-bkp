@@ -21,9 +21,10 @@ int main(int argc,char** argv) {
 	if(inicializarEstructuras()==EXIT_SUCCESS){
 	if(lanzarConsola()==EXIT_SUCCESS){
 	if(lanzarServer()==EXIT_SUCCESS){
+	if(lanzarDumps()==EXIT_SUCCESS){
 	if(lanzarCompactador()==EXIT_SUCCESS){
 	if(esperarAQueTermineLaConsola()==EXIT_FAILURE);
 		liberarRecursos();
-	}}}}}}}}
+	}}}}}}}}}
 	return EXIT_SUCCESS;
 }

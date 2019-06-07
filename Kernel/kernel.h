@@ -17,5 +17,6 @@
 #include "funcionesKernel.h"
 #include "api.h"
 #include <lqvg/com.h>
+#include <lqvg/utils.h>
 
 #endif /* KERNEL_H_ */

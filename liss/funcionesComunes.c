@@ -131,6 +131,8 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	if(exiteLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
 		printf("Se esta intentando seleccionar de una tabla que no existe %s\n", nombreDeLaTabla);
+		resultado=malloc(sizeof(t_nodoDeLaTabla));
+		resultado->resultado=TABLA_NO_EXISTIA;
 	}else{
 		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 		int numeroDeParticionQueContieneLaKey = key%(metadataDeLaTabla.particiones);
