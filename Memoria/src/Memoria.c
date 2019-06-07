@@ -129,6 +129,7 @@ int atender_al_kernel(int serv_socket){
 	logger(escribir_loguear,l_trace,"Se aceptó al kernel, conexión (%d)", socket_kernel);
 
 	recibir_handshake_kernel(socket_kernel);
+	prot_enviar_int(NUMERO_MEMORIA,socket_kernel);
 
 	int cliente_aceptado=agregar_conexion_lista_clientes(socket_kernel, client_addr);
 
