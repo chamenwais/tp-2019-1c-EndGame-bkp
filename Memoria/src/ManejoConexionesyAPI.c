@@ -290,8 +290,9 @@ tp_select_rta_a_kernel pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 		rta_select_a_kernel->respuesta=rta_pedido.tipoDeMensaje;
 		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
 			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
+		} else if(rta_pedido.tipoDeMensaje == KEY_NO_EXISTE){
+			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que la key no existe en la tabla");
 		}
-		//TODO si agregan KEY_NO_EXISTE se podría agregar un mensaje indicándolo
 	}
 
 	return rta_select_a_kernel;
