@@ -33,6 +33,6 @@ void iniciar_la_memoria_principal();
 char *reservar_total_memoria();
 void *realizar_gossiping();
 void *realizar_journaling();
-void clasificar_y_atender_cabecera(int, int, int);
+void clasificar_y_atender_cabecera(int,  enum MENSAJES, int);
 
 #endif /* MEMORIA_H_ */

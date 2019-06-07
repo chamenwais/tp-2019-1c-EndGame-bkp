@@ -24,6 +24,7 @@ void atender_drop(int, int);
 void atender_describe(int, int);
 void atender_describe_de_todas_las_tablas(tp_describe,int);
 void atender_describe_tabla_particular(tp_describe, int);
+void atender_journal(int);
 void realizar_describe_de_todas_las_tablas();
 tp_describe_particular_rta_a_kernel realizar_describe_para_tabla_particular(char *);
 void imprimir_informacion_tabla_particular(void *);

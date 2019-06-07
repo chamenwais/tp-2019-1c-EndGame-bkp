@@ -120,6 +120,18 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	}
 }
 
+void atender_journal(int cliente){
+	logger(escribir_loguear, l_info, "El kernel solicito realizar un journal");
+	enum MENSAJES resultado_journaling=notificar_escrituras_en_memoria_LFS(SOCKET_LISS);
+	if(resultado_journaling==REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "Journal pedido por socket finalizado correctamente");
+		prot_enviar_respuesta_journaling(cliente);
+	} else {
+		logger(escribir_loguear, l_info, "Journal pedido por socket finalizado pero con algún con error");
+		prot_enviar_error(resultado_journaling,cliente);
+	}
+}
+
 void retornar_respuesta_al_kernel(enum MENSAJES respuesta, void(*enviador_respuesta_ok)(int), int socket_kernel){
 	if(respuesta==REQUEST_SUCCESS){
 		enviador_respuesta_ok(socket_kernel);
@@ -278,8 +290,9 @@ tp_select_rta_a_kernel pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 		rta_select_a_kernel->respuesta=rta_pedido.tipoDeMensaje;
 		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
 			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
+		} else if(rta_pedido.tipoDeMensaje == KEY_NO_EXISTE){
+			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que la key no existe en la tabla");
 		}
-		//TODO si agregan KEY_NO_EXISTE se podría agregar un mensaje indicándolo
 	}
 
 	return rta_select_a_kernel;
