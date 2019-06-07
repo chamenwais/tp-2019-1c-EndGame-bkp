@@ -272,7 +272,7 @@ tp_select_rta_a_kernel pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 		tp_select_rta pedido_value = prot_recibir_respuesta_select(rta_pedido.tamanio, SOCKET_LISS);
 		convertir_respuesta_select(rta_select_a_kernel, pedido_value,
 				rta_pedido.tipoDeMensaje);
-		free(pedido_value);
+		//free(pedido_value);
 	} else {
 		rta_select_a_kernel->value=NULL;
 		rta_select_a_kernel->respuesta=rta_pedido.tipoDeMensaje;
