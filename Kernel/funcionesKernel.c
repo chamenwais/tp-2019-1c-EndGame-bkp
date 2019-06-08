@@ -754,12 +754,12 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	tp_memo_del_pool_kernel memoria;
 
-	char* tabla = obtenerTabla(operacion);
-	//buscar tabla en listaTablasCreadas y obtener el criterio
-	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 
 	memoria = list_get(listaSC, 0);
 
+	//char* tabla = obtenerTabla(operacion);
+	//buscar tabla en listaTablasCreadas y obtener el criterio
+	//logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	logger(escribir_loguear, l_info, "Se eligio la memoria %i\n", memoria->numero_memoria);
 
 		/*bool coincideNombre2(void* nodo){
@@ -820,7 +820,7 @@ tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
 			return false;
 		}
 
-	tp_memo_del_pool_kernel memo = list_get(lista, coincideNumero);
+	tp_memo_del_pool_kernel memo = list_find(lista, coincideNumero);
 	return memo;
 
 }
