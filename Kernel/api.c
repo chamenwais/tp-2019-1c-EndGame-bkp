@@ -97,15 +97,21 @@ int addConsola(int memnum, char* criterio){
 	logger(escribir_loguear, l_info, "Se va a agregar el criterio %s a la memoria %i", criterio, memnum);
 	if(existeMemoria(memnum)){
 		tp_memo_del_pool_kernel memoria = buscar_memorias_segun_numero(listaMemConectadas, memnum);
-		if(criterio == "SC") {
+		if((strcmp(criterio, "SC"))==0) {
+			pthread_mutex_lock(&mutex_SC);
 			list_add(listaSC, memoria);
-			printf("Se agrego la memoria %i al criterio SC", memnum);
-		}else if(criterio == "EC"){
+			pthread_mutex_unlock(&mutex_SC);
+			printf("Se agrego la memoria %i al criterio SC\n", memnum);
+		}else if((strcmp(criterio, "EC"))==0){
+			pthread_mutex_lock(&mutex_EC);
 			list_add(listaEC, memoria);
-			printf("Se agrego la memoria %i al criterio EC", memnum);
-		}else if(criterio == "HC"){
+			pthread_mutex_unlock(&mutex_EC);
+			printf("Se agrego la memoria %i al criterio EC\n", memnum);
+		}else if((strcmp(criterio, "HC"))==0){
+			pthread_mutex_lock(&mutex_HC);
 			list_add(listaHC, memoria);
-			printf("Se agrego la memoria %i al criterio HC", memnum);
+			pthread_mutex_unlock(&mutex_HC);
+			printf("Se agrego la memoria %i al criterio HC\n", memnum);
 		}else{
 			printf("Pifiaste el criterio amigue");
 		}
@@ -301,13 +307,13 @@ void *funcionHiloConsola(void *arg){
 						metricsConsola();
 				}else{
 					if((strcmp(instruccion[0],"add")==0) || (strcmp(instruccion[0], "ADD")==0)){
-						if((instruccion[1]=="MEMORY")&&(instruccion[2]!=NULL)&&(instruccion[3]=="TO")
+						if((strcmp(instruccion[1], "MEMORY")==0)&&(instruccion[2]!=NULL)&&((strcmp(instruccion[3], "TO"))==0)
 							&&(instruccion[4]!=NULL)){
 						printf("Voy a hacer ADD a la memoria %i, en el criterio %s\n",
 								atoi(instruccion[2]),instruccion[4]);
 						addConsola(atoi(instruccion[2]),instruccion[4]);
 						}else{
-							printf("Faltaron parametros en el ADD");
+							printf("Faltaron parametros en el ADD\n");
 						}
 				}else{
 					printf("Comando desconocido\n");

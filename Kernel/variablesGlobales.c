@@ -27,6 +27,9 @@ pthread_mutex_t mutex_Ready;
 pthread_mutex_t mutex_Exec;
 pthread_mutex_t mutex_Exit;
 pthread_mutex_t mutex_MemConectadas;
+pthread_mutex_t mutex_EC;
+pthread_mutex_t mutex_HC;
+pthread_mutex_t mutex_SC;
 
 sem_t NEW;
 sem_t READY;
@@ -39,8 +42,13 @@ int inicializarVariablesGlobales(){
 	return EXIT_SUCCESS;
 }
 
-int liberarRecursos(){
+void terminar_programa(int codigo_finalizacion){
+	logger(escribir_loguear, l_warning,"Se va a finalizar el kernel.");
+	log_destroy(LOG_KERNEL);
+	config_destroy(configKernel);
+	//destruirListas();
+	apagar_semaforos();
 
-	return EXIT_SUCCESS;
+	exit(codigo_finalizacion);
 }
 

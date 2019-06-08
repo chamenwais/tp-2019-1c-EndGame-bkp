@@ -39,7 +39,7 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria);
 void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria);
 void operacion_journal();
-tp_memo_del_pool_kernel decidir_memoria_a_utilizar(char *nombre_tabla);
+tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion);
 int lanzarPCP();
 void* funcionHiloPCP();
 void* funcionHiloPLP();
@@ -49,6 +49,8 @@ char* obtenerTabla(t_operacion resultado_del_parseado);
 void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb);
 bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb);
 tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero);
+void describeAll(int socket_memoria);
+void apagar_semaforos();
 
 
 #endif /* FUNCIONESKERNEL_H_ */

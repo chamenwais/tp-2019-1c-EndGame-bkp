@@ -19,7 +19,7 @@ int main(int argc,char** argv) {
 			if(lanzarPlanificador()==EXIT_SUCCESS){
 			if(lanzarPCP()==EXIT_SUCCESS){
 			if(esperarAQueTermineLaConsola()==EXIT_FAILURE){
-				liberarRecursos();
+				terminar_programa(EXIT_FAILURE);
 			}}}}}}}
 
 	return EXIT_SUCCESS;
