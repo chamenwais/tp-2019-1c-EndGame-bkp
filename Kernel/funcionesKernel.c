@@ -239,7 +239,7 @@ void apagar_semaforos(){
 
 }
 
-int conectarse_con_memoria(int ip, int puerto){
+int conectarse_con_memoria(char* ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
@@ -256,7 +256,11 @@ int conectarse_con_memoria(int ip, int puerto){
 	entrada_tabla_memorias->puerto = puerto;
 	entrada_tabla_memorias->numero_memoria = tu_variable_de_numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
+
+	logger(escribir_loguear, l_error, "LLEGO");
+
 	list_add(listaMemConectadas, entrada_tabla_memorias);
+	logger(escribir_loguear, l_error, "LLEGO1");
 	describeAll(socket_mem);
 	//list_add(listaSC, entrada_tabla_memorias); //BORRAR LUEGO, ES PARA PROBAR
 	return EXIT_SUCCESS;
@@ -449,26 +453,37 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 void describeAll(int socket_memoria) {
 	//PIDIERON UN DESCRIBE ALL
 	prot_enviar_describeAll(socket_memoria);
+
 	//Recibo rta
 	t_cabecera rta_pedido = recibirCabecera(socket_memoria);
+
+	logger(escribir_loguear, l_error, "LLEGO CABECERA");
+
 	if (rta_pedido.tipoDeMensaje == REQUEST_SUCCESS) {
-		tp_describeAll_rta info_de_las_tablas =
-				prot_recibir_respuesta_describeAll(rta_pedido.tamanio,
-						socket_memoria);
+		logger(escribir_loguear, l_error, "LLEGO A PEDIR RECIBIR RTA DEL DESCRIBE ALL");
+		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, socket_memoria);
+
+		logger(escribir_loguear, l_error, "LLEGO A RECIBIR RTA DEL DESCRIBE ALL");
+
 		//actualizo metadata
 		list_clean(listaTablasCreadas);
 
 		void actualizarTabla(void* nodo) {
-			tp_entrada_tabla_creada tabla = malloc(
-					sizeof(t_entrada_tabla_creada));
+			tp_entrada_tabla_creada tabla = malloc(sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = ((tp_describe_rta) nodo)->nombre;
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
 			list_add(listaTablasCreadas, tabla);
 		}
+
 		list_iterate(info_de_las_tablas->lista, actualizarTabla);
 		//Libero la lista
+		logger(escribir_loguear, l_error, "LLEGO A HACER EL DESCRIBE ALL");
 		prot_free_tp_describeAll_rta(info_de_las_tablas);
+
 	}
+
+	logger(escribir_loguear, l_error, "LLEGO3");
+
 	if (rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA) {
 		logger(escribir_loguear, l_error, "No hay tablas en el FS");
 	}

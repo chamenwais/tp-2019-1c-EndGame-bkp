@@ -18,7 +18,7 @@
 void inicializarLogKernel();
 int inicializarVariablesGlobales();
 int levantarConfiguracionInicialDelKernel();
-int conectarse_con_memoria(int ip, int puerto);
+int conectarse_con_memoria(char* ip, int puerto);
 void configurar_signals(void);
 void captura_signal(int);
 void logger(int tipo_esc, int tipo_log, const char* mensaje, ...);

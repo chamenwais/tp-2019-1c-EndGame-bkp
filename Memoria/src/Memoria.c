@@ -247,7 +247,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 						if (FD_ISSET(conexiones_cliente[i].socket, &readset)) {
 							int socket_llamador=conexiones_cliente[i].socket;
 							t_cabecera cabecera=recibirCabecera(socket_llamador);
-							if(cabecera.tamanio<=0)
+							if(cabecera.tamanio<0)
 							{
 								loguear_cerrar_conexion(socket_llamador,
 										socket_kernel, socket_lfs, i, readset);
