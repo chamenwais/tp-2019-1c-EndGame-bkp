@@ -8,7 +8,7 @@
 #include "GestionSegPaginada.h"
 
 int obtener_tamanio_marco() {
-	int tamanio_marco = sizeof(long) + sizeof(uint16_t) + sizeof(TAMANIO_VALUE)
+	int tamanio_marco = sizeof(long) + sizeof(uint16_t) + TAMANIO_VALUE
 			+ 1;
 	return tamanio_marco;
 }

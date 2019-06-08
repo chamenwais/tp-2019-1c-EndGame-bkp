@@ -32,5 +32,6 @@ enum MENSAJES realizar_drop(char *);
 void retornar_respuesta_al_kernel(enum MENSAJES, void(*enviador_respuesta_ok)(int), int);
 void convertir_respuesta_select(tp_select_rta_a_kernel,tp_select_rta, enum MENSAJES);
 void convertir_respuesta_describe_particular(tp_describe_particular_rta_a_kernel, tp_describe_rta, enum MENSAJES);
+void liberar_rta_interna_select(tp_select_rta);
 
 #endif /* SRC_MANEJOCONEXIONESYAPI_H_ */

@@ -111,12 +111,12 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	if(rta_describe_particular->respuesta==REQUEST_SUCCESS){
 		prot_enviar_respuesta_describe(rta_describe_particular->nombre, rta_describe_particular->particiones, rta_describe_particular->consistencia,
 				rta_describe_particular->tiempoDeCompactacion, cliente);
-		//free(rta_describe_particular->nombre);
-		//free(rta_describe_particular->consistencia);
-		//free(rta_describe_particular);
+		free(rta_describe_particular->nombre);
+		free(rta_describe_particular->consistencia);
+		free(rta_describe_particular);
 	} else {
 		prot_enviar_error(rta_describe_particular->respuesta,cliente);
-		//free(rta_describe_particular);
+		free(rta_describe_particular);
 	}
 }
 
@@ -307,6 +307,15 @@ void convertir_respuesta_select(tp_select_rta_a_kernel respuesta_a_kernel,
 	free(respuesta_memoria);
 }
 
+void liberar_rta_interna_select(tp_select_rta rta_interna_select) {
+	if (rta_interna_select != NULL){
+		if (rta_interna_select->value != NULL) {
+			free(rta_interna_select->value);
+		}
+		free(rta_interna_select);
+	}
+}
+
 tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 	tp_select_rta rta_select_MP = verificar_existencia_en_MP(nombre_tabla, key);
 	tp_select_rta_a_kernel rta_select_a_kernel;
@@ -317,6 +326,7 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 		convertir_respuesta_select(rta_select_a_kernel, rta_select_MP,
 				REQUEST_SUCCESS);
 	}else{
+		liberar_rta_interna_select(rta_select_MP);
 		logger(escribir_loguear, l_info, "No contengo el valor de la key solicitada");
 		logger(escribir_loguear, l_info, "Se enviara una solicitud al FS para obtener dicho valor");
 
@@ -340,4 +350,5 @@ void realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * v
 		insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
 	}
 	logger(escribir_loguear, l_info, "Se insertó el value '%s' para la key %d en memoria",value, key);
+	liberar_rta_interna_select(rta_select);
 }
