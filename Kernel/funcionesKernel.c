@@ -632,7 +632,9 @@ void* funcionHiloRequest(void* pcb){
 	char *ret="Cerrando hilo Request";
 	int i;
 	char* linea_a_ejecutar;
-	for (i = 0; i < quantum; ++i) {
+
+	while(!list_is_empty((*(tp_lql_pcb) pcb).lista)){//mientras no sea fin de archivo
+		for (i = 0; i < quantum; ++i) {
 		logger(escribir_loguear, l_info, "Se va a enviar la linea %i", i);
 		linea_a_ejecutar = list_remove((*(tp_lql_pcb) pcb).lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos la prox linea a ejecutar
 
@@ -646,20 +648,24 @@ void* funcionHiloRequest(void* pcb){
 		//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
 		realizar_operacion(rdo_del_parseado, pcb, memoria->socket);
+
+		}
+
+		if(!pcbEstaEnLista(listaExit, pcb)){
+			pthread_mutex_lock(&mutex_Exec);
+			remover_pcb_de_lista(listaExec, pcb);
+			pthread_mutex_unlock(&mutex_Exec);
+			pthread_mutex_lock(&mutex_Ready);
+			list_add(listaReady, pcb);
+			pthread_mutex_unlock(&mutex_Ready);
+			logger(escribir_loguear, l_info, "El PCB %s vuelve a READY\n", ((tp_lql_pcb) pcb)->path);
+			sem_post(&READY);
+			pthread_exit(ret);
+			return EXIT_SUCCESS;
+		}
 	}
 
-	if(!pcbEstaEnLista(listaExit, pcb)){
-		pthread_mutex_lock(&mutex_Exec);
-		remover_pcb_de_lista(listaExec, pcb);
-		pthread_mutex_unlock(&mutex_Exec);
-		pthread_mutex_lock(&mutex_Ready);
-		list_add(listaReady, pcb);
-		pthread_mutex_unlock(&mutex_Ready);
-		logger(escribir_loguear, l_info, "El PCB %s vuelve a READY\n", ((tp_lql_pcb) pcb)->path);
-		sem_post(&READY);
-		pthread_exit(ret);
-		return EXIT_SUCCESS;
-	}
+	logger(escribir_loguear, l_warning, "HASTA ACA LLEGA EL LQL");
 
 	pthread_exit(ret);
 	return EXIT_SUCCESS;
