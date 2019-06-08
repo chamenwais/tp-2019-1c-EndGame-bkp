@@ -56,17 +56,34 @@ void *funcionHiloConsola(void *arg){
 				}
 			}else{
 			if((strcmp(instruccion[0],"insert")==0) || (strcmp(instruccion[0],"INSERT")==0)){
-				if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&(instruccion[3]!=NULL)
-						&&(instruccion[4]!=NULL)){
+				//parsearInsert(linea);
+
+
+				char** instraccionesAux = string_split(linea, "\"");
+				/* De: INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]
+				 * Me queda separado en:
+				 * INSERT [NOMBRE_TABLA] [KEY]
+				 * [VALUE]
+				 * [Timestamp]
+				 * */
+				char** instruccion = string_split(instraccionesAux[0], " ");
+				/* De: INSERT [NOMBRE_TABLA] [KEY]
+				 * Me queda separado en:
+				 * INSERT
+				 * [NOMBRE_TABLA]
+				 * [KEY]
+				 * */
+				if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&(instraccionesAux[1]!=NULL)
+						&&(instraccionesAux[2]!=NULL)){
 					printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y el timestamp %d\n",
-							instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
-					consolaInsert(instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
+							instruccion[1],atoi(instruccion[2]),instraccionesAux[1],atoi(instraccionesAux[2]));
+					consolaInsert(instruccion[1],atoi(instruccion[2]),instraccionesAux[1],atoi(instraccionesAux[2]));
 				}else{
 					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&
-							(instruccion[3]!=NULL)&&(instruccion[4]==NULL)){
+							(instraccionesAux[1]!=NULL)&&(instraccionesAux[2]==NULL)){
 						printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y sin timestamp\n",
-								instruccion[1],atoi(instruccion[2]),instruccion[3]);
-						consolaInsertSinTime(instruccion[1],atoi(instruccion[2]),instruccion[3]);
+								instruccion[1],atoi(instruccion[2]),instraccionesAux[1]);
+						consolaInsertSinTime(instruccion[1],atoi(instruccion[2]),instraccionesAux[1]);
 					}else{
 						printf("Faltan parametros para poder hacer un insert\n");}
 					}
