@@ -165,6 +165,7 @@ int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 }
 
 int liberarBloquesYParticiones(char* nombreDeLaTabla){
+	log_info(LOGGERFS,"Voy a borrar los bloques y las particiones");
 	t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 	char* nombreDelArchivo;
 	char* directorio=string_new();
@@ -172,15 +173,35 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 	string_append(&directorio, "/Tables/");
 	string_append(&directorio, nombreDeLaTabla);
 	string_append(&directorio, "/");
-
-	for(int i=1;i<=metadataDeLaTabla.particiones;i++){
+	char* ubicacionDelBloque;
+	char* directorioDeBloques= string_new();
+	string_append(&directorioDeBloques,configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeBloques,"/Blocks/");
+	for(int i=0;i<metadataDeLaTabla.particiones;i++){
 		char* nombreDelArchivo=string_new();
 		string_append(&nombreDelArchivo, directorio);
 		string_append(&nombreDelArchivo, string_itoa(i));
 		string_append(&nombreDelArchivo, ".bin");
+		t_config* configuracion = config_create(nombreDelArchivo);
+		char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
+		config_destroy(configuracion);
+		for(int i=0;arrayDeBloques[i]!=NULL;i++){
+			ubicacionDelBloque=string_new();
+			log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
+			liberarBloqueDelBitmap(atoi(arrayDeBloques[i]));
+			string_append(&ubicacionDelBloque,directorioDeBloques);
+			string_append(&ubicacionDelBloque,arrayDeBloques[i]);
+			string_append(&ubicacionDelBloque,".bin");
+			log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
+			remove(ubicacionDelBloque);
+			free(ubicacionDelBloque);
+			free(arrayDeBloques[i]);
+			}
+		log_info(LOGGERFS,"Borrando el archivo %s", nombreDelArchivo);
 		remove(nombreDelArchivo);
 		free(nombreDelArchivo);
 		}
+	free(directorioDeBloques);
 	return EXIT_SUCCESS;
 }
 
