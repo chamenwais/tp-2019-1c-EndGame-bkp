@@ -117,14 +117,25 @@ int lanzarDumps(){
 	directorio = opendir(ubicacionDeLasCarpetasDeBloque);
 	if(directorio){
 		while ((carpeta = readdir(directorio)) != NULL){
-            if(true){
+            if((!string_equals_ignore_case(carpeta->d_name,".."))&&
+            		(!string_equals_ignore_case(carpeta->d_name,"."))){
             	//veo q no sea .. ni .
             	log_info(LOGGERFS,"Agregado dump para la tabla %s", carpeta->d_name);
+            	char*nombreDeLaTabla=string_new();
+            	string_append(&nombreDeLaTabla, carpeta->d_name);
+            	lanzarHiloParaLaTabla(nombreDeLaTabla);
+            }else{
+            	log_info(LOGGERFS,"%s No es una carpeta de tablas, no lanzo el hilo", carpeta->d_name);
             	}
 	        }
         closedir(directorio);
 	    }
 	free(ubicacionDeLasCarpetasDeBloque);
+	return EXIT_SUCCESS;
+}
+
+int lanzarHiloParaLaTabla(nombreDeLaTabla){
+
 	return EXIT_SUCCESS;
 }
 
