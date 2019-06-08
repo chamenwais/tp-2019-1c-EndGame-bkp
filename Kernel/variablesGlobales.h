@@ -56,7 +56,7 @@ typedef t_lql_pcb* tp_lql_pcb;
 
 typedef struct entrada_tabla_creada {
 	char* nombre_tabla;
-	int criterio;
+	char* criterio;
 }t_entrada_tabla_creada;
 typedef t_entrada_tabla_creada* tp_entrada_tabla_creada;
 
@@ -138,6 +138,9 @@ extern pthread_mutex_t mutex_Ready;
 extern pthread_mutex_t mutex_Exec;
 extern pthread_mutex_t mutex_Exit;
 extern pthread_mutex_t mutex_MemConectadas;
+extern pthread_mutex_t mutex_EC;
+extern pthread_mutex_t mutex_HC;
+extern pthread_mutex_t mutex_SC;
 extern sem_t NEW;
 extern sem_t READY;
 extern int quantum;

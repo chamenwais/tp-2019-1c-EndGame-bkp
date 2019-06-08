@@ -218,6 +218,9 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&mutex_Exec, NULL);
 	pthread_mutex_init(&mutex_Exit, NULL);
 	pthread_mutex_init(&mutex_MemConectadas, NULL);
+	pthread_mutex_init(&mutex_SC, NULL);
+	pthread_mutex_init(&mutex_EC, NULL);
+	pthread_mutex_init(&mutex_HC, NULL);
 	return EXIT_SUCCESS;
 }
 
@@ -239,7 +242,8 @@ int conectarse_con_memoria(int ip, int puerto){
 	entrada_tabla_memorias->numero_memoria = tu_variable_de_numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
 	list_add(listaMemConectadas, entrada_tabla_memorias);
-	list_add(listaSC, entrada_tabla_memorias); //BORRAR LUEGO, ES PARA PROBAR
+	describeAll(socket_mem);
+	//list_add(listaSC, entrada_tabla_memorias); //BORRAR LUEGO, ES PARA PROBAR
 	return EXIT_SUCCESS;
 }
 
@@ -327,7 +331,7 @@ void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
 
 void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria){
 
-	//if(existeTabla(nombre_tabla)){
+	if(existeTabla(nombre_tabla)){
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion select");
 		prot_enviar_select(nombre_tabla, key, socket_memoria);
@@ -353,8 +357,8 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 			logger(escribir_loguear, l_error, "No existe la tabla en el FS");
 		}
 
-	//}else{//termino el script
-	/*	logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
+	}else{//termino el script
+		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
 		pthread_mutex_unlock(&mutex_Exec);
@@ -362,13 +366,13 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		list_add(listaExit, pcb);
 		pthread_mutex_unlock(&mutex_Exit);
 		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
-	}*/
+	}
 
 }
 
 void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, int socket_memoria){
 
-	//if(existeTabla(nombre_tabla)){
+	if(existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
 
 		long timestamp;
@@ -383,8 +387,8 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		if(insercion == REQUEST_SUCCESS){
 			logger(escribir_loguear, l_info, "La memoria realizo el insert correctamente");
 		}
-	//}else{//terminar script
-	/*	logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
+	}else{//terminar script
+		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
 		pthread_mutex_unlock(&mutex_Exec);
@@ -392,14 +396,14 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		list_add(listaExit, pcb);
 		pthread_mutex_unlock(&mutex_Exit);
 		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
-*/
-	//}
+
+	}
 
 }
 
 void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
 
-	//if(!existeTabla(nombre_tabla)){
+	if(!existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Se le solicita a la memoria crear la tabla: %s", nombre_tabla);
 		prot_enviar_create(nombre_tabla, tipo_consistencia, num_particiones, compaction_time, socket_memoria);
 
@@ -413,8 +417,8 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 			logger(escribir_loguear, l_info, "Ya existe la tabla que queres crear");
 		}
 
-	//}else{//terminar script
-/*
+	}else{//terminar script
+
 		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
@@ -423,8 +427,36 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 		list_add(listaExit, pcb);
 		pthread_mutex_unlock(&mutex_Exit);
 		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
-*/
-	//}
+
+	}
+}
+
+void describeAll(int socket_memoria) {
+	//PIDIERON UN DESCRIBE ALL
+	prot_enviar_describeAll(socket_memoria);
+	//Recibo rta
+	t_cabecera rta_pedido = recibirCabecera(socket_memoria);
+	if (rta_pedido.tipoDeMensaje == REQUEST_SUCCESS) {
+		tp_describeAll_rta info_de_las_tablas =
+				prot_recibir_respuesta_describeAll(rta_pedido.tamanio,
+						socket_memoria);
+		//actualizo metadata
+		list_clean(listaTablasCreadas);
+
+		void actualizarTabla(void* nodo) {
+			tp_entrada_tabla_creada tabla = malloc(
+					sizeof(t_entrada_tabla_creada));
+			tabla->nombre_tabla = ((tp_describe_rta) nodo)->nombre;
+			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
+			list_add(listaTablasCreadas, tabla);
+		}
+		list_iterate(info_de_las_tablas->lista, actualizarTabla);
+		//Libero la lista
+		prot_free_tp_describeAll_rta(info_de_las_tablas);
+	}
+	if (rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA) {
+		logger(escribir_loguear, l_error, "No hay tablas en el FS");
+	}
 }
 
 void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
@@ -461,27 +493,7 @@ void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 
 	if(nombre_tabla == NULL){
 		//PIDIERON UN DESCRIBE ALL
-		prot_enviar_describeAll(socket_memoria);
-
-		//Recibo rta
-		t_cabecera rta_pedido = recibirCabecera(socket_memoria);
-
-		if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
-			tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, socket_memoria);
-
-			/*
-			 * HACER LO QUE TENGAS QUE HACER CON EL PCB
-			 * EN INFO_DE_LAS_TABLAS TENES TODA LA INFORMACION QUE LLEGA DEL FILESYSTEM
-			 */
-
-			//Libero la lista
-			prot_free_tp_describeAll_rta(info_de_las_tablas);
-		}
-
-		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
-			logger(escribir_loguear, l_error, "No hay tablas en el FS");
-		}
-
+		describeAll(socket_memoria);
 	}
 }
 
@@ -631,12 +643,13 @@ return EXIT_SUCCESS;
 
 void* funcionHiloRequest(void* pcb){
 	char *ret="Cerrando hilo Request";
+	char *ret2="No hay memoria asignada al criterio, se cierra el hilo";
 	int i;
 	char* linea_a_ejecutar;
 
 	while(!list_is_empty((*(tp_lql_pcb) pcb).lista)){//mientras no sea fin de archivo
 		for (i = 0; i < quantum; ++i) {
-		logger(escribir_loguear, l_debug, "\nSe va a enviar la linea %i", i);
+
 		linea_a_ejecutar = list_remove((*(tp_lql_pcb) pcb).lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos la prox linea a ejecutar
 
 			if(linea_a_ejecutar!=NULL){
@@ -644,8 +657,11 @@ void* funcionHiloRequest(void* pcb){
 				t_operacion rdo_del_parseado = parsear(linea_a_ejecutar);
 
 				//Elegir memoria de acuerdo a la tabla
-				char* tabla = obtenerTabla(rdo_del_parseado);
-				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(tabla);
+
+				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(rdo_del_parseado);
+				if(memoria == NULL){
+					pthread_exit(ret2);
+				}
 
 				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
@@ -679,19 +695,19 @@ char* obtenerTabla(t_operacion resultado_del_parseado){
 	char* tabla = string_new();
 	switch(resultado_del_parseado.tipo_de_operacion){
 		case _SELECT:
-			strcpy(tabla, resultado_del_parseado.parametros.select.nombre_tabla);
+			tabla = string_duplicate(resultado_del_parseado.parametros.select.nombre_tabla);
 			break;
 		case _INSERT:
-			strcpy(tabla, resultado_del_parseado.parametros.insert.nombre_tabla);
+			tabla = string_duplicate(resultado_del_parseado.parametros.insert.nombre_tabla);
 			break;
 		case _CREATE:
-			strcpy(tabla, resultado_del_parseado.parametros.create.nombre_tabla);
+			tabla = string_duplicate(resultado_del_parseado.parametros.create.nombre_tabla);
 			break;
 		case _DESCRIBE:
-			strcpy(tabla, resultado_del_parseado.parametros.describe.nombre_tabla);
+			tabla = string_duplicate(resultado_del_parseado.parametros.describe.nombre_tabla);
 			break;
 		case _DROP:
-			strcpy(tabla, resultado_del_parseado.parametros.drop.nombre_tabla);
+			tabla = string_duplicate(resultado_del_parseado.parametros.drop.nombre_tabla);
 			break;
 	}
 	return tabla;
@@ -720,31 +736,60 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 	return list_any_satisfy(lista, coincideElPath);
 }
 
-tp_memo_del_pool_kernel decidir_memoria_a_utilizar(char* nombre_tabla){
+tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	tp_memo_del_pool_kernel memoria;
-	//buscar tabla en listaTablasCreadas y obtener el criterio
-	logger(escribir_loguear, l_debug, "Eligiendo memoria para la tabla %s\n", nombre_tabla);
-	tp_entrada_tabla_creada entrada = list_find(listaTablasCreadas, existeTabla);
-	memoria = list_get(listaSC, 0);
 
-/*
+	char* tabla = obtenerTabla(operacion);
+	//buscar tabla en listaTablasCreadas y obtener el criterio
+	//logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
+
+
+		bool coincideNombre2(void* nodo){
+			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
+				return true;
+			}
+			return false;
+		}
+
+	tp_entrada_tabla_creada entrada = list_find(listaTablasCreadas, coincideNombre2);
+	//memoria = list_get(listaSC, 0);
+
+
 	//buscar las memorias que tengan ese criterio asignado y elegir
 	if(entrada != NULL){
-		int criterio = entrada->criterio;
-		switch (criterio) {
-			case SC:
+		char* criterio = malloc(strlen(entrada->criterio)+1);
+		strcpy(criterio, entrada->criterio);
+		if((strcmp(criterio, "SC"))==0 && (!list_is_empty(listaSC))) {
+				pthread_mutex_lock(&listaSC);
 				memoria = list_get(listaSC, 0);
+				pthread_mutex_unlock(&listaSC);
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
-				break;
-			case HC:
+		}else if(strcmp(criterio, "HC")==0 && (!list_is_empty(listaHC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
-				break;
-			case EC:
+		}else if(strcmp(criterio, "EC")==0 && (!list_is_empty(listaEC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
-				break;
+		}else{
+			logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
+			memoria = NULL;
 		}
-	}  FACU, EL CRITERIO ES UN CHAR* !!!!! SINO LAS FUNCIONES DE COM NO FUNCAN
-*/
+	}else{
+		char* criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
+		//strcpy(criterio, operacion.parametros.create.tipo_consistencia);
+		if((string_equals_ignore_case(criterio, "SC")) && (!list_is_empty(listaSC))) {
+				pthread_mutex_lock(&listaSC);
+				memoria = list_get(listaSC, 0);
+				pthread_mutex_unlock(&listaSC);
+				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
+		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
+				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
+		}else if(string_equals_ignore_case(criterio, "EC") && (!list_is_empty(listaEC))){
+				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
+		}else{
+			logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
+			memoria = NULL;
+		}
+	}
+
 	return memoria;
 }
 
