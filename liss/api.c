@@ -56,9 +56,6 @@ void *funcionHiloConsola(void *arg){
 				}
 			}else{
 			if((strcmp(instruccion[0],"insert")==0) || (strcmp(instruccion[0],"INSERT")==0)){
-				//parsearInsert(linea);
-
-
 				char** instraccionesAux = string_split(linea, "\"");
 				/* De: INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]
 				 * Me queda separado en:

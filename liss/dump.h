@@ -9,6 +9,7 @@
 #define DUMP_H_
 
 #include "lissandra.h"
+#include <dirent.h>
 
 int dump(char* nombreDeLaTabla);
 char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla);

@@ -109,7 +109,22 @@ int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 }
 
 int lanzarDumps(){
-
+	char* ubicacionDeLasCarpetasDeBloque=string_new();
+	string_append(&ubicacionDeLasCarpetasDeBloque, configuracionDelFS.puntoDeMontaje);
+	string_append(&ubicacionDeLasCarpetasDeBloque, "/Tables");
+	DIR *directorio;
+	struct dirent *carpeta;
+	directorio = opendir(ubicacionDeLasCarpetasDeBloque);
+	if(directorio){
+		while ((carpeta = readdir(directorio)) != NULL){
+            if(true){
+            	//veo q no sea .. ni .
+            	log_info(LOGGERFS,"Agregado dump para la tabla %s", carpeta->d_name);
+            	}
+	        }
+        closedir(directorio);
+	    }
+	free(ubicacionDeLasCarpetasDeBloque);
 	return EXIT_SUCCESS;
 }
 
