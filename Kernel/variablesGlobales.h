@@ -141,6 +141,7 @@ extern pthread_mutex_t mutex_MemConectadas;
 extern sem_t NEW;
 extern sem_t READY;
 extern int quantum;
+extern int retardo;
 
 int inicializarVariablesGlobales();
 int liberarRecursos();

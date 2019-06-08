@@ -99,7 +99,7 @@ void logger(int tipo_esc, int tipo_log, const char* mensaje, ...){
 
 void inicializarLogKernel(){
 	LOG_KERNEL = log_create("Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
-	logger(escribir_loguear, l_info,"Log del Kernel iniciado");
+	logger(escribir_loguear, l_debug,"Log del Kernel iniciado");
 	return;
 }
 
@@ -185,6 +185,7 @@ int levantarConfiguracionInicialDelKernel(){
 		configKernel.retardoCiclo = config_get_int_value(configuracion,"RETARDO_CICLO");
 		logger(escribir_loguear, l_info,"retardo_ciclo del archivo de configuracion del Kernel recuperado: %d",
 				configKernel.retardoCiclo);
+		retardo = configKernel.retardoCiclo;
 
 	config_destroy(configuracion);
 	logger(escribir_loguear, l_info,"Configuracion del Kernel recuperada exitosamente");
@@ -243,7 +244,7 @@ int conectarse_con_memoria(int ip, int puerto){
 }
 
 void enviar_handshake(int socket){
-	logger(escribir_loguear, l_info, "Se intenta enviar handshake a memoria");
+	logger(escribir_loguear, l_debug, "Se intenta enviar handshake a memoria");
 	if (enviarHandshake(KERNEL, MEMORIA, socket) == 0) {
 		logger(escribir_loguear, l_error, "No se pudo enviar handshake a memoria");
 		close(socket);
@@ -372,7 +373,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 		long timestamp;
 		timestamp=(unsigned)time(NULL);
-		logger(escribir_loguear, l_debug,"El timestamp fue '%d'",timestamp);
+		logger(escribir_loguear, l_info,"El timestamp fue '%d'",timestamp);
 
 		prot_enviar_insert(nombre_tabla, key, value, timestamp, socket_memoria);
 
@@ -544,7 +545,7 @@ int lanzarPlanificador(){
 			exit(EXIT_FAILURE);
 			}
 		else{
-			logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion a largo plazo");
+			logger(escribir_loguear, l_trace ,"Se creo el hilo para la planificacion a largo plazo");
 			return EXIT_SUCCESS;
 			}
 
@@ -554,10 +555,10 @@ int lanzarPlanificador(){
 void* funcionHiloPLP(){
 	char *ret="Cerrando hilo PLP";
 	while(1){
-		logger(escribir_loguear, l_info, "El PLP esta bloqueado\n"); /// para salto de linea es barra invertida
+		logger(escribir_loguear, l_trace, "El PLP esta bloqueado\n"); /// para salto de linea es barra invertida
 
 		sem_wait(&NEW);
-		logger(escribir_loguear, l_info, "Se desbloqueo el PLP\n");
+		logger(escribir_loguear, l_trace, "Se desbloqueo el PLP\n");
 		tp_lql_pcb nuevo_pcb;
 		pthread_mutex_lock(&mutex_New);
 		nuevo_pcb = list_remove(listaNew, 0); //remueve el primer elemento y lo retorna
@@ -581,7 +582,7 @@ int lanzarPCP(){
 				exit(EXIT_FAILURE);
 				}
 			else{
-				logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion a corto plazo");
+				logger(escribir_loguear, l_trace ,"Se creo el hilo para la planificacion a corto plazo");
 				return EXIT_SUCCESS;
 				}
 
@@ -593,7 +594,7 @@ void* funcionHiloPCP(){
 	while(1){
 		sem_wait(&READY);
 		if(list_size(listaReady) > 0 && list_size(listaExec) < configKernel.multiprocesamiento){
-			logger(escribir_loguear, l_info, "Se activa el PCP");
+			logger(escribir_loguear, l_trace, "Se activa el PCP");
 			tp_lql_pcb pcb_a_planificar;
 			pthread_mutex_lock(&mutex_Ready);
 			pcb_a_planificar = list_remove(listaReady, 0); //devuelve el primer elemento de la lista de Ready
@@ -620,7 +621,7 @@ int lanzarHiloRequest(tp_lql_pcb pcb){
 		exit(EXIT_FAILURE);
 		}
 	else{
-		logger(escribir_loguear, l_info ,"Se creo el hilo para la planificacion del LQL %s\n", pcb->path);
+		logger(escribir_loguear, l_trace ,"Se creo el hilo para la planificacion del LQL %s\n", pcb->path);
 		return EXIT_SUCCESS;
 		}
 
@@ -635,20 +636,23 @@ void* funcionHiloRequest(void* pcb){
 
 	while(!list_is_empty((*(tp_lql_pcb) pcb).lista)){//mientras no sea fin de archivo
 		for (i = 0; i < quantum; ++i) {
-		logger(escribir_loguear, l_info, "Se va a enviar la linea %i", i);
+		logger(escribir_loguear, l_debug, "\nSe va a enviar la linea %i", i);
 		linea_a_ejecutar = list_remove((*(tp_lql_pcb) pcb).lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos la prox linea a ejecutar
 
-		//Parsear la linea
-		t_operacion rdo_del_parseado = parsear(linea_a_ejecutar);
+			if(linea_a_ejecutar!=NULL){
+				//Parsear la linea
+				t_operacion rdo_del_parseado = parsear(linea_a_ejecutar);
 
-		//Elegir memoria de acuerdo a la tabla
-		char* tabla = obtenerTabla(rdo_del_parseado);
-		tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(tabla);
+				//Elegir memoria de acuerdo a la tabla
+				char* tabla = obtenerTabla(rdo_del_parseado);
+				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(tabla);
 
-		//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
+				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
-		realizar_operacion(rdo_del_parseado, pcb, memoria->socket);
+				usleep(retardo*1000);
+				realizar_operacion(rdo_del_parseado, pcb, memoria->socket);
 
+			}
 		}
 
 		if(!pcbEstaEnLista(listaExit, pcb)){
@@ -658,7 +662,7 @@ void* funcionHiloRequest(void* pcb){
 			pthread_mutex_lock(&mutex_Ready);
 			list_add(listaReady, pcb);
 			pthread_mutex_unlock(&mutex_Ready);
-			logger(escribir_loguear, l_info, "El PCB %s vuelve a READY\n", ((tp_lql_pcb) pcb)->path);
+			logger(escribir_loguear, l_trace, "El PCB %s vuelve a READY\n", ((tp_lql_pcb) pcb)->path);
 			sem_post(&READY);
 			pthread_exit(ret);
 			return EXIT_SUCCESS;
@@ -719,7 +723,7 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(char* nombre_tabla){
 	tp_memo_del_pool_kernel memoria;
 	//buscar tabla en listaTablasCreadas y obtener el criterio
-	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", nombre_tabla);
+	logger(escribir_loguear, l_debug, "Eligiendo memoria para la tabla %s\n", nombre_tabla);
 	tp_entrada_tabla_creada entrada = list_find(listaTablasCreadas, existeTabla);
 	memoria = list_get(listaSC, 0);
 
