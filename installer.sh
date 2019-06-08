@@ -16,6 +16,7 @@ make clean
 make all
 cd ../..
 sudo apt-get install libcunit1-dev libcunit1-doc libcunit1
+sleep 1m
 cd Memoria/Debug
 make clean
 make all
