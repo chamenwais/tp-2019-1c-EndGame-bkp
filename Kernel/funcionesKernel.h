@@ -50,6 +50,7 @@ void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb);
 bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb);
 tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero);
 void describeAll(int socket_memoria);
+void apagar_semaforos();
 
 
 #endif /* FUNCIONESKERNEL_H_ */

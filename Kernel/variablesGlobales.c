@@ -42,8 +42,13 @@ int inicializarVariablesGlobales(){
 	return EXIT_SUCCESS;
 }
 
-int liberarRecursos(){
+void terminar_programa(int codigo_finalizacion){
+	logger(escribir_loguear, l_warning,"Se va a finalizar el kernel.");
+	log_destroy(LOG_KERNEL);
+	config_destroy(configKernel);
+	//destruirListas();
+	apagar_semaforos();
 
-	return EXIT_SUCCESS;
+	exit(codigo_finalizacion);
 }
 

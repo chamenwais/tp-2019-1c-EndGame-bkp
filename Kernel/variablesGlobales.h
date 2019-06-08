@@ -147,6 +147,6 @@ extern int quantum;
 extern int retardo;
 
 int inicializarVariablesGlobales();
-int liberarRecursos();
+void terminar_programa(int codigo_finalizacion);
 
 #endif /* VARIABLESGLOBALES_H_ */

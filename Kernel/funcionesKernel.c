@@ -224,6 +224,21 @@ int inicializarSemaforos(){
 	return EXIT_SUCCESS;
 }
 
+void apagar_semaforos(){
+		sem_destroy(&NEW);
+		sem_destroy(&READY);
+
+		pthread_mutex_destroy(&mutex_New);
+		pthread_mutex_destroy(&mutex_Ready);
+		pthread_mutex_destroy(&mutex_Exec);
+		pthread_mutex_destroy(&mutex_Exit);
+		pthread_mutex_destroy(&mutex_MemConectadas);
+		pthread_mutex_destroy(&mutex_SC);
+		pthread_mutex_destroy(&mutex_EC);
+		pthread_mutex_destroy(&mutex_HC);
+
+}
+
 int conectarse_con_memoria(int ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
