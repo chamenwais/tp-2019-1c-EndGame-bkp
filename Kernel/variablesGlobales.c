@@ -32,9 +32,9 @@ sem_t NEW;
 sem_t READY;
 
 int quantum;
+int retardo;
 
 int inicializarVariablesGlobales(){
-
 
 	return EXIT_SUCCESS;
 }

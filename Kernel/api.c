@@ -82,7 +82,7 @@ int runConsola(char* path){
 	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
 	pthread_mutex_lock(&mutex_New);
 	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_info, "Se agrega el nuevo LQL a la cola de NEW");
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
 	pthread_mutex_unlock(&mutex_New);
 	sem_post(&NEW);//habilito PLP
 
@@ -210,7 +210,7 @@ void *funcionHiloConsola(void *arg){
 		char *ret="Cerrando hilo";
 		char** instruccion;
 		char* ubicacionDelPunteroDeLaConsola;
-		logger(escribir_loguear, l_info,"Consola o Sinsola... aqui vamos!");
+		logger(escribir_loguear, l_warning,"Consola o Sinsola... aqui vamos!");
 		//printf("Si necesita saber las funciones que hay disponibles llame a la funcion \"man\"\n");
 		while(1){
 			ubicacionDelPunteroDeLaConsola=string_new();
@@ -225,7 +225,7 @@ void *funcionHiloConsola(void *arg){
 					for(int p=0;instruccion[p]!=NULL;p++) free(instruccion[p]);
 					free(instruccion);
 					free(linea);
-					logger(escribir_loguear, l_info,"Chau chau adios consola");
+					logger(escribir_loguear, l_warning,"Chau chau adios consola");
 					return ret;
 				}else{
 				if((strcmp(instruccion[0],"select")==0) || (strcmp(instruccion[0],"SELECT")==0)){
