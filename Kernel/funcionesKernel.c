@@ -741,7 +741,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 
 	char* tabla = obtenerTabla(operacion);
 	//buscar tabla en listaTablasCreadas y obtener el criterio
-	//logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
+	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 
 
 		bool coincideNombre2(void* nodo){
@@ -760,9 +760,9 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 		char* criterio = malloc(strlen(entrada->criterio)+1);
 		strcpy(criterio, entrada->criterio);
 		if((strcmp(criterio, "SC"))==0 && (!list_is_empty(listaSC))) {
-				pthread_mutex_lock(&listaSC);
+				pthread_mutex_lock(&mutex_SC);
 				memoria = list_get(listaSC, 0);
-				pthread_mutex_unlock(&listaSC);
+				pthread_mutex_unlock(&mutex_SC);
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
 		}else if(strcmp(criterio, "HC")==0 && (!list_is_empty(listaHC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
