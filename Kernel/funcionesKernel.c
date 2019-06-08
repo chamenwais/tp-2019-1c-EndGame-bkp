@@ -31,13 +31,13 @@ void captura_signal(int signo){
     if(signo == SIGINT)
     {
     	logger(escribir_loguear, l_warning,"Finalizando proceso kernel...");
-    	//terminar_programa(EXIT_SUCCESS); TODO
+    	terminar_programa(EXIT_SUCCESS);
     	exit(EXIT_SUCCESS);
     }
     else if(signo == SIGPIPE)
     {
     	logger(escribir_loguear, l_error," Se desconectó un proceso al que se quizo enviar.");
-    	//terminar_programa(EXIT_FAILURE); TODO
+    	terminar_programa(EXIT_FAILURE);
     	exit(EXIT_FAILURE);
     }
 
@@ -680,7 +680,7 @@ void* funcionHiloRequest(void* pcb){
 
 				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
-				usleep(retardo*1000);
+				//usleep(retardo);
 				realizar_operacion(rdo_del_parseado, pcb, memoria->socket);
 
 			}
@@ -758,8 +758,11 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	//buscar tabla en listaTablasCreadas y obtener el criterio
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 
+	memoria = list_get(listaSC, 0);
 
-		bool coincideNombre2(void* nodo){
+	logger(escribir_loguear, l_info, "Se eligio la memoria %i\n", memoria->numero_memoria);
+
+		/*bool coincideNombre2(void* nodo){
 			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
 				return true;
 			}
@@ -767,7 +770,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 		}
 
 	tp_entrada_tabla_creada entrada = list_find(listaTablasCreadas, coincideNombre2);
-	//memoria = list_get(listaSC, 0);
+
 
 
 	//buscar las memorias que tengan ese criterio asignado y elegir
@@ -804,7 +807,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 			memoria = NULL;
 		}
 	}
-
+*/
 	return memoria;
 }
 
