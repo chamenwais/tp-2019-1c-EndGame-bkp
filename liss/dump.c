@@ -134,7 +134,31 @@ int lanzarDumps(){
 	return EXIT_SUCCESS;
 }
 
+void hiloDeDumpeo(tp_hiloDeDumpeo hiloDeDumpeo){
+	return;
+}
+
+
 int lanzarHiloParaLaTabla(nombreDeLaTabla){
+	log_info(LOGGERFS,"Voy a crear un hilo detachabe de dump para la tabla: %s", nombreDeLaTabla);
+	tp_hiloDeDumpeo dumpTable;
+
+	dumpTable->nombreDeLaTabla=string_duplicate(nombreDeLaTabla);
+	pthread_attr_init(&(dumpTable->attr));
+	pthread_attr_setdetachstate(&(dumpTable->attr), PTHREAD_CREATE_DETACHED);
+	pthread_create(&(dumpTable->thread), &(dumpTable->attr), &hiloDeDumpeo(), dumpTable);
+	pthread_attr_destroy(&(dumpTable->attr));
+
+		int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
+				funcionHiloConsola, "Hilo consola");
+		if(resultadoDeCrearHilo){
+			log_error(LOGGERFS,"Error al crear el hilo de la consola, return code: %d",
+					resultadoDeCrearHilo);
+			exit(EXIT_FAILURE);
+		}else{
+			log_info(LOGGERFS,"La consola se creo exitosamente");
+			return EXIT_SUCCESS;
+			}
 
 	return EXIT_SUCCESS;
 }
