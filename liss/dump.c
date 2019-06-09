@@ -135,31 +135,28 @@ int lanzarDumps(){
 }
 
 void hiloDeDumpeo(tp_hiloDeDumpeo hiloDeDumpeo){
+	log_info(LOGGERFS,"Hilo creado voy a empezar a ciclar el dump de %s, cada %d",
+			hiloDeDumpeo->nombreDeLaTabla, hiloDeDumpeo->tiempoDeSleep);
+	while(!hayQueFinalizar()){
+		dump(hiloDeDumpeo->nombreDeLaTabla);
+		sleep(hiloDeDumpeo->tiempoDeSleep);
+		}
 	return;
 }
 
 
-int lanzarHiloParaLaTabla(nombreDeLaTabla){
-	log_info(LOGGERFS,"Voy a crear un hilo detachabe de dump para la tabla: %s", nombreDeLaTabla);
-	tp_hiloDeDumpeo dumpTable;
-
+int lanzarHiloParaLaTabla(char* nombreDeLaTabla){
+	log_info(LOGGERFS,"Voy a crear un hilo detachable de dump para la tabla: %s", nombreDeLaTabla);
+	tp_hiloDeDumpeo dumpTable = malloc(sizeof(t_hiloDeDumpeo));
 	dumpTable->nombreDeLaTabla=string_duplicate(nombreDeLaTabla);
+	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nombreDeLaTabla);
+	dumpTable->tiempoDeSleep = metadataDeLaTabla.tiempoDeCompactacion;
+	//list_add(dumpTables,dumpTable);
 	pthread_attr_init(&(dumpTable->attr));
 	pthread_attr_setdetachstate(&(dumpTable->attr), PTHREAD_CREATE_DETACHED);
-	pthread_create(&(dumpTable->thread), &(dumpTable->attr), &hiloDeDumpeo(), dumpTable);
+	pthread_create(&(dumpTable->thread), &(dumpTable->attr), &hiloDeDumpeo, dumpTable);
 	pthread_attr_destroy(&(dumpTable->attr));
-
-		int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
-				funcionHiloConsola, "Hilo consola");
-		if(resultadoDeCrearHilo){
-			log_error(LOGGERFS,"Error al crear el hilo de la consola, return code: %d",
-					resultadoDeCrearHilo);
-			exit(EXIT_FAILURE);
-		}else{
-			log_info(LOGGERFS,"La consola se creo exitosamente");
-			return EXIT_SUCCESS;
-			}
-
+	log_info(LOGGERFS,"Hilo de dumpeo de la tabla %s finalizado", nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
