@@ -64,19 +64,22 @@ void atender_drop(int cliente, int tamanio){
 }
 
 void atender_describe(int cliente, int tamanio){
+	if(tamanio==0){
+		atender_describe_de_todas_las_tablas(cliente);
+		return;
+	}
+
 	tp_describe descripcion = prot_recibir_describe(tamanio, cliente);
 
 	if(descripcion->nom_tabla!=NULL){
 		atender_describe_tabla_particular(descripcion, cliente);
 		free(descripcion->nom_tabla);
-	}else{
-		atender_describe_de_todas_las_tablas(descripcion, cliente);
 	}
 
 	free(descripcion);
 }
 
-void atender_describe_de_todas_las_tablas(tp_describe paquete_describe, int cliente){
+void atender_describe_de_todas_las_tablas(int cliente){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un describe de todas las tablas que tiene liss");
 
 	usleep(RETARDO_ACCESO_FILESYSTEM*1000);
@@ -89,7 +92,10 @@ void atender_describe_de_todas_las_tablas(tp_describe paquete_describe, int clie
 		logger(escribir_loguear, l_debug, "Existen tablas en el FS");
 		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, SOCKET_LISS);
 
-		prot_enviar_respuesta_describeAll(*info_de_las_tablas, cliente);
+		t_describeAll_rta descriptores;
+		descriptores.lista = info_de_las_tablas->lista;
+
+		prot_enviar_respuesta_describeAll(descriptores, cliente);
 		logger(escribir_loguear, l_info, "Se ha enviado la sgte informacion al kernel:");
 		list_iterate(info_de_las_tablas->lista, imprimir_informacion_tabla_particular);
 
@@ -111,12 +117,12 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	if(rta_describe_particular->respuesta==REQUEST_SUCCESS){
 		prot_enviar_respuesta_describe(rta_describe_particular->nombre, rta_describe_particular->particiones, rta_describe_particular->consistencia,
 				rta_describe_particular->tiempoDeCompactacion, cliente);
-		free(rta_describe_particular->nombre);
-		free(rta_describe_particular->consistencia);
-		free(rta_describe_particular);
+		//ree(rta_describe_particular->nombre);
+		//free(rta_describe_particular->consistencia);
+		//free(rta_describe_particular);
 	} else {
 		prot_enviar_error(rta_describe_particular->respuesta,cliente);
-		free(rta_describe_particular);
+		//free(rta_describe_particular);
 	}
 }
 

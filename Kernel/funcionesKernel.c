@@ -239,7 +239,7 @@ void apagar_semaforos(){
 
 }
 
-int conectarse_con_memoria(int ip, int puerto){
+int conectarse_con_memoria(char* ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
@@ -249,16 +249,19 @@ int conectarse_con_memoria(int ip, int puerto){
 	}
 	enviar_handshake(socket_mem);
 
-	int tu_variable_de_numero_de_memoria = prot_recibir_int(socket_mem);
+	int numero_de_memoria = prot_recibir_int(socket_mem);
 
 	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
 	entrada_tabla_memorias->ip = ip;
 	entrada_tabla_memorias->puerto = puerto;
-	entrada_tabla_memorias->numero_memoria = tu_variable_de_numero_de_memoria;
+	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
+
+
 	list_add(listaMemConectadas, entrada_tabla_memorias);
+
 	describeAll(socket_mem);
-	//list_add(listaSC, entrada_tabla_memorias); //BORRAR LUEGO, ES PARA PROBAR
+
 	return EXIT_SUCCESS;
 }
 
@@ -427,6 +430,12 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 
 		if(rta_creacion == REQUEST_SUCCESS){
 			logger(escribir_loguear, l_info, "La memoria realizo el create correctamente");
+			tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
+			entrada->nombre_tabla = string_duplicate(nombre_tabla);
+			entrada->criterio = string_duplicate(tipo_consistencia);
+			list_add(listaTablasCreadas, entrada);
+			logger(escribir_loguear, l_info, "Tabla %s agregada a metadata\n", nombre_tabla);
+
 		}
 		if(rta_creacion == TABLA_YA_EXISTIA){
 			logger(escribir_loguear, l_info, "Ya existe la tabla que queres crear");
@@ -434,7 +443,7 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 
 	}else{//terminar script
 
-		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
+		logger(escribir_loguear, l_error, "Ya existe la tabla en la metadata del Kernel %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
 		remover_pcb_de_lista(listaExec, pcb);
 		pthread_mutex_unlock(&mutex_Exec);
@@ -449,26 +458,34 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 void describeAll(int socket_memoria) {
 	//PIDIERON UN DESCRIBE ALL
 	prot_enviar_describeAll(socket_memoria);
+
 	//Recibo rta
 	t_cabecera rta_pedido = recibirCabecera(socket_memoria);
+
+
 	if (rta_pedido.tipoDeMensaje == REQUEST_SUCCESS) {
-		tp_describeAll_rta info_de_las_tablas =
-				prot_recibir_respuesta_describeAll(rta_pedido.tamanio,
-						socket_memoria);
+
+		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, socket_memoria);
+
 		//actualizo metadata
 		list_clean(listaTablasCreadas);
 
 		void actualizarTabla(void* nodo) {
-			tp_entrada_tabla_creada tabla = malloc(
-					sizeof(t_entrada_tabla_creada));
+			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = ((tp_describe_rta) nodo)->nombre;
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
 			list_add(listaTablasCreadas, tabla);
 		}
+
 		list_iterate(info_de_las_tablas->lista, actualizarTabla);
 		//Libero la lista
+		logger(escribir_loguear, l_error, "LLEGO A HACER EL DESCRIBE ALL");
 		prot_free_tp_describeAll_rta(info_de_las_tablas);
+
 	}
+
+	logger(escribir_loguear, l_error, "LLEGO3");
+
 	if (rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA) {
 		logger(escribir_loguear, l_error, "No hay tablas en el FS");
 	}

@@ -305,6 +305,10 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 	return resultado;
 }
 
+bool hayQueFinalizar(){
+	return false;
+}
+
 int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Alocando memoria en la tabla %s para la memtable", nombreDeLaTabla);
 	tp_nodoDeLaMemTable nodo = malloc(sizeof(t_nodoDeLaMemTable));

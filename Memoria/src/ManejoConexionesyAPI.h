@@ -22,7 +22,7 @@ void atender_select(int, int);
 void atender_insert(int, int);
 void atender_drop(int, int);
 void atender_describe(int, int);
-void atender_describe_de_todas_las_tablas(tp_describe,int);
+void atender_describe_de_todas_las_tablas(int);
 void atender_describe_tabla_particular(tp_describe, int);
 void atender_journal(int);
 void realizar_describe_de_todas_las_tablas();

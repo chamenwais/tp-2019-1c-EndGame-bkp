@@ -9,10 +9,15 @@
 #define DUMP_H_
 
 #include "lissandra.h"
+#include "variablesGlobales.h"
+#include <dirent.h>
 
 int dump(char* nombreDeLaTabla);
 char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla);
 int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo);
+int lanzarDumps();
+void hiloDeDumpeo(tp_hiloDeDumpeo hiloDeDumpeo);
+int lanzarHiloParaLaTabla(char* nombreDeLaTabla);
 int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual);
 int crearElTemp(char* nombreDelArchivo,char* bloques,int size);
 

@@ -50,6 +50,14 @@ typedef struct definicionNodoDeLaTabla {
 } t_nodoDeLaTabla;
 typedef t_nodoDeLaTabla* tp_nodoDeLaTabla;
 
+typedef struct definicionHiloDeDumpeo {
+	int tiempoDeSleep;
+	char* nombreDeLaTabla;
+	pthread_attr_t attr;
+	pthread_t thread;
+} t_hiloDeDumpeo;
+typedef t_hiloDeDumpeo* tp_hiloDeDumpeo;
+
 extern t_metadataDelFS metadataDelFS;
 extern t_configuracionDelFS configuracionDelFS;
 extern t_log* LOGGERFS;
