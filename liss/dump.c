@@ -9,13 +9,12 @@
 
 int dump(char* nombreDeLaTabla){
 	char* nombreDelArchivoTemp;
-	char* bloques = string_new(); //va a tener el formato: [2,3,7,10]
-	string_append(&bloques, "[");
 	int sizeDelTemporal = 0;
 	int punteroDelBloque=0;
 	int bloqueActual=-1;
 	bool hayBloquesLibres=true;
 	char* cadenaFinal;
+	char* bloques;
 
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
@@ -78,10 +77,15 @@ int dump(char* nombreDeLaTabla){
 			}
 		return EXIT_SUCCESS;
 		}
-
+	tp_nodoDeLaMemTable nodoDeLaMem = list_remove_by_condition(memTable,esMiNodo);
+	if(nodoDeLaMem==NULL){
+		log_info(LOGGERFS,"No hay nada para dumpear en %s", nombreDeLaTabla);
+		return DUMP_CORRECTO;
+		}
+	bloques = string_new(); //va a tener el formato: [2,3,7,10]
+	string_append(&bloques, "[");
 	log_info(LOGGERFS,"Duempeando la tabla %s",nombreDeLaTabla);
 	log_info(LOGGERFS,"Block size del FS %d",metadataDelFS.blockSize);
-	tp_nodoDeLaMemTable nodoDeLaMem = list_remove_by_condition(memTable,esMiNodo);
 	log_info(LOGGERFS,"Voy a dumpear la tabla", nodoDeLaMem->nombreDeLaTabla);
 	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
 	nombreDelArchivoTemp=buscarNombreDelTempParaDumpear(nodoDeLaMem->nombreDeLaTabla);
@@ -105,9 +109,11 @@ int dump(char* nombreDeLaTabla){
 }
 
 int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
+	//implementar
 	return EXIT_SUCCESS;
 }
 
+/*
 int lanzarDumps(){
 	char* ubicacionDeLasCarpetasDeBloque=string_new();
 	string_append(&ubicacionDeLasCarpetasDeBloque, configuracionDelFS.puntoDeMontaje);
@@ -133,6 +139,7 @@ int lanzarDumps(){
 	free(ubicacionDeLasCarpetasDeBloque);
 	return EXIT_SUCCESS;
 }
+*/
 
 void hiloDeDumpeo(tp_hiloDeDumpeo hiloDeDumpeo){
 	log_info(LOGGERFS,"Hilo creado voy a empezar a ciclar el dump de %s, cada %d",

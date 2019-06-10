@@ -37,7 +37,9 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 			log_info(LOGGERFS,"La tabla %s se creo correctamente", nombreDeLaTabla);
 		}else{
 			log_error(LOGGERFS,"No se puedo crear la tabla %s", nombreDeLaTabla);
+			return EXIT_FAILURE;
 			}
+		lanzarHiloParaLaTabla(nombreDeLaTabla);
 		return TABLA_CREADA;
 	}else{
 		log_error(LOGGERFS,"Se esta intentando crear una tabla con un nombre que ya existia: %s", nombreDeLaTabla);
