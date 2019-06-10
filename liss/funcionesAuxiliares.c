@@ -145,6 +145,18 @@ int eliminarDirectorio(char* nombreDeLaTabla){
 		}
 }
 
+int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinalizacion){
+	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+	nodoDeLaMemtable->estadoDeFinalizacionDelDump=estadoDeFinalizacion;
+	return EXIT_SUCCESS;
+}
+
+bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla){
+	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+	bool estado = nodoDeLaMemtable->estadoDeFinalizacionDelDump;
+	return estado;
+}
+
 int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 	char* nombreDelArchivoDeMetaData=string_new();
 	string_append(&nombreDelArchivoDeMetaData, configuracionDelFS.puntoDeMontaje);
@@ -315,6 +327,12 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 	nodo->nombreDeLaTabla=malloc(strlen(nombreDeLaTabla)+1);
 	strcpy(nodo->nombreDeLaTabla,nombreDeLaTabla);
 	nodo->listaDeDatosDeLaTabla=list_create();
+	nodo->estadoDeFinalizacionDelDump=false;
+	if(pthread_mutex_init(&(nodo->mutexDeVariableDeEstadoDeFinalizacion), NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
+			nombreDeLaTabla);
+		return EXIT_FAILURE;
+		}
 	list_add(memTable,nodo);
 	log_info(LOGGERFS,"Memoria alocada");
 	return EXIT_SUCCESS;

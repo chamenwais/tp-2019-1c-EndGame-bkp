@@ -152,7 +152,7 @@ void hiloDeDumpeo(tp_hiloDeDumpeo hiloDeDumpeo){
 }
 
 
-int lanzarHiloParaLaTabla(char* nombreDeLaTabla){
+int lanzarHiloParaLaTablaDeDumpeo(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Voy a crear un hilo detachable de dump para la tabla: %s", nombreDeLaTabla);
 	tp_hiloDeDumpeo dumpTable = malloc(sizeof(t_hiloDeDumpeo));
 	dumpTable->nombreDeLaTabla=string_duplicate(nombreDeLaTabla);

@@ -25,6 +25,8 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
 int crearArchivoDeBloque(int bloqueLibre);
 int eliminarDirectorio(char* nombreDeLaTabla);
+int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinalizacion);
+bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla);
 int eliminarArchivoDeMetada(char* nombreDeLaTabla);
 int liberarBloquesYParticiones(char* nombreDeLaTabla);
 int bloquearTabla(char* nombreDeLaTabla);
