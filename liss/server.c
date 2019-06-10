@@ -314,11 +314,11 @@ void procesarDescribeAll(int cliente){
 	if(descripciones.lista!=NULL){
 		prot_enviar_respuesta_describeAll(descripciones,cliente);
 		log_info(LOGGERFS,"[LissServer] DescribeAll(cliente %d)",cliente);
+		liberarYDestruirTablaDeMetadata(descripciones.lista);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
 		log_info(LOGGERFS,"[LissServer] Error DescribeAll(cliente %d): no hay tablas en el fs",cliente);
 	}
-	liberarYDestruirTablaDeMetadata(descripciones.lista);
 }
 
 void procesarDrop(int cliente, t_cabecera cabecera){

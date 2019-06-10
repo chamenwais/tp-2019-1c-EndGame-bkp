@@ -627,7 +627,7 @@ t_list* obtenerTodosLosDescriptores(){
 
 	free(main_directorio);
 
-	if(metadata_todos_los_descriptores->head->data == NULL) {
+	if(metadata_todos_los_descriptores->elements_count==0) {
 		list_destroy(metadata_todos_los_descriptores);
 		return NULL;
 	}
