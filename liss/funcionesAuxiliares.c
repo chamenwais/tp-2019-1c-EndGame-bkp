@@ -147,13 +147,26 @@ int eliminarDirectorio(char* nombreDeLaTabla){
 
 int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinalizacion){
 	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
-	nodoDeLaMemtable->estadoDeFinalizacionDelDump=estadoDeFinalizacion;
+	if(nodoDeLaMemtable!=NULL){
+		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+		nodoDeLaMemtable->estadoDeFinalizacionDelDump=estadoDeFinalizacion;
+		pthread_mutex_unlock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+	}else{
+		log_error(LOGGERFS,"Error insalvable");
+	}
 	return EXIT_SUCCESS;
 }
 
 bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla){
 	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
-	bool estado = nodoDeLaMemtable->estadoDeFinalizacionDelDump;
+	bool estado = -1;
+	if(nodoDeLaMemtable!=NULL){
+		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+		bool estado = nodoDeLaMemtable->estadoDeFinalizacionDelDump;
+		pthread_mutex_unlock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+	}else{
+		log_error(LOGGERFS,"Error insalvable");
+		}
 	return estado;
 }
 
@@ -332,6 +345,9 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
 			nombreDeLaTabla);
 		return EXIT_FAILURE;
+	}else{
+		log_info(LOGGERFS,"Se inicializo el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
+			nombreDeLaTabla);
 		}
 	list_add(memTable,nodo);
 	log_info(LOGGERFS,"Memoria alocada");

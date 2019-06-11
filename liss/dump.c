@@ -98,9 +98,11 @@ int dump(char* nombreDeLaTabla){
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
+	setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
 	free(bloques);
 	if(hayBloquesLibres){
+		log_info(LOGGERFS,"Dump correcto");
 		return DUMP_CORRECTO;
 	}else{
 		log_error(LOGGERFS,"Se hizo el dump pero en em medio del proceso se acabaron los bloques libres, no se puede asegurar la consistencia de los datos");
@@ -141,28 +143,29 @@ int lanzarDumps(){
 }
 */
 
-void hiloDeDumpeo(tp_hiloDeDumpeo hiloDeDumpeo){
+void hiloDeDumpeo(char* nombreDeLaTabla){
+	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nombreDeLaTabla);
+	int tiempoDeSleep = metadataDeLaTabla.tiempoDeCompactacion;
 	log_info(LOGGERFS,"Hilo creado voy a empezar a ciclar el dump de %s, cada %d",
-			hiloDeDumpeo->nombreDeLaTabla, hiloDeDumpeo->tiempoDeSleep);
-	while(!hayQueFinalizar()){
-		dump(hiloDeDumpeo->nombreDeLaTabla);
-		sleep(hiloDeDumpeo->tiempoDeSleep);
+			nombreDeLaTabla, tiempoDeSleep);
+	while(!obtenerEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla)){
+		sleep(tiempoDeSleep);
+		dump(nombreDeLaTabla);
 		}
+	log_info(LOGGERFS,"Finalizando hilo de dumpeo de la tabla %s",
+				nombreDeLaTabla);
 	return;
 }
 
 
 int lanzarHiloParaLaTablaDeDumpeo(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Voy a crear un hilo detachable de dump para la tabla: %s", nombreDeLaTabla);
-	tp_hiloDeDumpeo dumpTable = malloc(sizeof(t_hiloDeDumpeo));
-	dumpTable->nombreDeLaTabla=string_duplicate(nombreDeLaTabla);
-	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nombreDeLaTabla);
-	dumpTable->tiempoDeSleep = metadataDeLaTabla.tiempoDeCompactacion;
-	//list_add(dumpTables,dumpTable);
-	pthread_attr_init(&(dumpTable->attr));
-	pthread_attr_setdetachstate(&(dumpTable->attr), PTHREAD_CREATE_DETACHED);
-	pthread_create(&(dumpTable->thread), &(dumpTable->attr), &hiloDeDumpeo, dumpTable);
-	pthread_attr_destroy(&(dumpTable->attr));
+	pthread_attr_t attr;
+	pthread_t thread;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_create(&thread, &attr, &hiloDeDumpeo, nombreDeLaTabla);
+	pthread_attr_destroy(&attr);
 	log_info(LOGGERFS,"Hilo de dumpeo de la tabla %s finalizado", nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
