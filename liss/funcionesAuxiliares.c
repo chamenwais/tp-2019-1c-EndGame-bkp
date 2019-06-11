@@ -159,7 +159,7 @@ int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinal
 
 bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla){
 	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
-	bool estado = -1;
+	bool estado = false;
 	if(nodoDeLaMemtable!=NULL){
 		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
 		bool estado = nodoDeLaMemtable->estadoDeFinalizacionDelDump;
