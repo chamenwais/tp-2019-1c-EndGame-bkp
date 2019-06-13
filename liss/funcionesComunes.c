@@ -37,6 +37,7 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 			log_info(LOGGERFS,"La tabla %s se creo correctamente", nombreDeLaTabla);
 		}else{
 			log_error(LOGGERFS,"No se puedo crear la tabla %s", nombreDeLaTabla);
+			return EXIT_FAILURE;
 			}
 		return TABLA_CREADA;
 	}else{
@@ -101,6 +102,7 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
+			lanzarHiloParaLaTablaDeDumpeo(nombreDeLaTabla);
 			}
 		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
 		return resultadoDelInsert;

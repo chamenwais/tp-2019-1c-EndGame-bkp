@@ -145,6 +145,31 @@ int eliminarDirectorio(char* nombreDeLaTabla){
 		}
 }
 
+int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinalizacion){
+	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+	if(nodoDeLaMemtable!=NULL){
+		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+		nodoDeLaMemtable->estadoDeFinalizacionDelDump=estadoDeFinalizacion;
+		pthread_mutex_unlock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+	}else{
+		log_error(LOGGERFS,"Error insalvable");
+	}
+	return EXIT_SUCCESS;
+}
+
+bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla){
+	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+	bool estado = false;
+	if(nodoDeLaMemtable!=NULL){
+		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+		bool estado = nodoDeLaMemtable->estadoDeFinalizacionDelDump;
+		pthread_mutex_unlock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
+	}else{
+		log_error(LOGGERFS,"Error insalvable");
+		}
+	return estado;
+}
+
 int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 	char* nombreDelArchivoDeMetaData=string_new();
 	string_append(&nombreDelArchivoDeMetaData, configuracionDelFS.puntoDeMontaje);
@@ -315,6 +340,15 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 	nodo->nombreDeLaTabla=malloc(strlen(nombreDeLaTabla)+1);
 	strcpy(nodo->nombreDeLaTabla,nombreDeLaTabla);
 	nodo->listaDeDatosDeLaTabla=list_create();
+	nodo->estadoDeFinalizacionDelDump=false;
+	if(pthread_mutex_init(&(nodo->mutexDeVariableDeEstadoDeFinalizacion), NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
+			nombreDeLaTabla);
+		return EXIT_FAILURE;
+	}else{
+		log_info(LOGGERFS,"Se inicializo el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
+			nombreDeLaTabla);
+		}
 	list_add(memTable,nodo);
 	log_info(LOGGERFS,"Memoria alocada");
 	return EXIT_SUCCESS;
@@ -627,7 +661,7 @@ t_list* obtenerTodosLosDescriptores(){
 
 	free(main_directorio);
 
-	if(metadata_todos_los_descriptores->head->data == NULL) {
+	if(metadata_todos_los_descriptores->elements_count==0) {
 		list_destroy(metadata_todos_los_descriptores);
 		return NULL;
 	}

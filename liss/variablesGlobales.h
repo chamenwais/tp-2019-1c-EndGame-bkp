@@ -39,6 +39,8 @@ typedef struct definicionMetadataDelFS {
 typedef struct definicionNodoDeLaMemTable {
 	t_list* listaDeDatosDeLaTabla;
 	char* nombreDeLaTabla;
+	bool estadoDeFinalizacionDelDump;
+	pthread_mutex_t mutexDeVariableDeEstadoDeFinalizacion;
 } t_nodoDeLaMemTable;
 typedef t_nodoDeLaMemTable* tp_nodoDeLaMemTable;
 
