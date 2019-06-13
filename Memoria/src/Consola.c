@@ -174,10 +174,8 @@ void consola_create(char** comandos){
 		return;
 	}
 
-	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_CREATE);
 	realizar_create(nombre_tabla, tipo_consistencia, numero_particiones, compaction_time);
-	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);
@@ -197,7 +195,6 @@ void consola_describe(char** comandos){
 	char *nombre_tabla = NULL;
 	obtener_un_parametro(comandos, &nombre_tabla, _DESCRIBE);
 
-	pthread_mutex_lock(&M_JOURNALING);
 	loguear_comienzo_ejecucion_sentencia(_DESCRIBE);
 	if(nombre_tabla==NULL){
 		realizar_describe_de_todas_las_tablas();
@@ -211,7 +208,6 @@ void consola_describe(char** comandos){
 		}
 		free(rta_describe_particular);
 	}
-	pthread_mutex_unlock(&M_JOURNALING);
 
 	//Limpio el nombre_tabla
 	limpiar_parametro(nombre_tabla);
