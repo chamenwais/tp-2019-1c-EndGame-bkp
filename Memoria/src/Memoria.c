@@ -254,9 +254,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 								continue;
 							}
 
-							pthread_mutex_lock(&M_JOURNALING);
 							clasificar_y_atender_cabecera(socket_llamador, cabecera.tipoDeMensaje, cabecera.tamanio);
-							pthread_mutex_unlock(&M_JOURNALING);
 
 						} else if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
 								//Excepciones del cliente, para la desconexion
@@ -275,11 +273,20 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 	switch(tipoDeMensaje){
 		case CREATE: atender_create(socket_cliente, tamanio);
 			break;
-		case SELECT: atender_select(socket_cliente, tamanio);
+		case SELECT:
+			pthread_mutex_lock(&M_JOURNALING);
+			atender_select(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
-		case INSERT: atender_insert(socket_cliente, tamanio);
+		case INSERT:
+			pthread_mutex_lock(&M_JOURNALING);
+			atender_insert(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
-		case DROP: atender_drop(socket_cliente, tamanio);
+		case DROP:
+			pthread_mutex_lock(&M_JOURNALING);
+			atender_drop(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case DESCRIBE: atender_describe(socket_cliente, tamanio);
 			break;
