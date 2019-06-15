@@ -190,7 +190,7 @@ t_entrada_tabla_segmentos * crear_segmento_a_tabla(char * nombre_tabla){
 
 int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
 	/*TODO ejecutar algoritmo de reemplazo
-	ver	si están todos los marcos modificados y en ese caso ejecutar journaling
+	ver	si están todos los marcos modificados y en ese caso pedir ejecutar journaling
 	si no, obtener marco sin modificar, borrar página de la tabla que lo usaba y devolver nro */
 	return 0;
 }
@@ -218,6 +218,7 @@ void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos * segmento, int mar
 	entrada_pagina->pagina=list_size(segmento->base);
 	entrada_pagina->marco=marco;
 	entrada_pagina->flag=flag;
+	entrada_pagina->ultimo_uso=(unsigned int)time(NULL);
 	list_add(segmento->base,entrada_pagina);
 	bitarray_clean_bit(bitmap_marcos,marco);
 	bitarray_set_bit(bitmap_marcos,marco);
