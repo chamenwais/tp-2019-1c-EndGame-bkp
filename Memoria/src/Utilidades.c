@@ -361,10 +361,16 @@ void terminar_programa(int codigo_finalizacion){
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
 
-	void destructor_memo_del_pool(void * memo_del_pool){
-		free((t_memo_del_pool *) memo_del_pool);
+	if(seeds!=NULL){
+		void destructor_memo_del_pool(void * memo_del_pool){
+			free((t_memo_del_pool *) memo_del_pool);
+		}
+		list_destroy_and_destroy_elements(seeds, destructor_memo_del_pool);
 	}
-	list_destroy_and_destroy_elements(seeds, destructor_memo_del_pool);
+
+	if(mi_tabla_de_gossip!=NULL){
+		list_destroy(mi_tabla_de_gossip);
+	}
 
 	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
 	inotify_rm_watch(conf_fd, watch_descriptor);
@@ -383,6 +389,10 @@ void terminar_programa(int codigo_finalizacion){
 	free(ruta_archivo_conf->nombre_archivo);
 	free(ruta_archivo_conf);
 	pthread_mutex_unlock(&M_RUTA_ARCHIVO_CONF);
+
+	if(tabla_de_segmentos!=NULL){
+		liberar_tabla_segmentos();
+	}
 
 	close(SOCKET_LISS);
 	close(SERVER_MEMORIA);

@@ -24,7 +24,7 @@ long TIEMPO_JOURNAL;
 long TIEMPO_GOSSIPING;
 char * MEMORIA_PRINCIPAL;
 t_list * seeds=NULL;
-t_list * mi_tabla_de_gossip;
+t_list * mi_tabla_de_gossip=NULL;
 
 /* Semáforos mutex de variables globales */
 pthread_mutex_t M_RETARDO_ACCESO_MEMORIA;
@@ -39,4 +39,4 @@ t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 t_log* g_logger;
 t_config* g_config;
 t_bitarray *bitmap_marcos;
-t_list * tabla_de_segmentos;
+t_list * tabla_de_segmentos=NULL;;

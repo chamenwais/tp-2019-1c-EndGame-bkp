@@ -123,6 +123,7 @@ struct entrada_tabla_paginas{
 	int pagina;
 	int marco;
 	int flag;
+	long ultimo_uso;
 };
 typedef struct entrada_tabla_paginas t_entrada_tabla_paginas;
 

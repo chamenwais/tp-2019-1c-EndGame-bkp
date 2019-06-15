@@ -69,11 +69,11 @@ void iniciar_el_proceso_de_gossiping(){
 }
 
 t_list * conectarse_a_seeds(){
-	t_list * tabla_de_gossip;
+	t_list * tabla_de_gossip=list_create();
 	int cantidad_de_seeds = list_size(seeds);
 
 	for(int i=0;i<cantidad_de_seeds;i++){
-		t_memo_del_pool * memoria_a_utilizar = list_remove(seeds,0);
+		t_memo_del_pool * memoria_a_utilizar = list_get(seeds,i);
 
 		logger(escribir_loguear, l_trace, "Se va a tratar de conectar a la ip %s, puerto %s"
 				,memoria_a_utilizar->ip, memoria_a_utilizar->puerto);
