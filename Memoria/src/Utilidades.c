@@ -210,7 +210,7 @@ void obtener_ip_seeds(){
 }
 
 void obtener_puerto_seeds(){
-	PUERTOS_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_IP_SEEDS);
+	PUERTOS_SEEDS=config_get_array_value(g_config, CLAVE_CONFIG_PUERTO_SEEDS);
 	logger(escribir_loguear, l_debug, "Se obtuvo configuración 'Puerto de Seeds'");
 }
 
@@ -260,12 +260,11 @@ void leer_config(void) {
 void construir_lista_seeds(){
 	seeds=list_create();
 	for(int i=0;IPS_SEEDS[i]!=NULL;i++){
-		for(int j=0;PUERTOS_SEEDS[j]!=NULL;j++){
-			t_memo_del_pool memoria_del_pool;
-			memoria_del_pool.ip=IPS_SEEDS[i];
-			memoria_del_pool.puerto=PUERTOS_SEEDS[j];
-			list_add(seeds, &memoria_del_pool);
-		}
+
+		t_memo_del_pool memoria_del_pool;
+		memoria_del_pool.ip=IPS_SEEDS[i];
+		memoria_del_pool.puerto=PUERTOS_SEEDS[i];
+		list_add(seeds, &memoria_del_pool);
 	}
 }
 

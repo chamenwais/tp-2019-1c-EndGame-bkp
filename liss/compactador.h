@@ -8,11 +8,26 @@
 #ifndef LISS_COMPACTADOR_H_
 #define LISS_COMPACTADOR_H_
 
-#include "variablesGlobales.h"
-#include <commons/log.h>
-#include <sys/types.h>
-//#include <commons/collections/list.h>
+#ifndef _XOPEN_SOURCE
+#define XOPEN_SOURCE 500 //para ftw
+#define _GNU_SOURCE //tmb
+#endif
 
+#include "variablesGlobales.h"
+#include <stdbool.h>
+#include <commons/log.h>
+#include <commons/string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pthread.h>
+#include <commons/collections/list.h>
+#include <commons/config.h>
+#include <ftw.h>
+//#include "funcionesAuxiliares.h"
+
+void compactarNuevasTablas();
+int crearCompactadorDeTablas(const char*, const struct stat*, int, struct FTW*);
+void* compactadorTabla(char*);
 void* crearCompactadorLissandra();
 int lanzarCompactador();
 
