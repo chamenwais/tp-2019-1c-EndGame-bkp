@@ -24,6 +24,7 @@ long TIEMPO_JOURNAL;
 long TIEMPO_GOSSIPING;
 char * MEMORIA_PRINCIPAL;
 t_list * seeds=NULL;
+t_list * mi_tabla_de_gossip;
 
 /* Semáforos mutex de variables globales */
 pthread_mutex_t M_RETARDO_ACCESO_MEMORIA;

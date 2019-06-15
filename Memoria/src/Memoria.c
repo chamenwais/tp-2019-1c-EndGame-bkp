@@ -68,11 +68,33 @@ void iniciar_el_proceso_de_gossiping(){
 	pthread_detach(idHilo);
 }
 
+t_list * conectarse_a_seeds(){
+	t_list * tabla_de_gossip;
+	int cantidad_de_seeds = list_size(seeds);
+
+	for(int i=0;i<cantidad_de_seeds;i++){
+		t_memo_del_pool * memoria_a_utilizar = list_remove(seeds,0);
+
+		int memoria_conectada = conectarseA(memoria_a_utilizar->ip, atoi(memoria_a_utilizar->puerto));
+
+		if(memoria_conectada>0){
+			logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
+			list_add(tabla_de_gossip, memoria_a_utilizar);
+		}else{
+			logger(escribir_loguear, l_debug, "No me pude conectar a la memoria %d de la lista de seeds.", i);
+		}
+	}
+
+	return tabla_de_gossip;
+}
+
 void *realizar_gossiping(){
 	while(1){
 		usleep(TIEMPO_GOSSIPING*1000);
 		logger(escribir_loguear, l_trace, "\nProcedo a realizar el gossiping...\n");
-		//TODO Hacer el gossiping
+
+		mi_tabla_de_gossip = conectarse_a_seeds();
+
 	}
 	return EXIT_SUCCESS;
 }

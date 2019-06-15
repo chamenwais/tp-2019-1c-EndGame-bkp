@@ -68,6 +68,7 @@ extern long TIEMPO_JOURNAL;
 extern long TIEMPO_GOSSIPING;
 extern char* MEMORIA_PRINCIPAL;
 extern t_list * seeds;
+extern t_list * mi_tabla_de_gossip;
 
 extern int TAMANIO_VALUE;
 extern int SOCKET_LISS;
