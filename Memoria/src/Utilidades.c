@@ -261,10 +261,10 @@ void construir_lista_seeds(){
 	seeds=list_create();
 	for(int i=0;IPS_SEEDS[i]!=NULL;i++){
 
-		t_memo_del_pool memoria_del_pool;
-		memoria_del_pool.ip=IPS_SEEDS[i];
-		memoria_del_pool.puerto=PUERTOS_SEEDS[i];
-		list_add(seeds, &memoria_del_pool);
+		t_memo_del_pool *memoria_del_pool=malloc(sizeof(t_memo_del_pool));
+		memoria_del_pool->ip=IPS_SEEDS[i];
+		memoria_del_pool->puerto=PUERTOS_SEEDS[i];
+		list_add(seeds, memoria_del_pool);
 	}
 }
 
@@ -360,7 +360,11 @@ void terminar_programa(int codigo_finalizacion){
 	log_destroy(g_logger);
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
-	list_destroy(seeds);
+
+	void destructor_memo_del_pool(void * memo_del_pool){
+		free((t_memo_del_pool *) memo_del_pool);
+	}
+	list_destroy_and_destroy_elements(seeds, destructor_memo_del_pool);
 
 	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
 	inotify_rm_watch(conf_fd, watch_descriptor);
