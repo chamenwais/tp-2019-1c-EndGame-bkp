@@ -35,8 +35,10 @@ int dump(char* nombreDeLaTabla){
 		bool termine=false;
 		bool esElPrimero=true;
 		while(termine==false){
+			pthread_mutex_lock(&mutexBitmap);
 			bloqueActual=obtenerBloqueLibreDelBitMap();
 			ocuparBloqueDelBitmap(bloqueActual);
+			pthread_mutex_unlock(&mutexBitmap);
 			bajarADiscoBitmap();
 			if(bloqueActual==-1){
 				log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
@@ -139,7 +141,7 @@ void funcionHiloDump(void *arg){
 		}
 	int tiempoDeSleep;
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
-		tiempoDeSleep=configuracionDelFS.tiempoDump;
+		tiempoDeSleep=obtenerTiempoDump();
 		sleep(tiempoDeSleep);
 		log_trace(LOGGERFS,"Iniciando un dumpeo");
 		pthread_mutex_lock(&mutexDeDump);

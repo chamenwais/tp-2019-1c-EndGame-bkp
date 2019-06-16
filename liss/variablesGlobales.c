@@ -88,6 +88,7 @@ void liberarRecursos(){
 	free(archivoDeLaMetadata);
 	bajarADiscoBitmap();
 	log_info(LOGGERFS,"Destruyendo el bitarray");
+	pthread_mutex_lock(&mutexBitmap);
 	bitarray_destroy(bitmap);
 	//free(srcMmap);
 	free(bufferArchivo);

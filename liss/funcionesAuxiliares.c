@@ -72,6 +72,8 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		fclose(archivoTemp);
 		log_info(LOGGERFS,"Escribiendo en el archivo binario %s", nombreDelBinario);
 
+		pthread_mutex_lock(&mutexBitmap);
+
 		bloqueLibre=obtenerBloqueLibreDelBitMap();
 
 		if(bloqueLibre!=-1){
@@ -94,9 +96,10 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 			free(nombreDelBinario);
 		}else{
 			log_error(LOGGERFS,"No hay mas bloques libres");
+			pthread_mutex_unlock(&mutexBitmap);
 			return EXIT_FAILURE;
 			}
-
+		pthread_mutex_unlock(&mutexBitmap);
 		}
 	return EXIT_SUCCESS;
 }
@@ -209,6 +212,7 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 		t_config* configuracion = config_create(nombreDelArchivo);
 		char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
 		config_destroy(configuracion);
+		pthread_mutex_lock(&mutexBitmap);
 		for(int i=0;arrayDeBloques[i]!=NULL;i++){
 			ubicacionDelBloque=string_new();
 			log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
@@ -221,6 +225,7 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 			free(ubicacionDelBloque);
 			free(arrayDeBloques[i]);
 			}
+		pthread_mutex_unlock(&mutexBitmap);
 		log_info(LOGGERFS,"Borrando el archivo %s", nombreDelArchivo);
 		remove(nombreDelArchivo);
 		free(nombreDelArchivo);
@@ -687,7 +692,3 @@ void free_tp_describe_rta(void* d){
 void liberarYDestruirTablaDeMetadata(t_list* descriptores){//libera y destruye una lista que tenga tp_describe_rta dentro
 	list_destroy_and_destroy_elements(descriptores,free_tp_describe_rta);
 }
-
-
-
-
