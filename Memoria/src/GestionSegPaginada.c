@@ -50,10 +50,11 @@ void inicializar_tabla_segmentos(){
 	tabla_de_segmentos=list_create();
 }
 
+void destructor_pagina(void * pagina){
+	free(pagina);
+}
+
 void destructor_segmento(void * segmento){
-	void destructor_pagina(void * pagina){
-		free(pagina);
-	}
 	list_destroy_and_destroy_elements((*(t_entrada_tabla_segmentos *)segmento).base,destructor_pagina);
 	free((*(t_entrada_tabla_segmentos *)segmento).tabla);
 	free(segmento);
@@ -189,10 +190,41 @@ t_entrada_tabla_segmentos * crear_segmento_a_tabla(char * nombre_tabla){
 }
 
 int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
-	/*TODO ejecutar algoritmo de reemplazo
-	ver	si están todos los marcos modificados y en ese caso pedir ejecutar journaling
-	si no, obtener marco sin modificar, borrar página de la tabla que lo usaba y devolver nro */
-	return 0;
+	t_list * paginas_no_modificadas=list_create();
+	bool es_pagina_no_modificada(void * pagina){
+		return ((t_entrada_tabla_paginas *)pagina)->flag==FLAG_NO_MODIFICADO;
+	}
+	void recopilar_paginas_no_modificadas(void * un_segmento){
+		t_list* paginas_no_modificadas_de_un_segmento = list_filter(
+				((t_entrada_tabla_segmentos*) un_segmento)->base, es_pagina_no_modificada);
+		if(!list_is_empty(paginas_no_modificadas_de_un_segmento)){
+			list_add_all(paginas_no_modificadas, paginas_no_modificadas_de_un_segmento);
+			list_destroy(paginas_no_modificadas_de_un_segmento);
+		}
+	}
+	list_iterate(tabla_de_segmentos, recopilar_paginas_no_modificadas);
+	if(list_is_empty(paginas_no_modificadas)){
+		list_destroy(paginas_no_modificadas);
+		return -1;
+	}
+	//Elige la más antigua
+	bool mas_antigua_adelante(void * primera_pag, void * segunda_pag){
+		return ((t_entrada_tabla_paginas *)primera_pag)->ultimo_uso
+				< ((t_entrada_tabla_paginas *)segunda_pag)->ultimo_uso;
+	}
+	list_sort(paginas_no_modificadas, mas_antigua_adelante);
+	t_entrada_tabla_paginas * pagina_mas_antigua=list_get(paginas_no_modificadas,0);
+	int marco_de_la_pag_mas_antigua=pagina_mas_antigua->marco;
+	bool es_la_pagina_mas_antigua(void* pagina){
+		return ((t_entrada_tabla_paginas *)pagina)==pagina_mas_antigua;
+	}
+	void buscar_tabla_paginas_para_eliminar_pagina_antigua(void * un_segmento){
+		list_remove_and_destroy_by_condition(((t_entrada_tabla_segmentos*) un_segmento)->base,
+				es_la_pagina_mas_antigua, destructor_pagina);
+	}
+	list_iterate(tabla_de_segmentos, buscar_tabla_paginas_para_eliminar_pagina_antigua);
+	list_destroy(paginas_no_modificadas);
+	return marco_de_la_pag_mas_antigua;
 }
 
 void insertar_registro_en_marco(long timestamp, uint16_t key, char *value, int marco){

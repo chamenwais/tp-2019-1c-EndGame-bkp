@@ -117,12 +117,8 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	if(rta_describe_particular->respuesta==REQUEST_SUCCESS){
 		prot_enviar_respuesta_describe(rta_describe_particular->nombre, rta_describe_particular->particiones, rta_describe_particular->consistencia,
 				rta_describe_particular->tiempoDeCompactacion, cliente);
-		//ree(rta_describe_particular->nombre);
-		//free(rta_describe_particular->consistencia);
-		//free(rta_describe_particular);
 	} else {
 		prot_enviar_error(rta_describe_particular->respuesta,cliente);
-		//free(rta_describe_particular);
 	}
 }
 
