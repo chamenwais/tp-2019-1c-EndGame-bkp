@@ -28,4 +28,12 @@ void test_tomar_value_insert();
 void test_tomar_value_insert_una_comilla();
 void test_tomar_value_insert_sin_comillas();
 
+int setup_lru();
+int clean_lru();
+void test_lru_completo();
+
+int setup_lru_todo_modif();
+int clean_lru_todo_modif();
+void test_todas_paginas_modificadas();
+
 #endif /* TEST_TESTGENERAL_H_ */

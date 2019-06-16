@@ -34,6 +34,9 @@ void insertar_value_modificado_en_MP(char *, long, uint16_t,char *);
 void actualizar_value_modificado_en_MP(char *, long, uint16_t,char *);
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char *);
 t_entrada_tabla_segmentos * crear_segmento_a_tabla(char *);
+
+/**Ve si están todos los marcos modificados y en ese caso devuelve -1 para pedir ejecutar journaling.
+Si no, obtiene marco sin modificar, borra la página de la tabla que lo usaba y devuelve el nro */
 int ejecutar_algoritmo_reemplazo_y_obtener_marco();
 void insertar_registro_en_marco(long , uint16_t , char *, int );
 void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos *, int, int);
@@ -45,5 +48,6 @@ long * obtener_timestamp_desde_marco_en_MP(int);
 uint16_t* obtener_key_desde_marco_en_MP(int);
 t_entrada_tabla_paginas * buscar_pagina_de_key_en_MP(t_list*,uint16_t);
 void liberar_segmento_de_MP(t_entrada_tabla_segmentos *);
+void destructor_pagina(void *);
 void destructor_segmento(void *);
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */

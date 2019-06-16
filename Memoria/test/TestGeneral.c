@@ -22,6 +22,15 @@ int correr_tests(){
 	CU_add_test(tests_comandos, "test_tomar_value_insert_una_comilla", test_tomar_value_insert_una_comilla);
 	CU_add_test(tests_comandos, "test_tomar_value_insert_sin_comillas", test_tomar_value_insert_sin_comillas);
 
+	CU_pSuite tests_lru =
+			CU_add_suite("Suite para probar el algoritmo LRU", setup_lru, clean_lru);
+	CU_add_test(tests_lru, "test_lru_completo", test_lru_completo);
+
+	CU_pSuite tests_lru_todo_modif =
+			CU_add_suite("Suite para probar el algoritmo LRU con todas las pag modificadas"
+					, setup_lru_todo_modif, clean_lru_todo_modif);
+	CU_add_test(tests_lru_todo_modif, "test_todas_paginas_modificadas", test_todas_paginas_modificadas);
+
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();
 	CU_cleanup_registry();
@@ -43,7 +52,7 @@ int setup_gestion_seg_pag(){
 }
 
 int clean_gestion_seg_pag(){
-	puts("\nLimpiando...");
+	puts("\nLimpiando gestion segmentación paginada...");
 	free(MEMORIA_PRINCIPAL);
 	log_destroy(g_logger);
 
@@ -56,7 +65,8 @@ int clean_gestion_seg_pag(){
 void test_calcular_cantidad_marcos_MP(){
 	setup_gestion_seg_pag();
 	int tamanio_marco = obtener_tamanio_marco();
-	CU_ASSERT_EQUAL(obtener_cantidad_marcos_en_MP(tamanio_marco), 23);
+	CU_ASSERT_EQUAL(obtener_cantidad_marcos_en_MP(tamanio_marco), (int) TAMANIO_MEMORIA /
+			(sizeof(long) + sizeof(uint16_t) + TAMANIO_VALUE + 1));
 }
 
 void test_colocar_value_en_MP(){
@@ -108,3 +118,55 @@ void test_tomar_value_insert_sin_comillas(){
 	setup_comandos();
 	CU_ASSERT_PTR_NULL(obtener_value_a_insertar("INSERT TABLA1 3"));
 }
+
+int setup_lru(){
+	inicializar_bitmap_marcos();
+	inicializar_tabla_segmentos();
+	t_entrada_tabla_segmentos * un_segmento=crear_segmento_a_tabla("tablaFalsa");
+	crear_pagina_en_tabla_paginas(un_segmento, 3, FLAG_NO_MODIFICADO);
+	sleep(1);
+	crear_pagina_en_tabla_paginas(un_segmento, 2, FLAG_NO_MODIFICADO);
+	sleep(1);
+	crear_pagina_en_tabla_paginas(un_segmento, 1, FLAG_NO_MODIFICADO);
+	return 0;
+}
+
+int clean_lru(){
+	puts("\nLimpiando lru...");
+	liberar_tabla_segmentos();
+	liberar_bitmap_marcos();
+	return 0;
+}
+
+void test_lru_completo(){
+	setup_lru();
+	int marco=ejecutar_algoritmo_reemplazo_y_obtener_marco();
+	CU_ASSERT_EQUAL(marco, 3);
+	t_entrada_tabla_segmentos * un_segmento=list_get(tabla_de_segmentos,0);
+	CU_ASSERT_EQUAL(list_size(un_segmento->base), 2);
+}
+
+int setup_lru_todo_modif(){
+	inicializar_bitmap_marcos();
+	inicializar_tabla_segmentos();
+	t_entrada_tabla_segmentos * un_segmento=crear_segmento_a_tabla("tablaFalsa");
+	crear_pagina_en_tabla_paginas(un_segmento, 3, FLAG_MODIFICADO);
+	crear_pagina_en_tabla_paginas(un_segmento, 2, FLAG_MODIFICADO);
+	crear_pagina_en_tabla_paginas(un_segmento, 1, FLAG_MODIFICADO);
+	return 0;
+}
+
+int clean_lru_todo_modif(){
+	puts("\nLimpiando lru todo modif...");
+	liberar_tabla_segmentos();
+	liberar_bitmap_marcos();
+	return 0;
+}
+
+void test_todas_paginas_modificadas(){
+	setup_lru_todo_modif();
+	int marco=ejecutar_algoritmo_reemplazo_y_obtener_marco();
+	CU_ASSERT_EQUAL(marco, -1);
+}
+
+
