@@ -538,7 +538,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 			}
 		free(ubicacionDelTemp);
 		}
-	pthread_mutex_unlock(&mutexDeOperacionCritica);
+	pthread_mutex_unlock(&mutexDeDump);
 	free(directorioDeLasTablas);
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de los temporales: %d",list_size(listaResultante));
 	log_info(LOGGERFS,"Archivos temporales escaneados");
