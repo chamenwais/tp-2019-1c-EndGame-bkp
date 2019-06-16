@@ -443,30 +443,45 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 }
 
 t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTabla, uint16_t key){
-	t_list* listaResultante = list_create();
+	t_list* listaResultante;// = list_create();
 	char* ubicacionDelBloque;
+	char* archivoTempUbicacion = string_new();
 	t_config* configuracion = config_create(nombreDelArchivo);
 	char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
 	config_destroy(configuracion);
 	char* directorioDeTrabajo= string_new();
 	string_append(&directorioDeTrabajo,configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeTrabajo,"/Blocks/");
+	string_append(&archivoTempUbicacion,directorioDeTrabajo);
+	string_append(&archivoTempUbicacion,"archTemp");
+	FILE* archivoTemp=fopen(archivoTempUbicacion,"w");
+
 	for(int i=0;arrayDeBloques[i]!=NULL;i++){
+		char ch;
 		ubicacionDelBloque=string_new();
 		string_append(&ubicacionDelBloque,directorioDeTrabajo);
 		string_append(&ubicacionDelBloque,arrayDeBloques[i]);
 		string_append(&ubicacionDelBloque,".bin");
-		log_info(LOGGERFS,"Voy a recuperar las keys del bloque %s",ubicacionDelBloque);
-		list_add_all(listaResultante, recuperarKeysDelBloque(ubicacionDelBloque, key));
+		log_info(LOGGERFS,"Voy a unir las keys del bloque %s",ubicacionDelBloque);
+		FILE* archivoDeBloque=fopen(ubicacionDelBloque,"r");
+		while((ch =fgetc(archivoDeBloque))!=EOF)
+			fputc(ch, archivoTemp);
+		fclose(archivoDeBloque);
+		//list_add_all(listaResultante, recuperarKeysDelArchivoFinal(ubicacionDelBloque, key));
 		free(ubicacionDelBloque);
 		free(arrayDeBloques[i]);
 		}
+	fclose(archivoTemp);
+	listaResultante=recuperarKeysDelArchivoFinal(archivoTempUbicacion, key);
+
+	remove(archivoTempUbicacion);
+	free(archivoTempUbicacion);
 	log_info(LOGGERFS,"Keys rescatadas de los bloques: %d",list_size(listaResultante));
 	return listaResultante;
 }
 
 
-t_list* recuperarKeysDelBloque(char* nombreDelArchivo, uint16_t key){
+t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	/*Dada la ubicacion de un archivo con datos como:
 	* 123;1231;asd
 	* 1111;11;ddd
@@ -529,7 +544,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 	string_append(&directorioDeLasTablas,nombreDeLaTabla);
 	char* ubicacionDelTemp;
 	bool noHayMas=false;
-	pthread_mutex_lock(&mutexDeDump);
+
 	for(int i=1;noHayMas==false;i++){
 		ubicacionDelTemp=string_new();
 		string_append(&ubicacionDelTemp,directorioDeLasTablas);
@@ -543,7 +558,6 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 			}
 		free(ubicacionDelTemp);
 		}
-	pthread_mutex_unlock(&mutexDeDump);
 	free(directorioDeLasTablas);
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de los temporales: %d",list_size(listaResultante));
 	log_info(LOGGERFS,"Archivos temporales escaneados");
@@ -570,20 +584,7 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 		list_add_all(listaResultante,
 				obtenerListaDeDatosDeArchivo(directorioDeLasTablas, nombreDeLaTabla, key));
 		}
-	/*for(int i=1;i<=numeroDeParticionQueContieneLaKey;i++){
-		ubicacionDelArchivo= string_new();
-		string_append(&ubicacionDelArchivo,directorioDeLasTablas);
-		string_append(&ubicacionDelArchivo,string_itoa(i));
-		string_append(&ubicacionDelArchivo,".bin");
-		log_info(LOGGERFS,"Checkeando en el archivo %d de las particiones, %s",
-							i ,ubicacionDelArchivo);
-		if(existeElArchivo(ubicacionDelArchivo)){
 
-			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelArchivo, nombreDeLaTabla, key));
-			}
-		free(ubicacionDelArchivo);
-		}
-	*/
 	free(directorioDeLasTablas);
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de la particion: %d",list_size(listaResultante));
 	log_info(LOGGERFS,"Particion correspondiente escaneada");
