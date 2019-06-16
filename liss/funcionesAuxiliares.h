@@ -27,9 +27,10 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		int numeroDeParticiones);
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
 int crearArchivoDeBloque(int bloqueLibre);
+int eliminarDeLaMemtable(char* nombreDeLaTabla);
 int eliminarDirectorio(char* nombreDeLaTabla);
-int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinalizacion);
-bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla);
+int setearEstadoDeFinalizacionDelSistema(bool estadoDeFinalizacion);
+bool obtenerEstadoDeFinalizacionDelSistema();
 int eliminarArchivoDeMetada(char* nombreDeLaTabla);
 int liberarBloquesYParticiones(char* nombreDeLaTabla);
 int bloquearTabla(char* nombreDeLaTabla);

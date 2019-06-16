@@ -100,11 +100,13 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 		return TABLA_NO_EXISTIA;
 	}else{
 		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+		pthread_mutex_lock(&mutexDeDump);
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
-			lanzarHiloParaLaTablaDeDumpeo(nombreDeLaTabla);
+			//lanzarHiloParaLaTablaDeDumpeo(nombreDeLaTabla);
 			}
 		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
+		pthread_mutex_unlock(&mutexDeDump);
 		return resultadoDelInsert;
 		}
 }
