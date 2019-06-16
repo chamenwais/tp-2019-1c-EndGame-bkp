@@ -28,13 +28,14 @@ void atender_select(int cliente, int tamanio){
 
 	if(rta_select->respuesta==REQUEST_SUCCESS){
 		prot_enviar_respuesta_select(rta_select->value, rta_select->key, rta_select->timestamp, cliente);
-		free(rta_select->value);
-		free(rta_select);
 	} else {
 		prot_enviar_error(rta_select->respuesta,cliente);
-		free(rta_select);
 	}
 
+	if(rta_select->value!=NULL){
+		free(rta_select->value);
+	}
+	free(rta_select);
 	free(seleccion->nom_tabla);
 	free(seleccion);
 }
@@ -42,9 +43,13 @@ void atender_select(int cliente, int tamanio){
 void atender_insert(int cliente, int tamanio){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un insert");
 	tp_insert insercion = prot_recibir_insert(tamanio, cliente);
-	realizar_insert(insercion->nom_tabla, insercion->timestamp, insercion->key, insercion->value);
+	int resultado_insert=realizar_insert(insercion->nom_tabla, insercion->timestamp, insercion->key, insercion->value);
 
-	prot_enviar_respuesta_insert(cliente);
+	if(resultado_insert>0){
+		prot_enviar_respuesta_insert(cliente);
+	} else {
+		prot_enviar_error(NO_HAY_MAS_MARCOS_EN_LA_MEMORIA,cliente);
+	}
 
 	free(insercion->nom_tabla);
 	free(insercion->value);
@@ -336,21 +341,29 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 
 		if(rta_select_a_kernel->value!=NULL){
 			logger(escribir_loguear, l_info, "Recibi el valor '%s'",rta_select_a_kernel->value);
-			colocar_value_en_MP(nombre_tabla, rta_select_a_kernel->timestamp,(uint16_t)key,rta_select_a_kernel->value);
+			int resultado_colocacion=colocar_value_en_MP(nombre_tabla
+					, rta_select_a_kernel->timestamp,(uint16_t)key,rta_select_a_kernel->value);
+			if(resultado_colocacion<0){
+				rta_select_a_kernel->respuesta=NO_HAY_MAS_MARCOS_EN_LA_MEMORIA;
+			}
 		}
 	}
 
 	return rta_select_a_kernel;
 }
 
-void realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * value){
+int realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * value){
+	int resultado_insercion=1;
 	tp_select_rta rta_select = verificar_existencia_en_MP(nombre_tabla, key);
 
 	if(rta_select != NULL && rta_select->value != NULL){
 		actualizar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
 	} else {
-		insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
+		resultado_insercion=insertar_value_modificado_en_MP(nombre_tabla, timestamp, key, value);
 	}
-	logger(escribir_loguear, l_info, "Se insertó el value '%s' para la key %d en memoria",value, key);
+	if(resultado_insercion>0){
+		logger(escribir_loguear, l_info, "Se insertó el value '%s' para la key %d en memoria",value, key);
+	}
 	liberar_rta_interna_select(rta_select);
+	return resultado_insercion;
 }

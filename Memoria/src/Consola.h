@@ -42,6 +42,7 @@ void *consola();
 int consola_leer_stdin(char *, size_t );
 void limpiar_parametro(char* );
 char * obtener_value_a_insertar(char *);
+void loguear_no_hay_mas_marcos_libres();
 
 
 #endif /* MEMORIA_SRC_CONSOLA_H_ */
