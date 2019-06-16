@@ -35,8 +35,10 @@ int dump(char* nombreDeLaTabla){
 		bool termine=false;
 		bool esElPrimero=true;
 		while(termine==false){
+			pthread_mutex_lock(&mutexBitmap);
 			bloqueActual=obtenerBloqueLibreDelBitMap();
 			ocuparBloqueDelBitmap(bloqueActual);
+			pthread_mutex_unlock(&mutexBitmap);
 			bajarADiscoBitmap();
 			if(bloqueActual==-1){
 				log_error(LOGGERFS,"Alerta, no hay mas bloques libres!!!!!");
@@ -77,6 +79,7 @@ int dump(char* nombreDeLaTabla){
 			}
 		return EXIT_SUCCESS;
 		}
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMem = list_remove_by_condition(memTable,esMiNodo);
 	if(nodoDeLaMem==NULL){
 		log_info(LOGGERFS,"No hay nada para dumpear en %s", nombreDeLaTabla);
@@ -98,9 +101,10 @@ int dump(char* nombreDeLaTabla){
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
-	setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
+	//setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
 	free(bloques);
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 	if(hayBloquesLibres){
 		log_info(LOGGERFS,"Dump correcto");
 		return DUMP_CORRECTO;
@@ -115,60 +119,39 @@ int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 	return EXIT_SUCCESS;
 }
 
-/*
 int lanzarDumps(){
-	char* ubicacionDeLasCarpetasDeBloque=string_new();
-	string_append(&ubicacionDeLasCarpetasDeBloque, configuracionDelFS.puntoDeMontaje);
-	string_append(&ubicacionDeLasCarpetasDeBloque, "/Tables");
-	DIR *directorio;
-	struct dirent *carpeta;
-	directorio = opendir(ubicacionDeLasCarpetasDeBloque);
-	if(directorio){
-		while ((carpeta = readdir(directorio)) != NULL){
-            if((!string_equals_ignore_case(carpeta->d_name,".."))&&
-            		(!string_equals_ignore_case(carpeta->d_name,"."))){
-            	//veo q no sea .. ni .
-            	log_info(LOGGERFS,"Agregado dump para la tabla %s", carpeta->d_name);
-            	char*nombreDeLaTabla=string_new();
-            	string_append(&nombreDeLaTabla, carpeta->d_name);
-            	lanzarHiloParaLaTabla(nombreDeLaTabla);
-            }else{
-            	log_info(LOGGERFS,"%s No es una carpeta de tablas, no lanzo el hilo", carpeta->d_name);
-            	}
-	        }
-        closedir(directorio);
-	    }
-	free(ubicacionDeLasCarpetasDeBloque);
-	return EXIT_SUCCESS;
-}
-*/
-
-void hiloDeDumpeo(char* nombreDeLaTabla){
-	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nombreDeLaTabla);
-	int tiempoDeSleep = metadataDeLaTabla.tiempoDeCompactacion;
-	log_info(LOGGERFS,"Hilo creado voy a empezar a ciclar el dump de %s, cada %d",
-			nombreDeLaTabla, tiempoDeSleep);
-	while(!obtenerEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla)){
-		sleep(tiempoDeSleep);
-		dump(nombreDeLaTabla);
+	log_info(LOGGERFS,"Iniciando hilo de consola");
+	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
+			funcionHiloDump, "Hilo dump");
+	if(resultadoDeCrearHilo){
+		log_error(LOGGERFS,"Error al crear el hilo del dump, return code: %d",
+				resultadoDeCrearHilo);
+		exit(EXIT_FAILURE);
+	}else{
+		log_info(LOGGERFS,"El hilo de dump se creo exitosamente");
+		return EXIT_SUCCESS;
 		}
-	log_info(LOGGERFS,"Finalizando hilo de dumpeo de la tabla %s",
-				nombreDeLaTabla);
-	return;
-}
-
-
-int lanzarHiloParaLaTablaDeDumpeo(char* nombreDeLaTabla){
-	log_info(LOGGERFS,"Voy a crear un hilo detachable de dump para la tabla: %s", nombreDeLaTabla);
-	pthread_attr_t attr;
-	pthread_t thread;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create(&thread, &attr, &hiloDeDumpeo, nombreDeLaTabla);
-	pthread_attr_destroy(&attr);
-	log_info(LOGGERFS,"Hilo de dumpeo de la tabla %s finalizado", nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
+
+void funcionHiloDump(void *arg){
+
+	void dumpearAEseNodo(void* nodo) {
+		dump(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla);
+		}
+	int tiempoDeSleep;
+	while(!obtenerEstadoDeFinalizacionDelSistema()){
+		tiempoDeSleep=obtenerTiempoDump();
+		sleep(tiempoDeSleep);
+		log_trace(LOGGERFS,"Iniciando un dumpeo");
+		pthread_mutex_lock(&mutexDeDump);
+		list_iterate(memTable, dumpearAEseNodo);
+		pthread_mutex_unlock(&mutexDeDump);
+		log_trace(LOGGERFS,"Dumpeo finalizado");
+		}
+	log_info(LOGGERFS,"Finalizando hilo de dumpeo");
+	return;
+	}
 
 int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual){
 	//le pasas un numero de bloque y una cadena con los datos a insertar y los manda

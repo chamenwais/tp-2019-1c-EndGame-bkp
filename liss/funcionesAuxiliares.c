@@ -72,6 +72,8 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		fclose(archivoTemp);
 		log_info(LOGGERFS,"Escribiendo en el archivo binario %s", nombreDelBinario);
 
+		pthread_mutex_lock(&mutexBitmap);
+
 		bloqueLibre=obtenerBloqueLibreDelBitMap();
 
 		if(bloqueLibre!=-1){
@@ -94,9 +96,10 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 			free(nombreDelBinario);
 		}else{
 			log_error(LOGGERFS,"No hay mas bloques libres");
+			pthread_mutex_unlock(&mutexBitmap);
 			return EXIT_FAILURE;
 			}
-
+		pthread_mutex_unlock(&mutexBitmap);
 		}
 	return EXIT_SUCCESS;
 }
@@ -115,16 +118,26 @@ int crearArchivoDeBloque(int bloqueLibre){
 }
 
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
-	bloquearTabla(nombreDeLaTabla);
+	pthread_mutex_lock(&mutexDeDump);
 	if((liberarBloquesYParticiones(nombreDeLaTabla)==EXIT_SUCCESS) &&
 			(eliminarArchivoDeMetada(nombreDeLaTabla)==EXIT_SUCCESS) &&
-			(eliminarDirectorio(nombreDeLaTabla)==EXIT_SUCCESS)){
+			(eliminarDirectorio(nombreDeLaTabla)==EXIT_SUCCESS)&&
+			(eliminarDeLaMemtable(nombreDeLaTabla)==EXIT_SUCCESS)
+			){
 		log_info(LOGGERFS,"La tabla %s se borro correctamente", nombreDeLaTabla);
+		pthread_mutex_lock(&mutexDeDump);
 		return EXIT_SUCCESS;
 	}else{
 		log_error(LOGGERFS,"Hubo algun error al borrar la tabla %s", nombreDeLaTabla);
+		pthread_mutex_unlock(&mutexDeDump);
 		return EXIT_FAILURE;
 		}
+}
+
+
+int eliminarDeLaMemtable(char* nombreDeLaTabla){
+	//implementar
+	return EXIT_SUCCESS;
 }
 
 int eliminarDirectorio(char* nombreDeLaTabla){
@@ -145,28 +158,17 @@ int eliminarDirectorio(char* nombreDeLaTabla){
 		}
 }
 
-int setearEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla, bool estadoDeFinalizacion){
-	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
-	if(nodoDeLaMemtable!=NULL){
-		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
-		nodoDeLaMemtable->estadoDeFinalizacionDelDump=estadoDeFinalizacion;
-		pthread_mutex_unlock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
-	}else{
-		log_error(LOGGERFS,"Error insalvable");
-	}
+int setearEstadoDeFinalizacionDelSistema(bool estadoDeFinalizacion){
+	pthread_mutex_lock(&mutexEstadoDeFinalizacionDelSistema);
+	estadoDeFinalizacionDelSistema=estadoDeFinalizacion;
+	pthread_mutex_unlock(&mutexEstadoDeFinalizacionDelSistema);
 	return EXIT_SUCCESS;
 }
 
-bool obtenerEstadoDeFinalizacionDeDumpeo(char* nombreDeLaTabla){
-	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
-	bool estado = false;
-	if(nodoDeLaMemtable!=NULL){
-		pthread_mutex_lock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
-		bool estado = nodoDeLaMemtable->estadoDeFinalizacionDelDump;
-		pthread_mutex_unlock(&(nodoDeLaMemtable->mutexDeVariableDeEstadoDeFinalizacion));
-	}else{
-		log_error(LOGGERFS,"Error insalvable");
-		}
+bool obtenerEstadoDeFinalizacionDelSistema(){
+	pthread_mutex_lock(&mutexEstadoDeFinalizacionDelSistema);
+	bool estado = estadoDeFinalizacionDelSistema;
+	pthread_mutex_unlock(&mutexEstadoDeFinalizacionDelSistema);
 	return estado;
 }
 
@@ -210,6 +212,7 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 		t_config* configuracion = config_create(nombreDelArchivo);
 		char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
 		config_destroy(configuracion);
+		pthread_mutex_lock(&mutexBitmap);
 		for(int i=0;arrayDeBloques[i]!=NULL;i++){
 			ubicacionDelBloque=string_new();
 			log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
@@ -222,17 +225,12 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 			free(ubicacionDelBloque);
 			free(arrayDeBloques[i]);
 			}
+		pthread_mutex_unlock(&mutexBitmap);
 		log_info(LOGGERFS,"Borrando el archivo %s", nombreDelArchivo);
 		remove(nombreDelArchivo);
 		free(nombreDelArchivo);
 		}
 	free(directorioDeBloques);
-	return EXIT_SUCCESS;
-}
-
-int bloquearTabla(char* nombreDeLaTabla){
-	// Esta funcion bloquea la tabla para q no sea utilizada por multiples hilos simultaneamente
-
 	return EXIT_SUCCESS;
 }
 
@@ -317,6 +315,7 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
 	bool resultado;
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	if(!list_is_empty(memTable)){
 		resultado = list_any_satisfy(memTable, esMiNodo);
 	}else{
@@ -327,6 +326,7 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 	}else{
 		log_info(LOGGERFS,"La tabla %s si estaba en la memtable", nombreDeLaTabla);
 		}
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 	return resultado;
 }
 
@@ -349,7 +349,9 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 		log_info(LOGGERFS,"Se inicializo el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
 			nombreDeLaTabla);
 		}
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	list_add(memTable,nodo);
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 	log_info(LOGGERFS,"Memoria alocada");
 	return EXIT_SUCCESS;
 }
@@ -359,14 +361,15 @@ tp_nodoDeLaMemTable obtenerNodoDeLaMemtable(char* nombreDeLaTabla){
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla, nombreDeLaTabla);
 	}
-
-	return (tp_nodoDeLaMemTable)list_find(memTable, esMiNodo);
+	tp_nodoDeLaMemTable nodo = (tp_nodoDeLaMemTable)list_find(memTable, esMiNodo);
+	return nodo;
 }
 
 int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value,
 		unsigned timeStamp){
 	log_info(LOGGERFS,"Voy a hacer el insert de los datos en la tabla %s de la memtable",
 			nombreDeLaTabla);
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
 	if(nodoDeLaMemtable!=NULL){
 		tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
@@ -375,9 +378,12 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 		nuevoNodo->value=malloc(strlen(value)+1);
 		strcpy(nuevoNodo->value,value);
 		list_add(nodoDeLaMemtable->listaDeDatosDeLaTabla,nuevoNodo);
+
+		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_info(LOGGERFS,"Datos insertados");
 		return EXIT_SUCCESS;
 	}else{
+		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_error(LOGGERFS,"Error al insertar los datos, algo se corrompio, no se encontro la tabla en la memtable");
 		return EXIT_FAILURE;
 	}
@@ -390,18 +396,23 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	log_info(LOGGERFS,"Voy a escanear todo el FS a ver donde existe la key %d para la tabla %s",
 			key, nombreDeLaTabla);
 
-	t_list* keysDeLaMemTable = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
-	list_add_all(listadoDeKeys,keysDeLaMemTable);
-	list_destroy(keysDeLaMemTable);
+	pthread_mutex_lock(&mutexDeDump);
 
-	keysDeLaMemTable = escanearPorLaKeyDeseadaArchivosTemporales(key, nombreDeLaTabla);
-	list_add_all(listadoDeKeys,keysDeLaMemTable);
-	list_destroy(keysDeLaMemTable);
+	t_list* keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
 
-	keysDeLaMemTable = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
+
+	keysTemporales = escanearPorLaKeyDeseadaArchivosTemporales(key, nombreDeLaTabla);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
+
+	pthread_mutex_unlock(&mutexDeDump);
+
+	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
 			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
-	list_add_all(listadoDeKeys,keysDeLaMemTable);
-	list_destroy(keysDeLaMemTable);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
 
 	int sizeDeLaLista = list_size(listadoDeKeys);
 	log_info(LOGGERFS,"Keys obtenidas en total, son %d",sizeDeLaLista);
@@ -518,6 +529,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 	string_append(&directorioDeLasTablas,nombreDeLaTabla);
 	char* ubicacionDelTemp;
 	bool noHayMas=false;
+	pthread_mutex_lock(&mutexDeDump);
 	for(int i=1;noHayMas==false;i++){
 		ubicacionDelTemp=string_new();
 		string_append(&ubicacionDelTemp,directorioDeLasTablas);
@@ -531,6 +543,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 			}
 		free(ubicacionDelTemp);
 		}
+	pthread_mutex_unlock(&mutexDeDump);
 	free(directorioDeLasTablas);
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de los temporales: %d",list_size(listaResultante));
 	log_info(LOGGERFS,"Archivos temporales escaneados");
@@ -679,7 +692,3 @@ void free_tp_describe_rta(void* d){
 void liberarYDestruirTablaDeMetadata(t_list* descriptores){//libera y destruye una lista que tenga tp_describe_rta dentro
 	list_destroy_and_destroy_elements(descriptores,free_tp_describe_rta);
 }
-
-
-
-

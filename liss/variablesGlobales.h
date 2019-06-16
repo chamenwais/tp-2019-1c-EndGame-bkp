@@ -68,7 +68,8 @@ extern char* archivoDeBitmap;
 extern char* archivoDeLaMetadata;
 extern char* pathDeMontajeDelPrograma;
 extern pthread_t threadConsola, threadCompactador;
-extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap;
+extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
 extern t_bitarray *bitmap;
 extern int sizeDelBitmap;
 extern char * srcMmap;
@@ -76,6 +77,7 @@ extern char * bufferArchivo;
 extern pthread_t threadServer;
 extern t_list* memTable;
 extern t_list* dumpTables;
+extern bool estadoDeFinalizacionDelSistema;
 
 int inicializarVariablesGlobales();
 void liberarRecursos();

@@ -15,13 +15,15 @@ char* archivoDeBitmap;
 char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
 pthread_t threadConsola, threadCompactador;
-pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap;
+pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
 t_bitarray *bitmap;
 int sizeDelBitmap;
 char * srcMmap;
 char * bufferArchivo;
 t_list* memTable;
 t_list* dumpTables;
+bool estadoDeFinalizacionDelSistema;
 
 pthread_t threadServer;//thread para el server de lissandra
 
@@ -50,6 +52,21 @@ int inicializarVariablesGlobales(){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexBitmap");
 		return EXIT_FAILURE;
 		}
+	if(pthread_mutex_init(&mutexEstadoDeFinalizacionDelSistema, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexEstadoDeFinalizacionDelSistema");
+		return EXIT_FAILURE;
+	}else{
+		setearEstadoDeFinalizacionDelSistema(false);
+		}
+	if(pthread_mutex_init(&mutexDeLaMemtable, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeLaMemtable");
+		return EXIT_FAILURE;
+		}
+	if(pthread_mutex_init(&mutexDeDump, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeOperacionCritica");
+		return EXIT_FAILURE;
+		}
+
 	bitmap=NULL;
 	sizeDelBitmap=-1;
 	bufferArchivo=NULL;
@@ -62,8 +79,7 @@ int inicializarVariablesGlobales(){
 
 void liberarRecursos(){
 	log_info(LOGGERFS,"Liberando recursos");
-	pthread_mutex_destroy(&mutexVariableRetardo);
-	pthread_mutex_destroy(&mutexVariableTiempoDump);
+
 	if(configuracionDelFS.puntoDeMontaje!=NULL)free(configuracionDelFS.puntoDeMontaje);
 	if(metadataDelFS.magicNumber!=NULL)free(metadataDelFS.magicNumber);
 	free(pathDeMontajeDelPrograma);
@@ -72,12 +88,19 @@ void liberarRecursos(){
 	free(archivoDeLaMetadata);
 	bajarADiscoBitmap();
 	log_info(LOGGERFS,"Destruyendo el bitarray");
+	pthread_mutex_lock(&mutexBitmap);
 	bitarray_destroy(bitmap);
 	//free(srcMmap);
 	free(bufferArchivo);
 	vaciarMemTable();
 	vaciarDumpTable();
 	log_destroy(LOGGERFS);
+	pthread_mutex_destroy(&mutexVariableRetardo);
+	pthread_mutex_destroy(&mutexVariableTiempoDump);
+	pthread_mutex_destroy(&mutexDeLaMemtable);
+	pthread_mutex_destroy(&mutexBitmap);
+	pthread_mutex_destroy(&mutexDeDump);
+	pthread_mutex_destroy(&mutexEstadoDeFinalizacionDelSistema);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
 }

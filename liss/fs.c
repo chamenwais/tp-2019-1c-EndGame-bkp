@@ -269,6 +269,8 @@ int levantarBitMap(){
 	sizeDelBitmap=metadataDelFS.blocks * sizeof(char);
 	log_info(LOGGERFS,"Buscando el archivo \"Bitmap.bin\" en el directorio: %s",archivoDeBitmap);
 
+	pthread_mutex_lock(&mutexBitmap);
+
 	int FDbitmap = open(archivoDeBitmap, O_RDWR);
 
 	if(FDbitmap==-1){
@@ -336,12 +338,17 @@ int levantarBitMap(){
 
 		}
 	close(FDbitmap);
+
+	pthread_mutex_unlock(&mutexBitmap);
+
 	return EXIT_SUCCESS;
 }
 
 int bajarADiscoBitmap(){
+	pthread_mutex_lock(&mutexBitmap);
 	memcpy(srcMmap,bufferArchivo,sizeDelBitmap);
 	msync(bitmap, sizeDelBitmap, MS_SYNC);
+	pthread_mutex_unlock(&mutexBitmap);
 	return EXIT_SUCCESS;
 }
 

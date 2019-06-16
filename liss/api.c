@@ -43,6 +43,7 @@ void *funcionHiloConsola(void *arg){
 				free(instruccion);
 				free(linea);
 				log_info(LOGGERFS,"Cerrando consola");
+				setearEstadoDeFinalizacionDelSistema(true);
 				return ret;
 			}else{
 			if((strcmp(instruccion[0],"select")==0) || (strcmp(instruccion[0],"SELECT")==0)){
@@ -349,8 +350,10 @@ int imprimirMemtableEnPantalla(){
 				imprimirValores);
 			}
 	}
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	if(!list_is_empty(memTable)){
 		list_iterate(memTable,imprimirTabla);
 		}
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 	return EXIT_SUCCESS;
 }

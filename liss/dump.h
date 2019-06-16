@@ -15,10 +15,11 @@
 int dump(char* nombreDeLaTabla);
 char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla);
 int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo);
-//int lanzarDumps();
 void hiloDeDumpeo(char* nombreDeLaTabla);
 int lanzarHiloParaLaTablaDeDumpeo(char* nombreDeLaTabla);
 int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual);
 int crearElTemp(char* nombreDelArchivo,char* bloques,int size);
+void funcionHiloDump(void *arg);
+int lanzarDumps();
 
 #endif /* DUMP_H_ */
