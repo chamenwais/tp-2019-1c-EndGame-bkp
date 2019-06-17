@@ -32,8 +32,9 @@ int setup_lru();
 int clean_lru();
 void test_lru_completo();
 
-int setup_lru_todo_modif();
-int clean_lru_todo_modif();
+int setup_todas_pag_modificadas();
+int clean_todas_pag_modificadas();
 void test_todas_paginas_modificadas();
+void test_recopilar_paginas_modificadas();
 
 #endif /* TEST_TESTGENERAL_H_ */

@@ -193,20 +193,33 @@ t_entrada_tabla_segmentos * crear_segmento_a_tabla(char * nombre_tabla){
 	return segmento;
 }
 
+t_list * recopilar_paginas_modificadas(){
+	t_list * paginas_modificadas=list_create();
+	bool es_pagina_modificada(void * pagina){
+		return ((t_entrada_tabla_paginas *)pagina)->flag==FLAG_MODIFICADO;
+	}
+	recopilar_paginas_de_segmento_por_criterio(paginas_modificadas, es_pagina_modificada);
+	return paginas_modificadas;
+}
+
+void recopilar_paginas_de_segmento_por_criterio(t_list *paginas_recopiladas, bool (*criterio)(void*)){
+	void recopilador_paginas_de_segmento_por_criterio(void * un_segmento){
+		t_list* paginas_segmento_que_cumplen_criterio = list_filter(
+				((t_entrada_tabla_segmentos*) un_segmento)->base, criterio);
+		if(!list_is_empty(paginas_segmento_que_cumplen_criterio)){
+			list_add_all(paginas_recopiladas, paginas_segmento_que_cumplen_criterio);
+		}
+		list_destroy(paginas_segmento_que_cumplen_criterio);
+	}
+	list_iterate(tabla_de_segmentos, recopilador_paginas_de_segmento_por_criterio);
+}
+
 int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
 	t_list * paginas_no_modificadas=list_create();
 	bool es_pagina_no_modificada(void * pagina){
 		return ((t_entrada_tabla_paginas *)pagina)->flag==FLAG_NO_MODIFICADO;
 	}
-	void recopilar_paginas_no_modificadas(void * un_segmento){
-		t_list* paginas_no_modificadas_de_un_segmento = list_filter(
-				((t_entrada_tabla_segmentos*) un_segmento)->base, es_pagina_no_modificada);
-		if(!list_is_empty(paginas_no_modificadas_de_un_segmento)){
-			list_add_all(paginas_no_modificadas, paginas_no_modificadas_de_un_segmento);
-			list_destroy(paginas_no_modificadas_de_un_segmento);
-		}
-	}
-	list_iterate(tabla_de_segmentos, recopilar_paginas_no_modificadas);
+	recopilar_paginas_de_segmento_por_criterio(paginas_no_modificadas,es_pagina_no_modificada);
 	if(list_is_empty(paginas_no_modificadas)){
 		//Ya no quedan páaginas sin modificar
 		list_destroy(paginas_no_modificadas);
