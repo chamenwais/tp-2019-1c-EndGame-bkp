@@ -340,15 +340,6 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 	nodo->nombreDeLaTabla=malloc(strlen(nombreDeLaTabla)+1);
 	strcpy(nodo->nombreDeLaTabla,nombreDeLaTabla);
 	nodo->listaDeDatosDeLaTabla=list_create();
-	nodo->estadoDeFinalizacionDelDump=false;
-	if(pthread_mutex_init(&(nodo->mutexDeVariableDeEstadoDeFinalizacion), NULL) != 0) {
-		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
-			nombreDeLaTabla);
-		return EXIT_FAILURE;
-	}else{
-		log_info(LOGGERFS,"Se inicializo el semaforo mutexDeVariableDeEstadoDeFinalizacion de la tabla %s",
-			nombreDeLaTabla);
-		}
 	pthread_mutex_lock(&mutexDeLaMemtable);
 	list_add(memTable,nodo);
 	pthread_mutex_unlock(&mutexDeLaMemtable);

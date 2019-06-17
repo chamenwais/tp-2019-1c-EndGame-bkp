@@ -54,34 +54,38 @@ void *funcionHiloConsola(void *arg){
 				}
 			}else{
 			if((strcmp(instruccion[0],"insert")==0) || (strcmp(instruccion[0],"INSERT")==0)){
-				char** instraccionesAux = string_split(linea, "\"");
+				char** instruccionesAux = string_split(linea, "\"");
 				/* De: INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]
 				 * Me queda separado en:
 				 * INSERT [NOMBRE_TABLA] [KEY]
 				 * [VALUE]
 				 * [Timestamp]
 				 * */
-				char** instruccion = string_split(instraccionesAux[0], " ");
+				char** instrucionLocal = string_split(instruccionesAux[0], " ");
 				/* De: INSERT [NOMBRE_TABLA] [KEY]
 				 * Me queda separado en:
 				 * INSERT
 				 * [NOMBRE_TABLA]
 				 * [KEY]
 				 * */
-				if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&(instraccionesAux[1]!=NULL)
-						&&(instraccionesAux[2]!=NULL)){
+				if((instrucionLocal[1]!=NULL)&&(instrucionLocal[2]!=NULL)&&(instruccionesAux[1]!=NULL)
+						&&(instruccionesAux[2]!=NULL)){
 					printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y el timestamp %d\n",
-							instruccion[1],atoi(instruccion[2]),instraccionesAux[1],atoi(instraccionesAux[2]));
-					consolaInsert(instruccion[1],atoi(instruccion[2]),instraccionesAux[1],atoi(instraccionesAux[2]));
+							instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1],atoi(instruccionesAux[2]));
+					consolaInsert(instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1],atoi(instruccionesAux[2]));
 				}else{
-					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&
-							(instraccionesAux[1]!=NULL)&&(instraccionesAux[2]==NULL)){
+					if((instrucionLocal[1]!=NULL)&&(instrucionLocal[2]!=NULL)&&
+							(instruccionesAux[1]!=NULL)&&(instruccionesAux[2]==NULL)){
 						printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y sin timestamp\n",
-								instruccion[1],atoi(instruccion[2]),instraccionesAux[1]);
-						consolaInsertSinTime(instruccion[1],atoi(instruccion[2]),instraccionesAux[1]);
+								instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1]);
+						consolaInsertSinTime(instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1]);
 					}else{
 						printf("Faltan parametros para poder hacer un insert\n");}
 					}
+				for(int j=0;instruccionesAux[j]!=NULL;j++)
+					free(instruccionesAux[j]);
+				for(int j=0;instrucionLocal[j]!=NULL;j++)
+					free(instrucionLocal[j]);
 			}else{
 				if((strcmp(instruccion[0],"create")==0) || (strcmp(instruccion[0],"CREATE")==0)){
 					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&(instruccion[3]!=NULL)
@@ -133,7 +137,8 @@ void *funcionHiloConsola(void *arg){
 			}else{
 				printf("Comando desconocido\n");
 				}}}}}}}}}}}}}
-			free(instruccion);
+			for(int j=0;instruccion[j]!=NULL;j++)
+				free(instruccion[j]);
 			}
 		free(linea);
 	}//Cierre del while(1)

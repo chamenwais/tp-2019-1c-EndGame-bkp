@@ -29,6 +29,7 @@ int dump(char* nombreDeLaTabla){
 		string_append(&cadenaAInsertar, ((tp_nodoDeLaTabla)nodo)->value);
 		string_append(&cadenaAInsertar, "\n");
 		string_append(&cadenaFinal, cadenaAInsertar);
+		free(cadenaAInsertar);
 	}
 
 	int insertarCadenaEnLosBloques(){
@@ -146,6 +147,8 @@ void funcionHiloDump(void *arg){
 		log_trace(LOGGERFS,"Iniciando un dumpeo");
 		pthread_mutex_lock(&mutexDeDump);
 		list_iterate(memTable, dumpearAEseNodo);
+		vaciarMemTable();
+		memTable=list_create();
 		pthread_mutex_unlock(&mutexDeDump);
 		log_trace(LOGGERFS,"Dumpeo finalizado");
 		}
@@ -164,6 +167,7 @@ int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual){
 	FILE* archivo=fopen(nombreDelArchivoDeBloque,"a");
 	log_info(LOGGERFS,"Guardando %s en el archivo %s", cadenaAInsertar, nombreDelArchivoDeBloque);
 	fprintf(archivo,"%s",cadenaAInsertar);
+	free(nombreDelArchivoDeBloque);
 	fclose(archivo);
 	return EXIT_SUCCESS;
 }
@@ -208,5 +212,6 @@ char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla){
 			}
 		}
 	log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
+	free(aux);
 	return pathDelTemp;
 }
