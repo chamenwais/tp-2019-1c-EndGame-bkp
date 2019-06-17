@@ -26,10 +26,12 @@ int correr_tests(){
 			CU_add_suite("Suite para probar el algoritmo LRU", setup_lru, clean_lru);
 	CU_add_test(tests_lru, "test_lru_completo", test_lru_completo);
 
-	CU_pSuite tests_lru_todo_modif =
-			CU_add_suite("Suite para probar el algoritmo LRU con todas las pag modificadas"
-					, setup_lru_todo_modif, clean_lru_todo_modif);
-	CU_add_test(tests_lru_todo_modif, "test_todas_paginas_modificadas", test_todas_paginas_modificadas);
+	CU_pSuite tests_lru_todo_modif_o_journal =
+			CU_add_suite("Suite para probar el algoritmo LRU con todas las pag modificadas o Journaling"
+					, setup_todas_pag_modificadas, clean_todas_pag_modificadas);
+	CU_add_test(tests_lru_todo_modif_o_journal, "test_todas_paginas_modificadas", test_todas_paginas_modificadas);
+	CU_add_test(tests_lru_todo_modif_o_journal
+			, "test_recopilar_paginas_modificadas", test_recopilar_paginas_modificadas);
 
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();
@@ -128,6 +130,13 @@ int setup_lru(){
 	crear_pagina_en_tabla_paginas(un_segmento, 2, FLAG_NO_MODIFICADO);
 	sleep(1);
 	crear_pagina_en_tabla_paginas(un_segmento, 1, FLAG_NO_MODIFICADO);
+
+	t_entrada_tabla_segmentos * otro_segmento=crear_segmento_a_tabla("tablaFalsa2");
+	crear_pagina_en_tabla_paginas(otro_segmento, 6, FLAG_NO_MODIFICADO);
+	sleep(1);
+	crear_pagina_en_tabla_paginas(otro_segmento, 5, FLAG_NO_MODIFICADO);
+	sleep(1);
+	crear_pagina_en_tabla_paginas(otro_segmento, 4, FLAG_NO_MODIFICADO);
 	return 0;
 }
 
@@ -146,7 +155,7 @@ void test_lru_completo(){
 	CU_ASSERT_EQUAL(list_size(un_segmento->base), 2);
 }
 
-int setup_lru_todo_modif(){
+int setup_todas_pag_modificadas(){
 	inicializar_bitmap_marcos();
 	inicializar_tabla_segmentos();
 	t_entrada_tabla_segmentos * un_segmento=crear_segmento_a_tabla("tablaFalsa");
@@ -156,7 +165,7 @@ int setup_lru_todo_modif(){
 	return 0;
 }
 
-int clean_lru_todo_modif(){
+int clean_todas_pag_modificadas(){
 	puts("\nLimpiando lru todo modif...");
 	liberar_tabla_segmentos();
 	liberar_bitmap_marcos();
@@ -164,9 +173,14 @@ int clean_lru_todo_modif(){
 }
 
 void test_todas_paginas_modificadas(){
-	setup_lru_todo_modif();
+	setup_todas_pag_modificadas();
 	int marco=ejecutar_algoritmo_reemplazo_y_obtener_marco();
 	CU_ASSERT_EQUAL(marco, -1);
 }
 
-
+void test_recopilar_paginas_modificadas(){
+	setup_todas_pag_modificadas();
+	t_list* paginas_modificadas=recopilar_paginas_modificadas();
+	CU_ASSERT_EQUAL(list_size(paginas_modificadas),3);
+	list_destroy(paginas_modificadas);
+}

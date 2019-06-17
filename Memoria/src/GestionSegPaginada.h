@@ -50,4 +50,6 @@ t_entrada_tabla_paginas * buscar_pagina_de_key_en_MP(t_list*,uint16_t);
 void liberar_segmento_de_MP(t_entrada_tabla_segmentos *);
 void destructor_pagina(void *);
 void destructor_segmento(void *);
+void recopilar_paginas_de_segmento_por_criterio(t_list *, bool (*criterio)(void*));
+t_list * recopilar_paginas_modificadas();
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */

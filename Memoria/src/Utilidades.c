@@ -495,11 +495,15 @@ void apagar_semaforos(){
 
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
 	enum MENSAJES resultado = REQUEST_SUCCESS;
+	t_list* paginas_modificadas=recopilar_paginas_modificadas();
 
 	pthread_mutex_lock(&M_JOURNALING);
 
-	//TODO revisar flags de páginas y mandárselos a LFS
+	//TODO iterar cada pagina modificada y mandársela a LFS
+	//Si algún insert falló, devolverle el error al Kernel o informar en consola
 
 	pthread_mutex_unlock(&M_JOURNALING);
+
+	list_destroy(paginas_modificadas);
 	return resultado;
 }
