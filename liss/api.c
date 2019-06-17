@@ -26,13 +26,10 @@ void *funcionHiloConsola(void *arg){
 	char * linea;
 	char *ret="Cerrando hilo";
 	char** instruccion;
-	char* ubicacionDelPunteroDeLaConsola;
 	log_info(LOGGERFS,"Consola lista");
 	printf("Si necesita saber las funciones que hay disponibles llame a la funcion \"man\"\n");
 	while(1){
-		ubicacionDelPunteroDeLaConsola=string_new();
-		string_append(&ubicacionDelPunteroDeLaConsola,"$ ");
-		linea = readline(ubicacionDelPunteroDeLaConsola);
+		linea = readline("$ ");
 		if(strlen(linea)>0){
 			add_history(linea);
 			instruccion=NULL;
@@ -139,7 +136,6 @@ void *funcionHiloConsola(void *arg){
 			free(instruccion);
 			}
 		free(linea);
-		free(ubicacionDelPunteroDeLaConsola);
 	}//Cierre del while(1)
 	return ret;
 }

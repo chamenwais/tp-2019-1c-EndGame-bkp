@@ -432,9 +432,11 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 		}
 	log_info(LOGGERFS,"Escaneando memtable");
 	if(!list_is_empty(memTable)){
+		log_info(LOGGERFS,"La memtable no esta vacia");
 		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
 		listaResultante = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
 	}else{
+		log_info(LOGGERFS,"Memtable vacia");
 		listaResultante = list_create();
 	}
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de la memtable: %d",list_size(listaResultante));
@@ -566,7 +568,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 		int numeroDeParticionQueContieneLaKey, char* nombreDeLaTabla){
-	t_list* listaResultante= list_create();
+	t_list* listaResultante;//= list_create();
 	log_info(LOGGERFS,"Escaneando particion correspondiente, es la %d, de la tabla %s",
 			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
 	char* directorioDeLasTablas= string_new();
@@ -581,8 +583,7 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 	log_info(LOGGERFS,"Checkeando en el archivo %d de las particiones, %s",
 								numeroDeParticionQueContieneLaKey, directorioDeLasTablas);
 	if(existeElArchivo(directorioDeLasTablas)){
-		list_add_all(listaResultante,
-				obtenerListaDeDatosDeArchivo(directorioDeLasTablas, nombreDeLaTabla, key));
+		listaResultante=obtenerListaDeDatosDeArchivo(directorioDeLasTablas, nombreDeLaTabla, key);
 		}
 
 	free(directorioDeLasTablas);

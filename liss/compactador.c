@@ -81,6 +81,7 @@ void compactarNuevasTablas(){
 	string_append(&main_directorio, configuracionDelFS.puntoDeMontaje);
 	string_append(&main_directorio, "/Tables/");
 	nftw(main_directorio,crearCompactadorDeTablas,20,FTW_ACTIONRETVAL|FTW_PHYS);
+	free(main_directorio);
 }
 
 int crearCompactadorDeTablas(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
