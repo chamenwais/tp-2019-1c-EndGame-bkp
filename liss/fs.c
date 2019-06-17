@@ -354,10 +354,19 @@ int levantarBitMap(){
 int bajarADiscoBitmap(){
 	pthread_mutex_lock(&mutexBitmap);
 	memcpy(srcMmap,bufferArchivo,sizeDelBitmap);
-	if(0==msync(bitmap, sizeDelBitmap, MS_SYNC))
+	int resultadoDelSync=msync(bitmap, sizeDelBitmap, MS_SYNC);
+	if(0==resultadoDelSync){
 		log_info(LOGGERFS,"Sincronizacion del bitmap exitosa");
-	else
-		log_error(LOGGERFS,"Error en la sincronizacion del bitmap");
+	}else{
+		log_error(LOGGERFS,"Error en la sincronizacion del bitmap, numero de error: %d, size del bitmap: %d",
+				errno, sizeDelBitmap);
+		if(errno==EBUSY)
+			log_error(LOGGERFS,"Error = EBUSY");
+		if(errno==EINVAL)
+			log_error(LOGGERFS,"Error = EINVAL");
+		if(errno==ENOMEM)
+			log_error(LOGGERFS,"Error = ENOMEM");
+		}
 	pthread_mutex_unlock(&mutexBitmap);
 	return EXIT_SUCCESS;
 }
