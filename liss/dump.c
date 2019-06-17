@@ -22,7 +22,7 @@ int dump(char* nombreDeLaTabla){
 
 	void agregarALaCadenaFinal(void* nodo){
 		char* cadenaAInsertar = string_new();
-		char auxitoa = string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp);
+		char* auxitoa = string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp);
 		string_append(&cadenaAInsertar, auxitoa);
 		free(auxitoa);
 		string_append(&cadenaAInsertar, ";");
@@ -74,6 +74,7 @@ int dump(char* nombreDeLaTabla){
 				log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
 						data, bloqueActual);
 				insertarDatosEnElBloque(data, bloqueActual);
+				free(data);
 				//Actulizo la cadena de bloques
 				if(esElPrimero){
 					esElPrimero=false;
@@ -108,6 +109,7 @@ int dump(char* nombreDeLaTabla){
 	insertarCadenaEnLosBloques();
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
+	free(nombreDelArchivoTemp);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
 	//setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
@@ -129,7 +131,7 @@ int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 
 int lanzarDumps(){
 	log_info(LOGGERFS,"Iniciando hilo de consola");
-	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
+	int resultadoDeCrearHilo = pthread_create( &threadDumps, NULL,
 			funcionHiloDump, "Hilo dump");
 	if(resultadoDeCrearHilo){
 		log_error(LOGGERFS,"Error al crear el hilo del dump, return code: %d",

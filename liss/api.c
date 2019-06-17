@@ -84,8 +84,10 @@ void *funcionHiloConsola(void *arg){
 					}
 				for(int j=0;instruccionesAux[j]!=NULL;j++)
 					free(instruccionesAux[j]);
+				free(instruccionesAux);
 				for(int j=0;instrucionLocal[j]!=NULL;j++)
 					free(instrucionLocal[j]);
+				free(instrucionLocal);
 			}else{
 				if((strcmp(instruccion[0],"create")==0) || (strcmp(instruccion[0],"CREATE")==0)){
 					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&(instruccion[3]!=NULL)
@@ -147,6 +149,11 @@ void *funcionHiloConsola(void *arg){
 
 int esperarAQueTermineLaConsola(){
 	pthread_join( threadConsola, NULL);
+	pthread_join( threadDumps, NULL);
+	pthread_join( threadServer, NULL);
+
+
+
 	log_info(LOGGERFS,"Hilo de consola finalizado");
 	return EXIT_SUCCESS;
 }

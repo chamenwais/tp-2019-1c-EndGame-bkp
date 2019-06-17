@@ -87,10 +87,14 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 			// BLOCKS=[40,21,82,3]
 			crearArchivoDeBloque(bloqueLibre);
 			configuracion = config_create(nombreDelBinario);
-			config_set_value(configuracion, "SIZE", string_itoa(0));
+			char* stringAux = string_itoa(0);
+			config_set_value(configuracion, "SIZE", stringAux);
+			free(stringAux);
 			cadenaTemp=string_new();
 			string_append(&cadenaTemp, "[");
-			string_append(&cadenaTemp, string_itoa(bloqueLibre));
+			stringAux=string_itoa(bloqueLibre);
+			string_append(&cadenaTemp, stringAux);
+			free(stringAux);
 			string_append(&cadenaTemp, "]");
 			config_set_value(configuracion, "BLOCKS", cadenaTemp);
 			config_save(configuracion);
@@ -660,6 +664,7 @@ t_list* obtenerTodosLosDescriptores(){
 				metadataEncodeada->particiones=unaMetadata.particiones;
 				metadataEncodeada->tiempoDeCompactacion=unaMetadata.tiempoDeCompactacion;
 				list_add(metadata_todos_los_descriptores,(void*)metadataEncodeada);
+				free(unaMetadata.consistencia);
 			}
 			return FTW_SKIP_SUBTREE;
 			//return FTW_SKIP_SUBTREE;//salta a la proxima carpeta sin mirar los contenidos

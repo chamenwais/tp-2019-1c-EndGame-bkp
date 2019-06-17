@@ -69,7 +69,7 @@ void* crearServerLissandra(){
 	struct timeval copia_tiempo_espera;
 	int select_result=0;
 
-	while(1){//loop del select
+	while(!obtenerEstadoDeFinalizacionDelSistema()){//loop del select
 
 		pthread_mutex_lock(&fd_mutex);
 		copia_maestro=maestro;//creo copia para que select no destruya los datos del maestro

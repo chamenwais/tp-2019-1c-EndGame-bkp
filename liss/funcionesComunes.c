@@ -24,6 +24,7 @@ bool exiteLaTabla(char* nombreDeLaTabla){
 		log_info(LOGGERFS,"La tabla %s ya existe", directorioDeLaTabla);
 		resultado=true;
 		}
+	free(directorioDeLaTabla);
 	return resultado;
 }
 
