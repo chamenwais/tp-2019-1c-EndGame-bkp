@@ -57,6 +57,10 @@ void consola_select(char** comandos){
 	tp_select_rta_a_kernel rta_select = realizar_select(nombre_tabla, key);
 	pthread_mutex_unlock(&M_JOURNALING);
 
+	if(rta_select->respuesta==NO_HAY_MAS_MARCOS_EN_LA_MEMORIA){
+		loguear_no_hay_mas_marcos_libres();
+	}
+
 	if(rta_select->value!=NULL){
 		free(rta_select->value);
 	}
@@ -81,6 +85,11 @@ void logeuar_param_err_limpiar_cuatro_restantes(char* param1, char* param2,
 		char* param3, char* param4) {
 	loguear_param_erroneo(param1);
 	limpiar_cuatro_parametros(param2, param1, param3, param4);
+}
+
+void loguear_no_hay_mas_marcos_libres() {
+	logger(escribir_loguear, l_error,
+			"No hay mas marcos libres en esta memoria, ejecutar Journal");
 }
 
 void consola_insert(char * comando_puro, char** comandos){
@@ -132,8 +141,11 @@ void consola_insert(char * comando_puro, char** comandos){
 	}else{
 		pthread_mutex_lock(&M_JOURNALING);
 		loguear_comienzo_ejecucion_sentencia(_INSERT);
-		realizar_insert(nombre_tabla, timestamp, key, value);
+		int resultado_insert=realizar_insert(nombre_tabla, timestamp, key, value);
 		pthread_mutex_unlock(&M_JOURNALING);
+		if(resultado_insert<0){
+			loguear_no_hay_mas_marcos_libres();
+		}
 	}
 
 	//Limpio el nombre_tabla

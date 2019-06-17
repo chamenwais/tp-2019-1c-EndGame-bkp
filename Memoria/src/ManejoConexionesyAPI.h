@@ -13,7 +13,7 @@
 #include "GestionSegPaginada.h"
 
 tp_select_rta_a_kernel realizar_select(char *, int);
-void realizar_insert(char *, long, uint16_t, char *);
+int realizar_insert(char *, long, uint16_t, char *);
 enum MENSAJES realizar_create(char *, char *, int, int);
 void loguear_value_por_pantalla(char *);
 tp_select_rta_a_kernel pedir_value_a_liss(char *, uint16_t);

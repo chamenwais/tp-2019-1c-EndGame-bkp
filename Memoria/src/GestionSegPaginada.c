@@ -145,21 +145,25 @@ int obtener_marco_libre() {
 	return marco_asignado;
 }
 
-void almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
+int almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
 		int flag) {
 	t_entrada_tabla_segmentos* segmento = obtener_segmento_de_tabla(nom_tabla);
 	int marco_asignado = obtener_marco_libre();
+	if(marco_asignado<0){
+		return marco_asignado;
+	}
 	usleep(RETARDO_ACCESO_MEMORIA*1000);
 	insertar_registro_en_marco(timestamp, key, value, marco_asignado);
 	crear_pagina_en_tabla_paginas(segmento, marco_asignado, flag);
+	return 1;
 }
 
-void colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
-	almacenar_valor(nom_tabla, timestamp, key, value, FLAG_NO_MODIFICADO);
+int colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+	return almacenar_valor(nom_tabla, timestamp, key, value, FLAG_NO_MODIFICADO);
 }
 
-void insertar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
-	almacenar_valor(nom_tabla, timestamp, key, value, FLAG_MODIFICADO);
+int insertar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+	return almacenar_valor(nom_tabla, timestamp, key, value, FLAG_MODIFICADO);
 }
 
 void actualizar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
@@ -204,10 +208,11 @@ int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
 	}
 	list_iterate(tabla_de_segmentos, recopilar_paginas_no_modificadas);
 	if(list_is_empty(paginas_no_modificadas)){
+		//Ya no quedan páaginas sin modificar
 		list_destroy(paginas_no_modificadas);
 		return -1;
 	}
-	//Elige la más antigua
+	//Elige la más antigua, la elimina de la tabla y devuelve el nro de marco
 	bool mas_antigua_adelante(void * primera_pag, void * segunda_pag){
 		return ((t_entrada_tabla_paginas *)primera_pag)->ultimo_uso
 				< ((t_entrada_tabla_paginas *)segunda_pag)->ultimo_uso;
