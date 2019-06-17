@@ -40,8 +40,12 @@ int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
 
 	t_config* configuracion = config_create(nombreDelArchivo);
 	config_set_value(configuracion, "CONSISTENCY", tipoDeConsistencia);
-	config_set_value(configuracion, "PARTITIONS", string_itoa(numeroDeParticiones));
-	config_set_value(configuracion, "COMPACTION_TIME", string_itoa(tiempoDeCompactacion));
+	char* aux=string_itoa(numeroDeParticiones);
+	config_set_value(configuracion, "PARTITIONS", aux);
+	free(aux);
+	aux=string_itoa(tiempoDeCompactacion);
+	config_set_value(configuracion, "COMPACTION_TIME", aux);
+	free(aux);
 	config_save(configuracion);
 	config_destroy(configuracion);
 	log_info(LOGGERFS,"Archivo %s con la metadata creado", nombreDelArchivo);
@@ -108,7 +112,9 @@ int crearArchivoDeBloque(int bloqueLibre){
 	char* nombreDelArchivoDeBloque=string_new();
 	string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
 	string_append(&nombreDelArchivoDeBloque, "/Blocks/");
-	string_append(&nombreDelArchivoDeBloque, string_itoa(bloqueLibre));
+	char* auxitoa=string_itoa(bloqueLibre);
+	string_append(&nombreDelArchivoDeBloque, auxitoa);
+	free(auxitoa);
 	string_append(&nombreDelArchivoDeBloque, ".bin");
 	FILE * archivoDeBloque = fopen(nombreDelArchivoDeBloque,"w");
 	fclose(archivoDeBloque);
