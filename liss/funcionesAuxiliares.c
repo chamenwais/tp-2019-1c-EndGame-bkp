@@ -138,7 +138,7 @@ int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
 			(eliminarDeLaMemtable(nombreDeLaTabla)==EXIT_SUCCESS)
 			){
 		log_info(LOGGERFS,"La tabla %s se borro correctamente", nombreDeLaTabla);
-		pthread_mutex_lock(&mutexDeDump);
+		pthread_mutex_unlock(&mutexDeDump);
 		return EXIT_SUCCESS;
 	}else{
 		log_error(LOGGERFS,"Hubo algun error al borrar la tabla %s", nombreDeLaTabla);
@@ -476,12 +476,13 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 		//list_add_all(listaResultante, recuperarKeysDelArchivoFinal(ubicacionDelBloque, key));
 		free(ubicacionDelBloque);
 		free(arrayDeBloques[i]);
-		}
+	}
 	fclose(archivoTemp);
 	listaResultante=recuperarKeysDelArchivoFinal(archivoTempUbicacion, key);
 
 	remove(archivoTempUbicacion);
 	free(archivoTempUbicacion);
+	free(directorioDeTrabajo);
 	log_info(LOGGERFS,"Keys rescatadas de los bloques: %d",list_size(listaResultante));
 	return listaResultante;
 }

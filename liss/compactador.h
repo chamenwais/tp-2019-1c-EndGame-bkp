@@ -23,8 +23,30 @@
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <ftw.h>
+#include <stdio.h>
+//#include "dump.h"
 //#include "funcionesAuxiliares.h"
 
+typedef struct TKV {
+	unsigned timeStamp;
+	uint16_t key;
+	char* value;
+} t_tkv;
+typedef t_tkv* tp_tkv;
+/*
+typedef struct viejoT {
+	unsigned timeStamp;
+	int index;
+} t_viejoTimestamp;
+typedef t_viejoTimestamp* tp_viejoTimestamp;
+*/
+char* getNextTemp();
+char* convertirTKVsAString(t_list*);
+void liberarTKV(tp_tkv);
+t_list* cargarTimeStampKeyValue(char*);
+t_list* crearTempsParaBins(char*);
+char* crearTempParaTmpcs(t_list*);
+t_list* compararBinsContraTmpcs(t_list*,char*);
 void compactarNuevasTablas();
 int crearCompactadorDeTablas(const char*, const struct stat*, int, struct FTW*);
 void* compactadorTabla(char*);
