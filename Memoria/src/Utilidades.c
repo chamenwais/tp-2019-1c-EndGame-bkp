@@ -476,16 +476,44 @@ void recibir_handshake_kernel(int socket){
 	prot_enviar_int(NUMERO_MEMORIA,socket);
 }
 
+void pedir_y_enviar_tabla_de_gossip(int socket){
+	t_tabla_gossiping descriptores;
+	descriptores.lista = mi_tabla_de_gossip;
+
+	//Primero envio mi propia tabla
+	prot_enviar_mi_tabla_gossiping(descriptores, socket);
+
+	//Luego recibo la tabla de la memoria a la que estoy conectada
+	prot_enviar_gossiping(socket);
+
+	t_cabecera rta_pedido = recibirCabecera(socket);
+
+	if(rta_pedido.tipoDeMensaje == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
+		tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(rta_pedido.tamanio, socket);
+
+		list_add_all(mi_tabla_de_gossip, tabla_ajena);
+
+		//Libero la lista
+		prot_free_tp_tabla_gossiping(tabla_ajena);
+	}
+
+}
+
 void recibir_handshakes(int socket){
 	enum PROCESO procesoRecibido;
 	recibir(socket,&procesoRecibido,sizeof(procesoRecibido));
-	enviar(socket, MEMORIA, sizeof(MEMORIA));
-	if(procesoRecibido == KERNEL) {
-		loguear_handshake_exitoso(socket, _KERNEL);
-		prot_enviar_int(NUMERO_MEMORIA,socket);
-	}
-	if(procesoRecibido == MEMORIA){
-		logger(escribir_loguear, l_info, "Me llego algo de una memoria");
+
+	if(socket>0){
+		enviar(socket, MEMORIA, sizeof(MEMORIA));
+
+		if(procesoRecibido == KERNEL) {
+			loguear_handshake_exitoso(socket, _KERNEL);
+			prot_enviar_int(NUMERO_MEMORIA,socket);
+		}
+		if(procesoRecibido == MEMORIA){
+			pedir_y_enviar_tabla_de_gossip(socket);
+		}
 	}
 }
 

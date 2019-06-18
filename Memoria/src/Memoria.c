@@ -83,7 +83,9 @@ t_list * conectarse_a_seeds(){
 
 			if(memoria_conectada>0){
 				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
-				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
+				enviar(memoria_conectada,MEMORIA,sizeof(MEMORIA));
+				recibir(memoria_conectada,MEMORIA,sizeof(MEMORIA));
+				//enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 				memoria_a_utilizar->estado=1;
 			}

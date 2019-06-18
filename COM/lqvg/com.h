@@ -36,15 +36,9 @@ enum MENSAJES {
 	DUMP_CORRECTO,
 	KEY_NO_EXISTE ,
 	KEY_OBTENIDA,
-	NO_HAY_MAS_MARCOS_EN_LA_MEMORIA
+	NO_HAY_MAS_MARCOS_EN_LA_MEMORIA,
+	GOSSIPING
 };
-
-struct memo_del_pool {
-	char * ip;
-	char * puerto;
-	int estado;
-};
-typedef struct memo_del_pool t_memo_del_pool;
 
 typedef struct {
 	enum MENSAJES tipoDeMensaje;

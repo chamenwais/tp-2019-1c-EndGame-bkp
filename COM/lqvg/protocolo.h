@@ -19,6 +19,13 @@ typedef struct struInsert{
 } t_insert;
 typedef t_insert* tp_insert;
 
+typedef struct memo_del_pool {
+	char * ip;
+	char * puerto;
+	int estado;
+}t_memo_del_pool;
+typedef t_memo_del_pool* tp_memo_del_pool;
+
 typedef struct struCreate{
 	char * nom_tabla;
 	char* tipo_consistencia;//SC, SHC, EC
@@ -61,6 +68,11 @@ typedef struct listaDescribeAll{//va a ser una lista de tp_datos_describe
 	t_list *lista;
 }t_describeAll_rta;
 typedef t_describeAll_rta* tp_describeAll_rta;
+
+typedef struct tablaGossiping{
+	t_list *lista;
+}t_tabla_gossiping;
+typedef t_tabla_gossiping* tp_tabla_gossiping;
 
 void prot_enviar_int(int,int);
 int prot_recibir_int(int);
@@ -106,5 +118,10 @@ void prot_enviar_error(enum MENSAJES, int);//usarlo cada que vez que la respuest
 void prot_enviar_journal(int);
 void prot_enviar_respuesta_journaling(int);
 enum MENSAJES prot_recibir_respuesta_journal(int);//@NO necesita antes hacer un recibirCabecera
+
+void prot_enviar_gossiping(int);
+void prot_enviar_mi_tabla_gossiping(t_tabla_gossiping, int);
+tp_tabla_gossiping prot_recibir_tabla_gossiping(int, int);
+void prot_free_tp_tabla_gossiping(tp_tabla_gossiping);
 
 #endif

@@ -297,6 +297,75 @@ void prot_enviar_respuesta_describeAll(t_describeAll_rta descripciones, int sock
 	eliminar_paquete(paquete);
 }
 
+void prot_enviar_gossiping(int socket){
+	t_paquete* paquete = crear_paquete(GOSSIPING);
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
+
+void prot_enviar_mi_tabla_gossiping(t_tabla_gossiping tabla_de_gossip, int socket){
+	t_paquete* paquete = crear_paquete(REQUEST_SUCCESS);
+	int cantidad_descripciones = tabla_de_gossip.lista->elements_count;
+	agregar_int_a_paquete(paquete,cantidad_descripciones);
+	for(int i=0;i<cantidad_descripciones;i++){
+		tp_memo_del_pool descriptor = (tp_memo_del_pool)list_get(tabla_de_gossip.lista,i);
+		agregar_string_a_paquete(paquete,descriptor->ip,strlen(descriptor->ip)+1);
+		agregar_int_a_paquete(paquete,descriptor->estado);
+		agregar_string_a_paquete(paquete, descriptor->puerto, strlen(descriptor->puerto)+1);
+	}
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+
+}
+
+tp_tabla_gossiping prot_recibir_tabla_gossiping(int tamanio_paq, int socket){
+	void * buffer = malloc(tamanio_paq);
+	recibir(socket, buffer, tamanio_paq);
+	int cantidad_descripciones;
+	int desplazamiento=0;
+	int tamanio_ip;
+	int tamanio_puerto;
+	tp_tabla_gossiping descripciones = malloc(sizeof(t_tabla_gossiping));
+	descripciones->lista=list_create();
+
+	memcpy(&cantidad_descripciones, buffer + desplazamiento, sizeof(int));
+	desplazamiento+=sizeof(int);
+
+	for(int i=0; i<cantidad_descripciones;i++){
+		tp_memo_del_pool descriptor = malloc(sizeof(tp_memo_del_pool));
+
+		memcpy(&tamanio_ip, buffer+desplazamiento, sizeof(int));
+		desplazamiento+=sizeof(int);
+		descriptor->ip=malloc(tamanio_ip);
+		memcpy(descriptor->ip, buffer+desplazamiento, tamanio_ip);
+		desplazamiento+=tamanio_ip;
+		memcpy(&descriptor->estado, buffer+desplazamiento, sizeof(int));
+		desplazamiento+=sizeof(int);
+		memcpy(&tamanio_puerto, buffer+desplazamiento, sizeof(int));
+		desplazamiento+=sizeof(int);
+		descriptor->puerto=malloc(tamanio_puerto);
+		memcpy(descriptor->puerto, buffer+desplazamiento, tamanio_puerto);
+		desplazamiento+=tamanio_puerto;
+
+		list_add(descripciones->lista,descriptor);
+	}
+	free(buffer);
+	return descripciones;
+}
+
+void free_tp_tabla_gossiping(void* d){
+	tp_memo_del_pool unDescriptor = d;
+	free(unDescriptor->ip);
+	free(unDescriptor->puerto);
+	free(unDescriptor);
+}
+
+void prot_free_tp_tabla_gossiping(tp_tabla_gossiping descriptores){
+	//una unica funcion para liberar todo lo referido a la lista, no usar nada mas
+	list_destroy_and_destroy_elements(descriptores->lista,free_tp_tabla_gossiping);
+	free(descriptores);
+}
+
 tp_describeAll_rta prot_recibir_respuesta_describeAll(int tamanio_paq, int socket){
 	//posibles MENSAJES a recibir del fs: REQUEST_SUCCESS, TABLA_NO_EXISTIA(no hay tablas en el fs)
 	void * buffer = malloc(tamanio_paq);
