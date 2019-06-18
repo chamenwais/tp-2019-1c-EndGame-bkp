@@ -104,7 +104,7 @@ int crearCompactadorDeTablas(const char *fpath, const struct stat *sb, int tflag
 			if(resultadoDeCrearHilo)
 				log_error(LOGGERFS,"[Compactador]Error al crear thread de compactador para la tabla %s, return code: %d",path_nombre,resultadoDeCrearHilo);
 		}
-
+		free(path_nombre);
 		return FTW_SKIP_SUBTREE;
 	}
 
@@ -157,6 +157,7 @@ bool existeTmp(char* tabla){
 		return FTW_CONTINUE;
 	}
 	nftw(main_directorio,buscarTmp,20,FTW_ACTIONRETVAL|FTW_PHYS);
+	free(main_directorio);
 	return existe;
 }
 

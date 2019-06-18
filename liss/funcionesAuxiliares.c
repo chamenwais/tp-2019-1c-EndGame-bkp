@@ -17,6 +17,7 @@ int crearDirectorioParaLaTabla(char* nombreDeLaTabla){
 	string_append(&directorioDeLaTabla, nombreDeLaTabla);
 	mkdir(directorioDeLaTabla,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	log_info(LOGGERFS,"Directorio %s creado", directorioDeLaTabla);
+	free(directorioDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
@@ -69,7 +70,9 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		string_append(&nombreDelBinario, "/Tables/");
 		string_append(&nombreDelBinario, nombreDeLaTabla);
 		string_append(&nombreDelBinario, "/");
-		string_append(&nombreDelBinario, string_itoa(i));
+		char* auxitoa=string_itoa(i);
+		string_append(&nombreDelBinario, auxitoa);
+		free(auxitoa);
 		string_append(&nombreDelBinario, ".bin");
 		log_info(LOGGERFS,"Creando el archivo binario %s", nombreDelBinario);
 		archivoTemp = fopen(nombreDelBinario,"w");

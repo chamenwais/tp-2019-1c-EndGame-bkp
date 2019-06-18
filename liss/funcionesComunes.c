@@ -100,7 +100,7 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 		printf("Se esta intentando insertar una tabla que no existe %s\n", nombreDeLaTabla);
 		return TABLA_NO_EXISTIA;
 	}else{
-		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+		//t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 		pthread_mutex_lock(&mutexDeDump);
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);

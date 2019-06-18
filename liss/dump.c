@@ -99,7 +99,7 @@ int dump(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Duempeando la tabla %s",nombreDeLaTabla);
 	log_info(LOGGERFS,"Block size del FS %d",metadataDelFS.blockSize);
 	log_info(LOGGERFS,"Voy a dumpear la tabla", nodoDeLaMem->nombreDeLaTabla);
-	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
+	//t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
 	nombreDelArchivoTemp=buscarNombreDelTempParaDumpear(nodoDeLaMem->nombreDeLaTabla);
 	cadenaFinal = string_new();
 	//meto todo en un gran bodoque (en cadena cadenaFinal)
