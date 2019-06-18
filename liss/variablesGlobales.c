@@ -14,7 +14,7 @@ char* directorioConLaMetadata;//el directorio
 char* archivoDeBitmap;
 char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
-pthread_t threadConsola, threadCompactador;
+pthread_t threadConsola, threadCompactador, threadDumps;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
 	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
 t_bitarray *bitmap;
@@ -107,7 +107,7 @@ void liberarRecursos(){
 
 int vaciarMemTable(){
 	void destruirTabla(void* nodoDeLaMemtable){
-		void imprimirValores(void* nodoDeUnaTabla){
+		void vaciarNodos(void* nodoDeUnaTabla){
 			free(((tp_nodoDeLaTabla)nodoDeUnaTabla)->value);
 			free((tp_nodoDeLaTabla)nodoDeUnaTabla);
 			}
@@ -115,13 +115,15 @@ int vaciarMemTable(){
 			log_info(LOGGERFS,"Liberando la tabla: %s",
 				((tp_nodoDeLaMemTable)nodoDeLaMemtable)->nombreDeLaTabla);
 			list_iterate(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla,
-				imprimirValores);
+				vaciarNodos);
 			free(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->nombreDeLaTabla);
 			list_destroy(((tp_nodoDeLaMemTable)nodoDeLaMemtable)->listaDeDatosDeLaTabla);
+			free((tp_nodoDeLaMemTable)nodoDeLaMemtable);
 			}
 		}
 	log_info(LOGGERFS,"Liberando memtable");
 	if(!list_is_empty(memTable)){
+		log_info(LOGGERFS,"La memtable tiene datos asi q paso a liberarla");
 		list_iterate(memTable,destruirTabla);
 		}
 	list_destroy(memTable);

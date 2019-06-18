@@ -18,7 +18,7 @@
 
 void ejecutar_programa_memoria(int argc, char ** argv);
 void stdin_no_bloqueante(void);
-int atender_al_kernel(int serv_socket);
+int atender_clientes(int serv_socket);
 void inicializar_conexiones_cliente(void);
 int comunicarse_con_lissandra(void);
 void escuchar_clientes(int, int);
@@ -34,5 +34,6 @@ char *reservar_total_memoria();
 void *realizar_gossiping();
 void *realizar_journaling();
 void clasificar_y_atender_cabecera(int,  enum MENSAJES, int);
+void recibir_handshake(enum PROCESO, enum PROCESO, int);
 
 #endif /* MEMORIA_H_ */

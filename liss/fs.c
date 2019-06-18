@@ -52,6 +52,7 @@ int levantarConfiguracionInicialDelFS(){
 	}else{
 		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompletoDelArchivoDeConfiguracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		free(pathCompletoDelArchivoDeConfiguracion);
 		return EXIT_FAILURE;
 		}
 	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompletoDelArchivoDeConfiguracion);
@@ -61,6 +62,7 @@ int levantarConfiguracionInicialDelFS(){
 		log_error(LOGGERFS,"No esta el PUERTO_ESCUCHA en el archivo de configuracion");
 		config_destroy(configuracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		free(pathCompletoDelArchivoDeConfiguracion);
 		return EXIT_FAILURE;
 		}
 	configuracionDelFS.puertoEscucha = config_get_int_value(configuracion,"PUERTO_ESCUCHA");
@@ -71,6 +73,7 @@ int levantarConfiguracionInicialDelFS(){
 		log_error(LOGGERFS,"No esta el PUNTO_MONTAJE en el archivo de configuracion");
 		config_destroy(configuracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		free(pathCompletoDelArchivoDeConfiguracion);
 		return EXIT_FAILURE;
 		}
 	char* puntoDeMontaje = config_get_string_value(configuracion,"PUNTO_MONTAJE");
@@ -83,6 +86,7 @@ int levantarConfiguracionInicialDelFS(){
 		log_error(LOGGERFS,"No esta el RETARDO en el archivo de configuracion");
 		config_destroy(configuracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		free(pathCompletoDelArchivoDeConfiguracion);
 		return EXIT_FAILURE;
 		}
 	configuracionDelFS.retardo = config_get_int_value(configuracion,"RETARDO");
@@ -94,6 +98,7 @@ int levantarConfiguracionInicialDelFS(){
 		log_error(LOGGERFS,"No esta el TAMAÑO_VALUE en el archivo de configuracion");
 		config_destroy(configuracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		free(pathCompletoDelArchivoDeConfiguracion);
 		return EXIT_FAILURE;
 		}
 	configuracionDelFS.sizeValue = config_get_int_value(configuracion,"TAMAÑO_VALUE");
@@ -105,6 +110,7 @@ int levantarConfiguracionInicialDelFS(){
 		log_error(LOGGERFS,"No esta el TIEMPO_DUMP en el archivo de configuracion");
 		config_destroy(configuracion);
 		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		free(pathCompletoDelArchivoDeConfiguracion);
 		return EXIT_FAILURE;
 		}
 	configuracionDelFS.tiempoDump = config_get_int_value(configuracion,"TIEMPO_DUMP");
@@ -114,6 +120,7 @@ int levantarConfiguracionInicialDelFS(){
 	config_destroy(configuracion);
 	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");
 
+	free(pathCompletoDelArchivoDeConfiguracion);
 	return EXIT_SUCCESS;
 	}
 
@@ -347,7 +354,19 @@ int levantarBitMap(){
 int bajarADiscoBitmap(){
 	pthread_mutex_lock(&mutexBitmap);
 	memcpy(srcMmap,bufferArchivo,sizeDelBitmap);
-	msync(bitmap, sizeDelBitmap, MS_SYNC);
+	int resultadoDelSync=msync(bitmap, sizeDelBitmap, MS_SYNC);
+	if(0==resultadoDelSync){
+		log_info(LOGGERFS,"Sincronizacion del bitmap exitosa");
+	}else{
+		log_error(LOGGERFS,"Error en la sincronizacion del bitmap, numero de error: %d, size del bitmap: %d",
+				errno, sizeDelBitmap);
+		if(errno==EBUSY)
+			log_error(LOGGERFS,"Error = EBUSY");
+		if(errno==EINVAL)
+			log_error(LOGGERFS,"Error = EINVAL");
+		if(errno==ENOMEM)
+			log_error(LOGGERFS,"Error = ENOMEM");
+		}
 	pthread_mutex_unlock(&mutexBitmap);
 	return EXIT_SUCCESS;
 }

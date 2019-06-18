@@ -75,15 +75,18 @@ t_list * conectarse_a_seeds(){
 	for(int i=0;i<cantidad_de_seeds;i++){
 		t_memo_del_pool * memoria_a_utilizar = list_get(seeds,i);
 
-		logger(escribir_loguear, l_trace, "Se va a tratar de conectar a la ip %s, puerto %s"
-				,memoria_a_utilizar->ip, memoria_a_utilizar->puerto);
-		int memoria_conectada = conectarseA(memoria_a_utilizar->ip, atoi(memoria_a_utilizar->puerto));
+		if(memoria_a_utilizar->estado == 0){
+			logger(escribir_loguear, l_trace, "Se va a tratar de conectar a la ip %s, puerto %s"
+					,memoria_a_utilizar->ip, memoria_a_utilizar->puerto);
 
-		if(memoria_conectada>0){
-			logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
-			list_add(tabla_de_gossip, memoria_a_utilizar);
-		}else{
-			logger(escribir_loguear, l_debug, "No me pude conectar a la memoria %d de la lista de seeds.", i);
+			int memoria_conectada = conectarseA(memoria_a_utilizar->ip, atoi(memoria_a_utilizar->puerto));
+
+			if(memoria_conectada>0){
+				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
+				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
+				list_add(tabla_de_gossip, memoria_a_utilizar);
+				memoria_a_utilizar->estado=1;
+			}
 		}
 	}
 
@@ -91,11 +94,12 @@ t_list * conectarse_a_seeds(){
 }
 
 void *realizar_gossiping(){
+	mi_tabla_de_gossip = list_create();
 	while(1){
 		usleep(TIEMPO_GOSSIPING*1000);
 		logger(escribir_loguear, l_trace, "\nProcedo a realizar el gossiping...\n");
 
-		mi_tabla_de_gossip = conectarse_a_seeds();
+		list_add_all(mi_tabla_de_gossip, conectarse_a_seeds());
 
 	}
 	return EXIT_SUCCESS;
@@ -139,27 +143,26 @@ struct sockaddr_in crear_direccion_cliente() {
 	return client_addr;
 }
 
-int atender_al_kernel(int serv_socket){
+int atender_clientes(int serv_socket){
 	struct sockaddr_in client_addr = crear_direccion_cliente();
 	socklen_t client_len = sizeof(client_addr);
 
 	//Acepta la nueva conexion
-	int socket_kernel = accept(serv_socket, (struct sockaddr *)&client_addr, &client_len);
-	if (socket_kernel < 0) {
-		logger(escribir_loguear,l_error,"Error al aceptar al kernel :(");
+	int socket_cliente = accept(serv_socket, (struct sockaddr *)&client_addr, &client_len);
+	if (socket_cliente < 0) {
+		logger(escribir_loguear,l_error,"Error al aceptar al cliente :(");
 		return -1;
 	}
 
-	logger(escribir_loguear,l_trace,"Se aceptó al kernel, conexión (%d)", socket_kernel);
+	logger(escribir_loguear,l_trace,"Se aceptó al cliente, conexión (%d)", socket_cliente);
 
-	recibir_handshake_kernel(socket_kernel);
-	prot_enviar_int(NUMERO_MEMORIA,socket_kernel);
+	recibir_handshakes(socket_cliente);
 
-	int cliente_aceptado=agregar_conexion_lista_clientes(socket_kernel, client_addr);
+	int cliente_aceptado=agregar_conexion_lista_clientes(socket_cliente, client_addr);
 
 	if(cliente_aceptado==-1){
 		logger(escribir_loguear,l_error,"Demasiadas conexiones. Cerrando nueva conexion\n");
-		close(socket_kernel);
+		close(socket_cliente);
 	}
 	return cliente_aceptado;
 }
@@ -205,7 +208,7 @@ int comunicarse_con_lissandra(void){
 void escuchar_clientes(int server_memoria, int socket_lfs) {
 	fd_set readset, writeset, exepset;
 	int max_fd;
-	int socket_kernel=-1;
+	int socket_cliente=-1;
 	char read_buffer[MAX_LINEA];
 	struct timeval tv = { 0, 500 };
 
@@ -249,7 +252,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 				{
 			//Acepta la conexión del kernel
 			if (FD_ISSET(server_memoria, &readset)) {
-				socket_kernel = atender_al_kernel(server_memoria);
+				socket_cliente = atender_clientes(server_memoria);
 			}
 			//Se ingresó algo a la consola
 			else if (FD_ISSET(STDIN_FILENO, &readset)) {
@@ -274,7 +277,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 							if(cabecera.tamanio<0)
 							{
 								loguear_cerrar_conexion(socket_llamador,
-										socket_kernel, socket_lfs, i, readset);
+										socket_cliente, socket_lfs, i, readset);
 								continue;
 							}
 
@@ -283,7 +286,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 						} else if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
 								//Excepciones del cliente, para la desconexion
 								loguear_cerrar_conexion(conexiones_cliente[i].socket,
-										socket_kernel, socket_lfs, i, readset);
+										socket_cliente, socket_lfs, i, readset);
 								continue;
 						}
 					}// if != NO_SOCKET

@@ -39,8 +39,6 @@ typedef struct definicionMetadataDelFS {
 typedef struct definicionNodoDeLaMemTable {
 	t_list* listaDeDatosDeLaTabla;
 	char* nombreDeLaTabla;
-	bool estadoDeFinalizacionDelDump;
-	pthread_mutex_t mutexDeVariableDeEstadoDeFinalizacion;
 } t_nodoDeLaMemTable;
 typedef t_nodoDeLaMemTable* tp_nodoDeLaMemTable;
 
@@ -67,7 +65,7 @@ extern char* directorioConLaMetadata;
 extern char* archivoDeBitmap;
 extern char* archivoDeLaMetadata;
 extern char* pathDeMontajeDelPrograma;
-extern pthread_t threadConsola, threadCompactador;
+extern pthread_t threadConsola, threadCompactador, threadDumps;
 extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
 	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
 extern t_bitarray *bitmap;

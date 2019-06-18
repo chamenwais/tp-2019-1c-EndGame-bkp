@@ -22,18 +22,24 @@ int dump(char* nombreDeLaTabla){
 
 	void agregarALaCadenaFinal(void* nodo){
 		char* cadenaAInsertar = string_new();
-		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp));
+		char* auxitoa = string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp);
+		string_append(&cadenaAInsertar, auxitoa);
+		free(auxitoa);
 		string_append(&cadenaAInsertar, ";");
-		string_append(&cadenaAInsertar, string_itoa(((tp_nodoDeLaTabla)nodo)->key));
+		auxitoa=string_itoa(((tp_nodoDeLaTabla)nodo)->key);
+		string_append(&cadenaAInsertar, auxitoa);
+		free(auxitoa);
 		string_append(&cadenaAInsertar, ";");
 		string_append(&cadenaAInsertar, ((tp_nodoDeLaTabla)nodo)->value);
 		string_append(&cadenaAInsertar, "\n");
 		string_append(&cadenaFinal, cadenaAInsertar);
+		free(cadenaAInsertar);
 	}
 
 	int insertarCadenaEnLosBloques(){
 		bool termine=false;
 		bool esElPrimero=true;
+		char*auxitoa;
 		while(termine==false){
 			pthread_mutex_lock(&mutexBitmap);
 			bloqueActual=obtenerBloqueLibreDelBitMap();
@@ -68,13 +74,16 @@ int dump(char* nombreDeLaTabla){
 				log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
 						data, bloqueActual);
 				insertarDatosEnElBloque(data, bloqueActual);
+				free(data);
 				//Actulizo la cadena de bloques
 				if(esElPrimero){
 					esElPrimero=false;
 				}else{
 					string_append(&bloques, ",");
 					}
-				string_append(&bloques, string_itoa(bloqueActual));
+				auxitoa=string_itoa(bloqueActual);
+				string_append(&bloques, auxitoa);
+				free(auxitoa);
 				}
 			}
 		return EXIT_SUCCESS;
@@ -90,7 +99,7 @@ int dump(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Duempeando la tabla %s",nombreDeLaTabla);
 	log_info(LOGGERFS,"Block size del FS %d",metadataDelFS.blockSize);
 	log_info(LOGGERFS,"Voy a dumpear la tabla", nodoDeLaMem->nombreDeLaTabla);
-	t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
+	//t_metadataDeLaTabla metadataDeLaTabla = obtenerMetadataDeLaTabla(nodoDeLaMem->nombreDeLaTabla);
 	nombreDelArchivoTemp=buscarNombreDelTempParaDumpear(nodoDeLaMem->nombreDeLaTabla);
 	cadenaFinal = string_new();
 	//meto todo en un gran bodoque (en cadena cadenaFinal)
@@ -100,6 +109,7 @@ int dump(char* nombreDeLaTabla){
 	insertarCadenaEnLosBloques();
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
+	free(nombreDelArchivoTemp);
 	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
 	//setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
@@ -121,7 +131,7 @@ int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 
 int lanzarDumps(){
 	log_info(LOGGERFS,"Iniciando hilo de consola");
-	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
+	int resultadoDeCrearHilo = pthread_create( &threadDumps, NULL,
 			funcionHiloDump, "Hilo dump");
 	if(resultadoDeCrearHilo){
 		log_error(LOGGERFS,"Error al crear el hilo del dump, return code: %d",
@@ -146,6 +156,8 @@ void funcionHiloDump(void *arg){
 		log_trace(LOGGERFS,"Iniciando un dumpeo");
 		pthread_mutex_lock(&mutexDeDump);
 		list_iterate(memTable, dumpearAEseNodo);
+		vaciarMemTable();
+		memTable=list_create();
 		pthread_mutex_unlock(&mutexDeDump);
 		log_trace(LOGGERFS,"Dumpeo finalizado");
 		}
@@ -159,11 +171,14 @@ int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual){
 	char* nombreDelArchivoDeBloque=string_new();
 	string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
 	string_append(&nombreDelArchivoDeBloque, "/Blocks/");
-	string_append(&nombreDelArchivoDeBloque, string_itoa(bloqueActual));
+	char* auxitoa=string_itoa(bloqueActual);
+	string_append(&nombreDelArchivoDeBloque, auxitoa);
+	free(auxitoa);
 	string_append(&nombreDelArchivoDeBloque, ".bin");
 	FILE* archivo=fopen(nombreDelArchivoDeBloque,"a");
 	log_info(LOGGERFS,"Guardando %s en el archivo %s", cadenaAInsertar, nombreDelArchivoDeBloque);
 	fprintf(archivo,"%s",cadenaAInsertar);
+	free(nombreDelArchivoDeBloque);
 	fclose(archivo);
 	return EXIT_SUCCESS;
 }
@@ -174,7 +189,9 @@ int crearElTemp(char* nombreDelArchivo,char* bloques,int size){
 	 FILE * archivoTemp = fopen(nombreDelArchivo,"w");
 	 fclose(archivoTemp);
 	 t_config* configuracion = config_create(nombreDelArchivo);
-	 config_set_value(configuracion, "SIZE", string_itoa(size));
+	 char* auxitoa=string_itoa(size);
+	 config_set_value(configuracion, "SIZE", auxitoa);
+	 free(auxitoa);
 	 config_set_value(configuracion, "BLOCKS", bloques);
 	 config_save(configuracion);
 	 config_destroy(configuracion);
@@ -197,7 +214,9 @@ char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla){
 	for(int i=1;encontrado==true;i++){
 		pathDelTemp=string_new();
 		string_append(&pathDelTemp, aux);
-		string_append(&pathDelTemp, string_itoa(i));
+		char * auxitoa=string_itoa(i);
+		string_append(&pathDelTemp, auxitoa);
+		free(auxitoa);
 		string_append(&pathDelTemp, ".tmp");
 		log_info(LOGGERFS,"Viendo si existe el archivo %s", pathDelTemp);
 		encontrado=existeElArchivo(pathDelTemp);
@@ -208,5 +227,6 @@ char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla){
 			}
 		}
 	log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
+	free(aux);
 	return pathDelTemp;
 }
