@@ -47,7 +47,7 @@ void mostrar_mensaje_previa_conexion_con(char *, char *, int);
 void validar_comunicacion(int, char*);
 void cerrar_socket_y_terminar(int);
 void mandar_handshake_a(char *, int, enum PROCESO);
-void recibir_handshake_kernel(int);
+void recibir_handshake_cliente(int);
 void construir_lista_seeds();
 void apagar_semaforos();
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int);

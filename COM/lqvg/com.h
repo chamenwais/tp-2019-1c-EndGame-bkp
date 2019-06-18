@@ -42,6 +42,7 @@ enum MENSAJES {
 struct memo_del_pool {
 	char * ip;
 	char * puerto;
+	int estado;
 };
 typedef struct memo_del_pool t_memo_del_pool;
 

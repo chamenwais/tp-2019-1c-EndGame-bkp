@@ -264,6 +264,7 @@ void construir_lista_seeds(){
 		t_memo_del_pool *memoria_del_pool=malloc(sizeof(t_memo_del_pool));
 		memoria_del_pool->ip=IPS_SEEDS[i];
 		memoria_del_pool->puerto=PUERTOS_SEEDS[i];
+		memoria_del_pool->estado=0;
 		list_add(seeds, memoria_del_pool);
 	}
 }
@@ -464,6 +465,7 @@ void mandar_handshake_a(char * proceso, int socket, enum PROCESO enumProceso){
 	loguear_handshake_exitoso(socket, proceso);
 }
 
+
 void recibir_handshake_kernel(int socket){
 	logger(escribir_loguear, l_info, "Se esperará handshake del %s", _KERNEL);
 	if(recibirHandshake(MEMORIA, KERNEL, socket)==0){
@@ -471,7 +473,22 @@ void recibir_handshake_kernel(int socket){
 		cerrar_socket_y_terminar(socket);
 	}
 	loguear_handshake_exitoso(socket, _KERNEL);
+	prot_enviar_int(NUMERO_MEMORIA,socket);
 }
+
+void recibir_handshakes(int socket){
+	enum PROCESO procesoRecibido;
+	recibir(socket,&procesoRecibido,sizeof(procesoRecibido));
+	enviar(socket, MEMORIA, sizeof(MEMORIA));
+	if(procesoRecibido == KERNEL) {
+		loguear_handshake_exitoso(socket, _KERNEL);
+		prot_enviar_int(NUMERO_MEMORIA,socket);
+	}
+	if(procesoRecibido == MEMORIA){
+		logger(escribir_loguear, l_info, "Me llego algo de una memoria");
+	}
+}
+
 
 void inicializar_semaforos(){
 	pthread_mutex_init(&M_RETARDO_ACCESO_MEMORIA, NULL);
