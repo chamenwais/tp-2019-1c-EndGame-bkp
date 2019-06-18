@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <readline/readline.h>
 #include "variablesGlobales.h"
+#include "funcionesKernel.h"
 
 int lanzarConsola();
 int esperarAQueTermineLaConsola();

@@ -115,6 +115,8 @@ int addConsola(int memnum, char* criterio){
 		}else{
 			printf("Pifiaste el criterio amigue");
 		}
+	}else{
+		logger(escribir_loguear, l_error, "La memoria %i no esta conectada", memnum);
 	}
 	return EXIT_SUCCESS;
 }

@@ -265,6 +265,28 @@ int conectarse_con_memoria(char* ip, int puerto){
 	return EXIT_SUCCESS;
 }
 
+int conectar_con_memoria(char* ip, int puerto){
+	logger(escribir_loguear, l_info, "Conectando request a la memoria en ip %s y puerto %i",
+			ip, puerto);
+	int sock = 0;
+	int socket_mem = conectarseA(ip, puerto);
+	if(socket_mem < 0){
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		close(socket_mem);
+	}
+	enviar_handshake(socket_mem);
+
+	int numero_de_memoria = prot_recibir_int(socket_mem);
+
+	tp_memo_del_pool_kernel mem = buscar_memorias_segun_numero(listaMemConectadas, numero_de_memoria);
+
+	if(mem->numero_memoria == numero_de_memoria){
+		return socket_mem;
+	}
+
+	return sock;
+}
+
 void enviar_handshake(int socket){
 	logger(escribir_loguear, l_debug, "Se intenta enviar handshake a memoria");
 	if (enviarHandshake(KERNEL, MEMORIA, socket) == 0) {
@@ -484,8 +506,6 @@ void describeAll(int socket_memoria) {
 
 	}
 
-	logger(escribir_loguear, l_error, "LLEGO3");
-
 	if (rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA) {
 		logger(escribir_loguear, l_error, "No hay tablas en el FS");
 	}
@@ -509,6 +529,17 @@ void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 			logger(escribir_loguear, l_info, "La consistencia es: %s", info_tabla->consistencia);
 			logger(escribir_loguear, l_info, "El numero de particiones es: %d", info_tabla->particiones);
 			logger(escribir_loguear, l_info, "El tiempo de compactacion es: %d\n", (*(t_describe_rta*)info_tabla).tiempoDeCompactacion);
+
+			tp_entrada_tabla_creada entrada_tabla = buscarTablaEnMetadata(info_tabla->nombre);
+			if(entrada_tabla != NULL){
+				logger(escribir_loguear, l_info, "Existe la tabla %s en metadata y se va a actualizar", info_tabla->nombre);
+				entrada_tabla->criterio = info_tabla->consistencia;
+			}else{
+				logger(escribir_loguear, l_info, "No existe la tabla %s en metadata y se va a crear", info_tabla->nombre);
+				entrada_tabla->nombre_tabla = info_tabla->nombre;
+				entrada_tabla->criterio = info_tabla->consistencia;
+			}
+
 
 			free(info_tabla->consistencia);
 			free(info_tabla);
@@ -692,13 +723,23 @@ void* funcionHiloRequest(void* pcb){
 
 				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(rdo_del_parseado);
 				if(memoria == NULL){
+					logger(escribir_loguear, l_error, "Se cierra el hilo del LQL");
 					pthread_exit(ret2);
 				}
 
 				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
 				//usleep(retardo);
-				realizar_operacion(rdo_del_parseado, pcb, memoria->socket);
+
+				int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto); //puntero?
+
+				if(sockMem > 0){
+					realizar_operacion(rdo_del_parseado, pcb, sockMem);
+					close(sockMem);
+					logger(escribir_loguear, l_info, "Se cierra el socket %i con la memoria %i", sockMem, memoria->numero_memoria);
+
+				}
+
 
 			}
 		}
@@ -770,61 +811,47 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	tp_memo_del_pool_kernel memoria;
+	char* criterio = string_new();
+	tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
 
+	//memoria = list_get(listaSC, 0);
 
-	memoria = list_get(listaSC, 0);
+	char* tabla = obtenerTabla(operacion);
 
-	//char* tabla = obtenerTabla(operacion);
+	if(operacion.tipo_de_operacion == _CREATE){
+		criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
+
+	}else{
 	//buscar tabla en listaTablasCreadas y obtener el criterio
-	//logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
-	logger(escribir_loguear, l_info, "Se eligio la memoria %i\n", memoria->numero_memoria);
 
-		/*bool coincideNombre2(void* nodo){
-			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
-				return true;
-			}
-			return false;
-		}
-
-	tp_entrada_tabla_creada entrada = list_find(listaTablasCreadas, coincideNombre2);
+	entrada = buscarTablaEnMetadata(tabla);
 
 
-
+	criterio = string_duplicate(entrada->criterio);
+	}
+	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	//buscar las memorias que tengan ese criterio asignado y elegir
-	if(entrada != NULL){
-		char* criterio = malloc(strlen(entrada->criterio)+1);
-		strcpy(criterio, entrada->criterio);
-		if((strcmp(criterio, "SC"))==0 && (!list_is_empty(listaSC))) {
+	if((operacion.tipo_de_operacion == _CREATE) || (entrada != NULL)){
+		if((string_equals_ignore_case(criterio, "SC")) && (!list_is_empty(listaSC))) {
 				pthread_mutex_lock(&mutex_SC);
 				memoria = list_get(listaSC, 0);
 				pthread_mutex_unlock(&mutex_SC);
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
-		}else if(strcmp(criterio, "HC")==0 && (!list_is_empty(listaHC))){
-				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
-		}else if(strcmp(criterio, "EC")==0 && (!list_is_empty(listaEC))){
-				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
-		}else{
-			logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
-			memoria = NULL;
-		}
-	}else{
-		char* criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
-		//strcpy(criterio, operacion.parametros.create.tipo_consistencia);
-		if((string_equals_ignore_case(criterio, "SC")) && (!list_is_empty(listaSC))) {
-				pthread_mutex_lock(&listaSC);
-				memoria = list_get(listaSC, 0);
-				pthread_mutex_unlock(&listaSC);
-				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
+				free(criterio);
+				free(entrada);
+				return memoria;
 		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
+				return memoria;
 		}else if(string_equals_ignore_case(criterio, "EC") && (!list_is_empty(listaEC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
-		}else{
-			logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
-			memoria = NULL;
-		}
-	}
-*/
+				return memoria;
+		}}
+
+	logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
+	memoria = NULL;
+	free(criterio);
+	free(entrada);
 	return memoria;
 }
 
@@ -840,4 +867,18 @@ tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
 	tp_memo_del_pool_kernel memo = list_find(lista, coincideNumero);
 	return memo;
 
+}
+
+tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
+	tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
+
+	bool coincideNombre2(void* nodo){
+			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
+				return true;
+			}
+			return false;
+		}
+
+	entrada = list_find(listaTablasCreadas, coincideNombre2);
+	return entrada;
 }
