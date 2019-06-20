@@ -52,4 +52,10 @@ void destructor_pagina(void *);
 void destructor_segmento(void *);
 void recopilar_paginas_de_segmento_por_criterio(t_list *, bool (*criterio)(void*));
 t_list * recopilar_paginas_modificadas();
+void limpiar_tablas_de_segmentos_y_paginas();
+long * obtener_timestamp_desde_marco_en_MP(int);
+uint16_t* obtener_key_desde_marco_en_MP(int);
+char * obtener_value_desde_marco_en_MP(int);
+void insertar_cada_registro_modificado_en_LFS(enum MENSAJES*,t_list*,int);
+
 #endif /* SRC_GESTIONSEGPAGINADA_H_ */

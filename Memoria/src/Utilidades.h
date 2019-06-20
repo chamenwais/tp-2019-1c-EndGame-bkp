@@ -52,6 +52,7 @@ void construir_lista_seeds();
 void apagar_semaforos();
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int);
 void separar_path_pasado_por_parametro(char **, char **, char ** parametros);
+void recibir_handshakes(int);
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;
