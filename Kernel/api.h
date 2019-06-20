@@ -32,6 +32,7 @@ void metricsConsola();
 int addConsola(int memnum, char* criterio);
 tp_lql_pcb crear_PCB(char* path);
 bool existeMemoria(int numero);
+tp_lql_pcb crear_PCB_sin_file(char* linea);
 
 
 #endif /* API_H_ */

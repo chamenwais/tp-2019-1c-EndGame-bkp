@@ -62,3 +62,13 @@ t_list * obtener_lista_lineas_desde_archivo(char * path_archivo){
 	fclose(archivo);
 	return lista_lineas;
 }
+
+t_list * obtener_lista_linea(char * linea_original){
+	t_list * lista_linea=list_create();
+
+	char *linea = NULL;
+	linea=(string_split(linea_original,"\n"))[0];
+	list_add(lista_linea, linea);
+
+	return lista_linea;
+}
