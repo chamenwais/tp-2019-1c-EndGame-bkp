@@ -394,6 +394,9 @@ void terminar_programa(int codigo_finalizacion){
 	if(tabla_de_segmentos!=NULL){
 		liberar_tabla_segmentos();
 	}
+	if(bitmap_marcos!=NULL){
+		liberar_bitmap_marcos();
+	}
 
 	close(SOCKET_LISS);
 	close(SERVER_MEMORIA);
@@ -518,16 +521,13 @@ enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
 
 	pthread_mutex_lock(&M_JOURNALING);
 
-	//TODO iterar cada pagina modificada y mandársela a LFS
-	//Si algún insert falló, devolverle el error al Kernel o informar en consola
-	void enviar_registro_a_liss(void * pagina){
-
-	}
-	list_iterate(paginas_modificadas, enviar_registro_a_liss);
+	insertar_cada_registro_modificado_en_LFS(resultado_anterior, paginas_modificadas, socket_con_LFS);
+	limpiar_tablas_de_segmentos_y_paginas();
 
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	list_destroy(paginas_modificadas);
+
 	enum MENSAJES resultado=*resultado_anterior;
 	free(resultado_anterior);
 	return resultado;
