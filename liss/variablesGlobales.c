@@ -16,7 +16,7 @@ char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
 pthread_t threadConsola, threadCompactador, threadDumps;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
-	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump, mutexDeCompactacion;
 t_bitarray *bitmap;
 int sizeDelBitmap;
 char * srcMmap;
@@ -66,6 +66,10 @@ int inicializarVariablesGlobales(){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeOperacionCritica");
 		return EXIT_FAILURE;
 		}
+	if(pthread_mutex_init(&mutexDeCompactacion, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeCompactacion");
+		return EXIT_FAILURE;
+		}
 
 	bitmap=NULL;
 	sizeDelBitmap=-1;
@@ -101,6 +105,7 @@ void liberarRecursos(){
 	pthread_mutex_destroy(&mutexBitmap);
 	pthread_mutex_destroy(&mutexDeDump);
 	pthread_mutex_destroy(&mutexEstadoDeFinalizacionDelSistema);
+	pthread_mutex_destroy(&mutexDeCompactacion);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
 }
@@ -122,11 +127,18 @@ int vaciarMemTable(){
 			}
 		}
 	log_info(LOGGERFS,"Liberando memtable");
-	if(!list_is_empty(memTable)){
-		log_info(LOGGERFS,"La memtable tiene datos asi q paso a liberarla");
-		list_iterate(memTable,destruirTabla);
+	if(memTable!=NULL){
+		if(!list_is_empty(memTable)){
+			log_info(LOGGERFS,"La memtable tiene datos asi q paso a liberarla");
+			list_iterate(memTable,destruirTabla);
+		}else{
+			log_info(LOGGERFS,"La memtable no tenia datos asi q no libero nada");
+			}
+		list_destroy(memTable);
+	}else{
+		log_error(LOGGERFS,"La memtable esta NULL");
 		}
-	list_destroy(memTable);
+
 	log_info(LOGGERFS,"Memtable liberada");
 	return EXIT_SUCCESS;
 }

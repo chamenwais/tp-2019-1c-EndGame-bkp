@@ -89,7 +89,7 @@ int dump(char* nombreDeLaTabla){
 		return EXIT_SUCCESS;
 		}
 	pthread_mutex_lock(&mutexDeLaMemtable);
-	tp_nodoDeLaMemTable nodoDeLaMem = list_remove_by_condition(memTable,esMiNodo);
+	tp_nodoDeLaMemTable nodoDeLaMem = list_find(memTable,esMiNodo);
 	if(nodoDeLaMem==NULL){
 		log_info(LOGGERFS,"No hay nada para dumpear en %s", nombreDeLaTabla);
 		return DUMP_CORRECTO;
@@ -149,6 +149,7 @@ void funcionHiloDump(void *arg){
 	void dumpearAEseNodo(void* nodo) {
 		dump(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla);
 		}
+
 	int tiempoDeSleep;
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		tiempoDeSleep=obtenerTiempoDump();

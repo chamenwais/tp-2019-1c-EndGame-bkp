@@ -141,6 +141,7 @@ void *funcionHiloConsola(void *arg){
 				}}}}}}}}}}}}}
 			for(int j=0;instruccion[j]!=NULL;j++)
 				free(instruccion[j]);
+			free(instruccion);
 			}
 		free(linea);
 	}//Cierre del while(1)
@@ -148,11 +149,14 @@ void *funcionHiloConsola(void *arg){
 }
 
 int esperarAQueTermineLaConsola(){
+	log_info(LOGGERFS,"Esperando a threadConsola");
 	pthread_join( threadConsola, NULL);
+	log_info(LOGGERFS,"Esperando a threadDumps");
 	pthread_join( threadDumps, NULL);
+	log_info(LOGGERFS,"Esperando a threadServer");
 	pthread_join( threadServer, NULL);
-
-
+	log_info(LOGGERFS,"Esperando a threadCompactador");
+	pthread_join( threadCompactador, NULL);
 
 	log_info(LOGGERFS,"Hilo de consola finalizado");
 	return EXIT_SUCCESS;

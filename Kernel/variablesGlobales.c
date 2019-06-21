@@ -36,6 +36,7 @@ sem_t READY;
 
 int quantum;
 int retardo;
+int path_api = 0;
 
 int inicializarVariablesGlobales(){
 

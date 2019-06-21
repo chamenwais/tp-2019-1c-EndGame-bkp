@@ -51,6 +51,8 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb);
 tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero);
 void describeAll(int socket_memoria);
 void apagar_semaforos();
+int conectar_con_memoria(char* ip, int puerto);
+tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla);
 
 
 #endif /* FUNCIONESKERNEL_H_ */

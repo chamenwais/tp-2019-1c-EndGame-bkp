@@ -30,40 +30,79 @@ int esperarAQueTermineLaConsola(){
 }
 
 int selectConsola(char* linea){
-//TODO
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
 int insertConsola(char* linea){
-	//insert()
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
 int insertConsolaNoTime(char* linea){
-	//insertNoTime()
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
 int createConsola(char* linea){
-	//parsear la linea y obtener tabla
-	//existeTabla(tabla)?
-	//si no existe agregarla a la listaTablasCreadas y continuar con el create
-	//si existe falla
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
 int describeConsola(char* linea){
-	//describe
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
 int describeConsolaAll(char *linea){
-	//describeAll()
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
 int dropConsola(char* linea){
-	//drop
+	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
+	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
+	pthread_mutex_lock(&mutex_New);
+	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	pthread_mutex_unlock(&mutex_New);
+	sem_post(&NEW);//habilito PLP
 	return EXIT_SUCCESS;
 }
 
@@ -115,6 +154,8 @@ int addConsola(int memnum, char* criterio){
 		}else{
 			printf("Pifiaste el criterio amigue");
 		}
+	}else{
+		logger(escribir_loguear, l_error, "La memoria %i no esta conectada", memnum);
 	}
 	return EXIT_SUCCESS;
 }
@@ -135,6 +176,17 @@ tp_lql_pcb crear_PCB(char* path){
 	nuevo_LQL->path = malloc(strlen(path)+1);
 	strcpy(nuevo_LQL->path, path);
 	nuevo_LQL->lista = obtener_lista_lineas_desde_archivo(nuevo_LQL->path);
+	return nuevo_LQL;
+}
+
+tp_lql_pcb crear_PCB_sin_file(char* linea){
+	tp_lql_pcb nuevo_LQL = calloc(1, sizeof(t_lql_pcb));
+	char* path = string_itoa(path_api);
+	logger(escribir_loguear, l_info, "Se crea el PCB para el LQL en el path %s pedido por consola\n", path);
+	nuevo_LQL->path = malloc(strlen(path)+1);
+	strcpy(nuevo_LQL->path, path);
+	nuevo_LQL->lista = obtener_lista_linea(linea);
+	path_api++;
 	return nuevo_LQL;
 }
 

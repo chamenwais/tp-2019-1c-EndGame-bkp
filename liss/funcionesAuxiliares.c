@@ -54,6 +54,66 @@ int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
 	return EXIT_SUCCESS;
 }
 
+bool dirExists(char* path){
+	DIR* dir = opendir(path);
+	if (dir) {
+	    /* Directory exists. */
+	    closedir(dir);
+	    return true;
+	} else if (ENOENT == errno) {
+	    /* Directory does not exist. */
+		return false;
+	} else {
+	    /* failed for some other reason. */
+		return false;
+	}
+}
+
+int cargarParticionATabla(char* nombreTabla,int numParticion,int size,t_list* bloques){
+	//ej tabla1,3,100,lista de int 3 , 6 , 10
+	char* nombreDelBinario=string_new();
+	string_append(&nombreDelBinario, configuracionDelFS.puntoDeMontaje);
+	string_append(&nombreDelBinario, "/Tables/");
+	string_append(&nombreDelBinario, nombreTabla);
+	if(!dirExists(nombreDelBinario)){
+		free(nombreDelBinario);
+		return 0;
+	}
+	string_append(&nombreDelBinario, "/");
+	char* auxitoa=string_itoa(numParticion);
+	string_append(&nombreDelBinario, auxitoa);
+	free(auxitoa);
+	string_append(&nombreDelBinario, ".bin");
+	log_info(LOGGERFS,"Cargo el nuevo binario %s , para la tabla %s , size=%d , que tiene %d bloques",
+			nombreDelBinario,nombreTabla,size,bloques->elements_count);
+	FILE * archivoBinario = fopen(nombreDelBinario,"w");
+	fclose(archivoBinario);
+	t_config* configuracion = config_create(nombreDelBinario);
+	char* auxSize = string_itoa(size);
+	config_set_value(configuracion, "SIZE", auxSize);
+	free(auxSize);
+
+	char* lineaBloques=string_new();
+	string_append(&lineaBloques, "[");
+	char* tmpBloq = string_itoa((int)list_get(bloques,0));
+	string_append(&lineaBloques,tmpBloq);
+	free(tmpBloq);
+
+	for(int i=1;i<bloques->elements_count;i++){
+		string_append(&lineaBloques,",");
+		tmpBloq = string_itoa((int)list_get(bloques,i));
+		string_append(&lineaBloques,tmpBloq);
+		free(tmpBloq);
+	}
+
+	string_append(&lineaBloques,"]");
+	config_set_value(configuracion, "BLOCKS", lineaBloques);
+	config_save(configuracion);
+	config_destroy(configuracion);
+	free(nombreDelBinario);
+	return 1;
+}
+
 int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 		int numeroDeParticiones){
 	// Crear los archivos binarios asociados a cada partición de la tabla
@@ -138,7 +198,7 @@ int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
 			(eliminarDeLaMemtable(nombreDeLaTabla)==EXIT_SUCCESS)
 			){
 		log_info(LOGGERFS,"La tabla %s se borro correctamente", nombreDeLaTabla);
-		pthread_mutex_lock(&mutexDeDump);
+		pthread_mutex_unlock(&mutexDeDump);
 		return EXIT_SUCCESS;
 	}else{
 		log_error(LOGGERFS,"Hubo algun error al borrar la tabla %s", nombreDeLaTabla);
@@ -207,7 +267,7 @@ int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 int liberarBloquesYParticiones(char* nombreDeLaTabla){
 	log_info(LOGGERFS,"Voy a borrar los bloques y las particiones");
 	t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
-	char* nombreDelArchivo;
+	//char* nombreDelArchivo;
 	char* directorio=string_new();
 	string_append(&directorio, configuracionDelFS.puntoDeMontaje);
 	string_append(&directorio, "/Tables/");
@@ -246,6 +306,38 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 	free(directorioDeBloques);
 	return EXIT_SUCCESS;
 }
+
+void liberarBloque(char* numeroBloque){
+	pthread_mutex_lock(&mutexBitmap);
+	log_info(LOGGERFS,"Marcando como libre el bloque: %s", numeroBloque);
+	liberarBloqueDelBitmap(atoi(numeroBloque));
+
+	char* directorioDeBloques= string_new();
+	string_append(&directorioDeBloques,configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeBloques,"/Blocks/");
+
+	char* ubicacionDelBloque=string_new();
+	string_append(&ubicacionDelBloque,directorioDeBloques);
+	string_append(&ubicacionDelBloque,numeroBloque);
+	string_append(&ubicacionDelBloque,".bin");
+	log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
+	remove(ubicacionDelBloque);
+	free(directorioDeBloques);
+	free(ubicacionDelBloque);
+	pthread_mutex_unlock(&mutexBitmap);
+}
+
+void liberarBloquesTmpc(char* pathCompletoTmpc){
+	t_config* conf = config_create(pathCompletoTmpc);
+	if(conf==NULL)return;
+	char** arrayDeBloques = config_get_array_value(conf,"BLOCKS");
+	config_destroy(conf);
+	for(int i=0;arrayDeBloques[i]!=NULL;i++){
+		liberarBloque(arrayDeBloques[i]);
+		free(arrayDeBloques[i]);
+	}
+}
+
 
 int desbloquearTabla(char* nombreDeLaTabla){
 	// Esta funcion desbloquea la tabla para q la pueda usar algun hilo
@@ -476,12 +568,13 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 		//list_add_all(listaResultante, recuperarKeysDelArchivoFinal(ubicacionDelBloque, key));
 		free(ubicacionDelBloque);
 		free(arrayDeBloques[i]);
-		}
+	}
 	fclose(archivoTemp);
 	listaResultante=recuperarKeysDelArchivoFinal(archivoTempUbicacion, key);
 
 	remove(archivoTempUbicacion);
 	free(archivoTempUbicacion);
+	free(directorioDeTrabajo);
 	log_info(LOGGERFS,"Keys rescatadas de los bloques: %d",list_size(listaResultante));
 	return listaResultante;
 }
@@ -699,3 +792,67 @@ void free_tp_describe_rta(void* d){
 void liberarYDestruirTablaDeMetadata(t_list* descriptores){//libera y destruye una lista que tenga tp_describe_rta dentro
 	list_destroy_and_destroy_elements(descriptores,free_tp_describe_rta);
 }
+
+int insertarDatosEnElNuevoBloque(char* cadenaAInsertar,int bloqueActual){
+	//le pasas un numero de bloque y una cadena con los datos a insertar y los manda
+	//a continuacion de lo q haya
+	char* nombreDelArchivoDeBloque=string_new();
+	string_append(&nombreDelArchivoDeBloque, configuracionDelFS.puntoDeMontaje);
+	string_append(&nombreDelArchivoDeBloque, "/Blocks/");
+	char* auxitoa=string_itoa(bloqueActual);
+	string_append(&nombreDelArchivoDeBloque, auxitoa);
+	free(auxitoa);
+	string_append(&nombreDelArchivoDeBloque, ".bin");
+	FILE* archivo=fopen(nombreDelArchivoDeBloque,"w");
+	log_info(LOGGERFS,"Guardando %s en el archivo %s", cadenaAInsertar, nombreDelArchivoDeBloque);
+	fprintf(archivo,"%s",cadenaAInsertar);
+	free(nombreDelArchivoDeBloque);
+	fclose(archivo);
+	return EXIT_SUCCESS;
+}
+
+t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista de int 1,2, ..., o NULL si no quedan bloques(si ya tomo algun bloque lo libera)
+	int bloqueActual;
+	//char* bloques=string_new();
+	//string_append(&bloques, "[");
+
+	int cantBloques = (int)ceil((double)strlen(cadenaGigante)/(double)metadataDelFS.blockSize);
+	t_list* bloques = list_create();
+
+	for(int i=0;i<cantBloques;i++){
+		pthread_mutex_lock(&mutexBitmap);
+		bloqueActual=obtenerBloqueLibreDelBitMap();
+		ocuparBloqueDelBitmap(bloqueActual);
+		pthread_mutex_unlock(&mutexBitmap);
+		bajarADiscoBitmap();
+		if(bloqueActual==-1){
+			pthread_mutex_lock(&mutexBitmap);
+			list_iterate(bloques,liberarBloqueDelBitmap);
+			pthread_mutex_unlock(&mutexBitmap);
+			bajarADiscoBitmap();
+			list_destroy(bloques);
+			return NULL;
+		}
+		else list_add(bloques,(void*)bloqueActual);//@@no toy seguro si puedo simplemente agregar un int sin que se destruya
+	}
+
+	for(int i=0;i<cantBloques;i++){
+
+		char* data = string_substring(cadenaGigante,i*metadataDelFS.blockSize,
+				i==0 ? (int)fmin((float)strlen(cadenaGigante),(float)metadataDelFS.blockSize)
+						:strlen(cadenaGigante)-metadataDelFS.blockSize*i);
+		log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
+				data, list_get(bloques,i));
+		insertarDatosEnElNuevoBloque(data, (int)list_get(bloques,i));
+		free(data);
+	}
+	return bloques;
+}
+
+void liberarBloquesDelBitmap(t_list* bloques){
+	pthread_mutex_lock(&mutexBitmap);
+	list_iterate(bloques,liberarBloqueDelBitmap);
+	pthread_mutex_unlock(&mutexBitmap);
+}
+
+
