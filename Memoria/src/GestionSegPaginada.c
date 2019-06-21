@@ -25,6 +25,7 @@ void inicializar_bitmap_marcos(){
 }
 
 void liberar_bitmap_marcos(){
+	free(bitmap_marcos->bitarray);
 	bitarray_destroy(bitmap_marcos);
 }
 
@@ -301,6 +302,7 @@ void insertar_cada_registro_modificado_en_LFS(enum MENSAJES* resultado_anterior,
 	//Itera cada página modificada y se la manda a LFS
 	//Si algún insert falló, devuelve el error al Kernel e informa en consola
 	void enviar_registro_a_liss(void * pagina){
+		usleep(RETARDO_ACCESO_MEMORIA*1000);
 		long* p_timestamp = obtener_timestamp_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
 		uint16_t* p_key = obtener_key_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
 		char * p_value = obtener_value_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
@@ -323,13 +325,14 @@ void insertar_cada_registro_modificado_en_LFS(enum MENSAJES* resultado_anterior,
 
 		logger(escribir_loguear, l_info, "Se va a realizar el insert para la key %d de la tabla %s"
 				,(int)*p_key,nombre_tabla);
+		usleep(RETARDO_ACCESO_FILESYSTEM*1000);
 		prot_enviar_insert(nombre_tabla, *p_key, p_value, *p_timestamp, socket_con_LFS);
 
 		enum MENSAJES insercion = prot_recibir_respuesta_insert(socket_con_LFS);
 		if(insercion == REQUEST_SUCCESS){
-			logger(escribir_loguear, l_info, "El insert se realizó correctamente");
+			logger(escribir_loguear, l_info, "El insert se realizó correctamente\n");
 		} else {
-			logger(escribir_loguear, l_warning, "El insert falló");
+			logger(escribir_loguear, l_warning, "El insert falló\n");
 			*resultado_anterior=insercion;
 		}
 		free(p_timestamp);
