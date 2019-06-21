@@ -25,7 +25,8 @@
 #include <ftw.h>
 #include <stdio.h>
 //#include "dump.h"
-//#include "funcionesAuxiliares.h"
+#include "funcionesAuxiliares.h"
+#include <time.h>
 
 typedef struct TKV {
 	unsigned timeStamp;
@@ -33,16 +34,12 @@ typedef struct TKV {
 	char* value;
 } t_tkv;
 typedef t_tkv* tp_tkv;
-/*
-typedef struct viejoT {
-	unsigned timeStamp;
-	int index;
-} t_viejoTimestamp;
-typedef t_viejoTimestamp* tp_viejoTimestamp;
-*/
+
+void guardarMilisegundosBloqueada(char*,int,bool);
 char* getNextTemp();
 char* convertirTKVsAString(t_list*);
 void liberarTKV(tp_tkv);
+void liberarListaTKV(t_list*);
 t_list* cargarTimeStampKeyValue(char*);
 t_list* crearTempsParaBins(char*);
 char* crearTempParaTmpcs(t_list*);
