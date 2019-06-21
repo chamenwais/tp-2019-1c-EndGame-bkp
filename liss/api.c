@@ -243,7 +243,7 @@ int consolaDescribeDeTabla(char* nombreDeLaTabla){
 		printf("Tipo de consistencia: %s\n",metadataDeLaTabla.consistencia);
 		printf("Tiempo de compactacion: %d\n",metadataDeLaTabla.tiempoDeCompactacion);
 		}
-
+	free(metadataDeLaTabla.consistencia);
 	return EXIT_SUCCESS;
 }
 

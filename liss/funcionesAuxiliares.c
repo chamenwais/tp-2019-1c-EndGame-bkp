@@ -674,8 +674,9 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 	string_append(&directorioDeLasTablas,"/Tables/");
 	string_append(&directorioDeLasTablas,nombreDeLaTabla);
 	string_append(&directorioDeLasTablas,"/");
-
-	string_append(&directorioDeLasTablas,string_itoa(numeroDeParticionQueContieneLaKey));
+	char* auxitoa = string_itoa(numeroDeParticionQueContieneLaKey);
+	string_append(&directorioDeLasTablas,auxitoa);
+	free(auxitoa);
 	string_append(&directorioDeLasTablas,".bin");
 	log_info(LOGGERFS,"Checkeando en el archivo %d de las particiones, %s",
 								numeroDeParticionQueContieneLaKey, directorioDeLasTablas);
