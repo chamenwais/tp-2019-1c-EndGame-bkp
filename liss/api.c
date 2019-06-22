@@ -185,6 +185,8 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 				log_error(LOGGERFS,"Resultado insaperado, alerta!!!");
 			}
 		}
+		//free(nodo->value);
+		//free(nodo);
 	}else{
 		log_error(LOGGERFS,"Resultado insaperado, alerta!!!, resultado del selectf==NULL");
 	}

@@ -277,10 +277,13 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 	char* directorioDeBloques= string_new();
 	string_append(&directorioDeBloques,configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeBloques,"/Blocks/");
+	char* auxatoi;
 	for(int i=0;i<metadataDeLaTabla.particiones;i++){
 		char* nombreDelArchivo=string_new();
 		string_append(&nombreDelArchivo, directorio);
-		string_append(&nombreDelArchivo, string_itoa(i));
+		auxatoi=string_itoa(i);
+		string_append(&nombreDelArchivo, auxatoi);
+		free(auxatoi);
 		string_append(&nombreDelArchivo, ".bin");
 		t_config* configuracion = config_create(nombreDelArchivo);
 		char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
@@ -303,6 +306,7 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 		remove(nombreDelArchivo);
 		free(nombreDelArchivo);
 		}
+	free(metadataDeLaTabla.consistencia);
 	free(directorioDeBloques);
 	return EXIT_SUCCESS;
 }
@@ -569,6 +573,7 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 		free(ubicacionDelBloque);
 		free(arrayDeBloques[i]);
 	}
+	free(arrayDeBloques);
 	fclose(archivoTemp);
 	listaResultante=recuperarKeysDelArchivoFinal(archivoTempUbicacion, key);
 
@@ -612,6 +617,7 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 			}
 		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
 		free(lineaParseada);
+		free(linea_size);
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 		}
 	fclose(archivo);
@@ -643,11 +649,13 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 	string_append(&directorioDeLasTablas,nombreDeLaTabla);
 	char* ubicacionDelTemp;
 	bool noHayMas=false;
-
+	char* auxatoi;
 	for(int i=1;noHayMas==false;i++){
 		ubicacionDelTemp=string_new();
 		string_append(&ubicacionDelTemp,directorioDeLasTablas);
-		string_append(&ubicacionDelTemp,string_itoa(i));
+		auxatoi=string_itoa(i);
+		string_append(&ubicacionDelTemp,auxatoi);
+		free(auxatoi);
 		string_append(&ubicacionDelTemp,".tmp");
 		if(existeElArchivo(ubicacionDelTemp)){
 			log_info(LOGGERFS,"Checkeando en el archivo temporal %s",ubicacionDelTemp);
@@ -693,6 +701,7 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 	tp_nodoDeLaTabla keyObtenida = NULL;
 	unsigned tiempo;
+
 	bool esLaMayor(void* nodo){
 		bool sonTodosMenores(void* nodo2){
 			return (tiempo>=((tp_nodoDeLaTabla)nodo2)->timeStamp);
@@ -700,9 +709,19 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 		tiempo = ((tp_nodoDeLaTabla)nodo)->timeStamp;
 		return list_all_satisfy(keysObtenidas,sonTodosMenores);
 		}
+	bool esMiNodoMayor(void* nodo) {
+		if(((((tp_nodoDeLaTabla)nodo)->key)==keyObtenida->key)&&
+				(!strcmp(((tp_nodoDeLaTabla) nodo)->value,keyObtenida->value))&&
+				((((tp_nodoDeLaTabla) nodo)->timeStamp)==keyObtenida->timeStamp)
+				){
+			return true;
+			}
+		return false;
+		}
 	log_info(LOGGERFS,"Buscando key con el timestamp mas grande");
 	if(!list_is_empty(keysObtenidas)){
 		keyObtenida = list_find(keysObtenidas,esLaMayor);
+		list_remove_by_condition(keysObtenidas,esMiNodoMayor);
 		if(keyObtenida!=NULL){
 			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %d, con un value de: %s",
 				keyObtenida->key, keyObtenida->timeStamp, keyObtenida->value);
@@ -722,7 +741,13 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 }
 
 int vaciarListaDeKeys(t_list* keysObtenidas){
-
+	void vaciarNodo(void* nodo){
+		free(((tp_nodoDeLaTabla)nodo)->value);
+		free((tp_nodoDeLaTabla)nodo);
+		return;
+	}
+	list_clean_and_destroy_elements(keysObtenidas,vaciarNodo);
+	list_destroy(keysObtenidas);
 	return EXIT_SUCCESS;
 }
 
