@@ -125,6 +125,14 @@ void atender_describe_tabla_particular(tp_describe paquete_describe, int cliente
 	} else {
 		prot_enviar_error(rta_describe_particular->respuesta,cliente);
 	}
+
+	if(rta_describe_particular->consistencia!=NULL){
+		free(rta_describe_particular->consistencia);
+	}
+	if(rta_describe_particular->nombre!=NULL){
+		free(rta_describe_particular->nombre);
+	}
+	free(rta_describe_particular);
 }
 
 void atender_journal(int cliente){
@@ -236,8 +244,6 @@ tp_describe_particular_rta_a_kernel realizar_describe_para_tabla_particular(char
 		logger(escribir_loguear, l_info, "Liss ha enviado la sgte informacion:");
 		imprimir_informacion_tabla_particular(info_tabla);
 
-		free(info_tabla->consistencia);
-		free(info_tabla->nombre);
 		free(info_tabla);
 
 	}
