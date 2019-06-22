@@ -162,6 +162,8 @@ int setup_todas_pag_modificadas(){
 	crear_pagina_en_tabla_paginas(un_segmento, 3, FLAG_MODIFICADO);
 	crear_pagina_en_tabla_paginas(un_segmento, 2, FLAG_MODIFICADO);
 	crear_pagina_en_tabla_paginas(un_segmento, 1, FLAG_MODIFICADO);
+	t_entrada_tabla_segmentos * otro_segmento=crear_segmento_a_tabla("tablaFalsa2");
+	crear_pagina_en_tabla_paginas(otro_segmento, 0, FLAG_MODIFICADO);
 	return 0;
 }
 
@@ -181,6 +183,6 @@ void test_todas_paginas_modificadas(){
 void test_recopilar_paginas_modificadas(){
 	setup_todas_pag_modificadas();
 	t_list* paginas_modificadas=recopilar_paginas_modificadas();
-	CU_ASSERT_EQUAL(list_size(paginas_modificadas),3);
+	CU_ASSERT_EQUAL(list_size(paginas_modificadas),4);
 	list_destroy(paginas_modificadas);
 }

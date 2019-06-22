@@ -19,6 +19,9 @@
 #include "../COM/lqvg/protocolo.h"
 #include <stdbool.h>
 #include <ftw.h>
+#include <math.h>
+#include <dirent.h>
+#include <errno.h>
 
 int crearDirectorioParaLaTabla(char* nombreDeLaTabla);
 int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
@@ -53,5 +56,9 @@ int vaciarListaDeKeys(t_list* keysObtenidas);
 t_list* obtenerTodosLosDescriptores();
 char* recortarDespuesUltimaBarra(char*);//ej: home/utnso/file -> file
 void liberarYDestruirTablaDeMetadata(t_list*);
+void liberarBloque(char* numeroBloque);
+void liberarBloquesTmpc(char* pathCompletoTmpc);
+void liberarBloquesDelBitmap(t_list* bloques);
+t_list* insertarCadenaEnLosBloques(char* cadenaGigante);//retorna una lista de int 1,2, ..., o NULL si no quedan bloques(si ya tomo algun bloque lo libera)
 
 #endif /* FUNCIONESAUXILIARES_H_ */

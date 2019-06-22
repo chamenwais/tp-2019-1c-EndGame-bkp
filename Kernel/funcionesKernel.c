@@ -32,13 +32,11 @@ void captura_signal(int signo){
     {
     	logger(escribir_loguear, l_warning,"Finalizando proceso kernel...");
     	terminar_programa(EXIT_SUCCESS);
-    	exit(EXIT_SUCCESS);
     }
     else if(signo == SIGPIPE)
     {
     	logger(escribir_loguear, l_error," Se desconectó un proceso al que se quizo enviar.");
-    	terminar_programa(EXIT_FAILURE);
-    	exit(EXIT_FAILURE);
+
     }
 
 }
@@ -246,6 +244,7 @@ int conectarse_con_memoria(char* ip, int puerto){
 	if(socket_mem < 0){
 		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
 		close(socket_mem);
+		terminar_programa(EXIT_SUCCESS);
 	}
 	enviar_handshake(socket_mem);
 
@@ -549,9 +548,7 @@ void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 			logger(escribir_loguear, l_error, "No existe la tabla");
 		}
 
-		/*
-		 * HACER LO QUE TENGAS QUE HACER CON EL PCB
-		 */
+
 	}
 
 	if(nombre_tabla == NULL){
@@ -759,6 +756,9 @@ void* funcionHiloRequest(void* pcb){
 	}
 
 	logger(escribir_loguear, l_warning, "HASTA ACA LLEGA EL LQL");
+	pthread_mutex_lock(&mutex_Exit);
+	list_add(listaExit, pcb);
+	pthread_mutex_unlock(&mutex_Exit);
 
 	pthread_exit(ret);
 	return EXIT_SUCCESS;

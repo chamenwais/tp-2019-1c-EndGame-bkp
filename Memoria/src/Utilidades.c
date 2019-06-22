@@ -394,6 +394,9 @@ void terminar_programa(int codigo_finalizacion){
 	if(tabla_de_segmentos!=NULL){
 		liberar_tabla_segmentos();
 	}
+	if(bitmap_marcos!=NULL){
+		liberar_bitmap_marcos();
+	}
 
 	close(SOCKET_LISS);
 	close(SERVER_MEMORIA);
@@ -479,7 +482,8 @@ void recibir_handshake_kernel(int socket){
 void recibir_handshakes(int socket){
 	enum PROCESO procesoRecibido;
 	recibir(socket,&procesoRecibido,sizeof(procesoRecibido));
-	enviar(socket, MEMORIA, sizeof(MEMORIA));
+	enum PROCESO procesoMemoria = MEMORIA;
+	enviar(socket, &procesoMemoria, sizeof(MEMORIA));
 	if(procesoRecibido == KERNEL) {
 		loguear_handshake_exitoso(socket, _KERNEL);
 		prot_enviar_int(NUMERO_MEMORIA,socket);
@@ -511,16 +515,20 @@ void apagar_semaforos(){
 }
 
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
-	enum MENSAJES resultado = REQUEST_SUCCESS;
+	enum MENSAJES* resultado_anterior = malloc(sizeof(enum MENSAJES));
+	*resultado_anterior=REQUEST_SUCCESS;
 	t_list* paginas_modificadas=recopilar_paginas_modificadas();
 
 	pthread_mutex_lock(&M_JOURNALING);
 
-	//TODO iterar cada pagina modificada y mandársela a LFS
-	//Si algún insert falló, devolverle el error al Kernel o informar en consola
+	insertar_cada_registro_modificado_en_LFS(resultado_anterior, paginas_modificadas, socket_con_LFS);
+	limpiar_tablas_de_segmentos_y_paginas();
 
 	pthread_mutex_unlock(&M_JOURNALING);
 
 	list_destroy(paginas_modificadas);
+
+	enum MENSAJES resultado=*resultado_anterior;
+	free(resultado_anterior);
 	return resultado;
 }
