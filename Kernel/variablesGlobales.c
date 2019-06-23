@@ -13,6 +13,7 @@ pthread_t threadConsola;
 pthread_t threadPlanif;
 pthread_t threadRequest;
 pthread_t threadPCP;
+pthread_t hiloDescribeAll;
 t_list* listaNew;
 t_list* listaReady;
 t_list* listaExec;

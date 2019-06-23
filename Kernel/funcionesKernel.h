@@ -53,6 +53,9 @@ void describeAll(int socket_memoria);
 void apagar_semaforos();
 int conectar_con_memoria(char* ip, int puerto);
 tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla);
+void iniciar_proceso_describe_all();
+void* hacer_describe();
+int obtener_pos_tabla(char* tabla);
 
 
 #endif /* FUNCIONESKERNEL_H_ */

@@ -476,6 +476,23 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 	}
 }
 
+int obtener_pos_tabla(char* tabla){
+	int pos = 0;
+
+	bool coincideTabla(void* nodo){
+			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
+				return true;
+			}
+			pos++;
+			return false;
+	}
+
+			if(list_any_satisfy(listaMemConectadas, coincideTabla)){
+				return pos;
+			}
+		return -1;
+}
+
 void describeAll(int socket_memoria) {
 	//PIDIERON UN DESCRIBE ALL
 	prot_enviar_describeAll(socket_memoria);
@@ -491,11 +508,21 @@ void describeAll(int socket_memoria) {
 		//actualizo metadata
 		list_clean(listaTablasCreadas);
 
+
 		void actualizarTabla(void* nodo) {
 			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = ((tp_describe_rta) nodo)->nombre;
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
-			list_add(listaTablasCreadas, tabla);
+			if(existeTabla(tabla->nombre_tabla)){
+				int pos = obtener_pos_tabla(tabla->nombre_tabla);
+				list_remove(listaMemConectadas, pos);
+				list_add(listaMemConectadas, tabla);
+
+			}else{
+
+				list_add(listaTablasCreadas, tabla);
+
+			}
 		}
 
 		list_iterate(info_de_las_tablas->lista, actualizarTabla);
@@ -881,4 +908,30 @@ tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
 
 	entrada = list_find(listaTablasCreadas, coincideNombre2);
 	return entrada;
+}
+
+void iniciar_proceso_describe_all(){
+	pthread_t hiloDescribeAll;
+		int resultado_de_crear_el_hilo = pthread_create (&hiloDescribeAll, NULL, hacer_describe, NULL);
+		if(resultado_de_crear_el_hilo!=0){
+			logger(escribir_loguear,l_error
+					,"Error al crear el hilo de describe all, el kernel se suicida");
+			terminar_programa(EXIT_FAILURE);
+		}
+		pthread_detach(hiloDescribeAll);
+}
+
+void* hacer_describe(){
+	while(1){
+		usleep(configKernel.refreshMetadata*1000);
+		int max = list_size(listaMemConectadas);
+		int i;
+		for (i = 0; i < max; ++i) {
+			tp_memo_del_pool_kernel memo = list_get(listaMemConectadas, i);
+			describeAll(memo->socket);
+			logger(escribir_loguear, l_debug, "Se le solicita a la memoria %i un describe all", memo->numero_memoria);
+
+		}
+	}
+	return EXIT_SUCCESS;
 }

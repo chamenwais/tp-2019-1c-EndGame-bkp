@@ -124,6 +124,7 @@ extern pthread_t threadConsola;
 extern pthread_t threadPlanif;
 extern pthread_t threadRequest;
 extern pthread_t threadPCP;
+extern pthread_t hiloDescribeAll;
 extern t_list* listaNew;
 extern t_list* listaReady;
 extern t_list* listaExec;
