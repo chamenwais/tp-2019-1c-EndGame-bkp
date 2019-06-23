@@ -506,7 +506,7 @@ void describeAll(int socket_memoria) {
 		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, socket_memoria);
 
 		//actualizo metadata
-		list_clean(listaTablasCreadas);
+
 
 
 		void actualizarTabla(void* nodo) {
