@@ -19,6 +19,7 @@
 #include <commons/collections/list.h>
 #include <lqvg/utils.h>
 #include <semaphore.h>
+#include <commons/config.h>
 
 enum tipo_logueo {
 	escribir,
@@ -42,7 +43,7 @@ typedef struct definicionConfiguracionDelKernel {
 
 typedef struct memo_del_pool_kernel {
 	char * ip;
-	char * puerto;
+	int puerto;
 	int numero_memoria;
 	int socket;
 }t_memo_del_pool_kernel;
@@ -150,5 +151,12 @@ extern int path_api;
 
 int inicializarVariablesGlobales();
 void terminar_programa(int codigo_finalizacion);
+void configurar_signals(void);
+void captura_signal(int);
+void logger(int tipo_esc, int tipo_log, const char* mensaje, ...);
+void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
+char* log_colors[8], char* msj_salida);
+void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida);
+void apagar_semaforos();
 
 #endif /* VARIABLESGLOBALES_H_ */
