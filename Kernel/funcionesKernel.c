@@ -591,6 +591,7 @@ void* funcionHiloPCP(){
 	while(1){
 		sem_wait(&READY);
 		if(list_size(listaReady) > 0 && list_size(listaExec) < configKernel.multiprocesamiento){
+			//sem_wait(&READY);
 			logger(escribir_loguear, l_trace, "Se activa el PCP");
 			tp_lql_pcb pcb_a_planificar;
 			pthread_mutex_lock(&mutex_Ready);

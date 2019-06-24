@@ -29,80 +29,49 @@ int esperarAQueTermineLaConsola(){
 	return EXIT_SUCCESS;
 }
 
-int selectConsola(char* linea){
+void crear_proceso(char* linea) {
 	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
 	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
 	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
+	list_add(listaNew, nuevo_LQL); //agregar LQL a cola de NEW
+	logger(escribir_loguear, l_debug,
+			"Se agrega el nuevo LQL a la cola de NEW");
 	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	sem_post(&NEW); //habilito PLP
+}
+
+int selectConsola(char* linea){
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
 int insertConsola(char* linea){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
-	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
-	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
-	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
 int insertConsolaNoTime(char* linea){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
-	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
-	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
-	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
 int createConsola(char* linea){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
-	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
-	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
-	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
 int describeConsola(char* linea){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
-	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
-	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
-	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
 int describeConsolaAll(char *linea){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
-	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
-	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
-	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
 int dropConsola(char* linea){
-	logger(escribir_loguear, l_info, "Ingresa al Kernel el pedido %s", linea);
-	tp_lql_pcb nuevo_LQL = crear_PCB_sin_file(linea);
-	pthread_mutex_lock(&mutex_New);
-	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
-	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
-	pthread_mutex_unlock(&mutex_New);
-	sem_post(&NEW);//habilito PLP
+	crear_proceso(linea);
 	return EXIT_SUCCESS;
 }
 
