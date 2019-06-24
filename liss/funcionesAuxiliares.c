@@ -301,11 +301,13 @@ int liberarBloquesYParticiones(char* nombreDeLaTabla){
 			free(ubicacionDelBloque);
 			free(arrayDeBloques[i]);
 			}
+		free(arrayDeBloques);
 		pthread_mutex_unlock(&mutexBitmap);
 		log_info(LOGGERFS,"Borrando el archivo %s", nombreDelArchivo);
 		remove(nombreDelArchivo);
 		free(nombreDelArchivo);
 		}
+	free(directorio);
 	free(metadataDeLaTabla.consistencia);
 	free(directorioDeBloques);
 	return EXIT_SUCCESS;
@@ -599,11 +601,15 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	log_info(LOGGERFS,"Archivo %s abierto",nombreDelArchivo);
 	char *linea = NULL;
 	char *aux = NULL;
+	char *aux2 = NULL;
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
 	linea_size = getline(&aux, &linea_buf_size, archivo);
-	while (linea_size >= 0){
-		linea=(string_split(aux,"\n"))[0]; //hago esto para sacarle el \n
+	while (linea_size > 0){
+		aux2=string_split(aux,"\n");
+		log_info(LOGGERFS,"Linea %s recuperada",aux2[0]);
+		linea=aux2[0]; //hago esto para sacarle el \n
+		linea=string_duplicate(aux2[0]);
 		lineaParseada = string_split(linea, ";");
 		log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
 		lineaParseada[0], lineaParseada[1], lineaParseada[2]);
@@ -618,6 +624,9 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
 		free(lineaParseada);
 		free(linea_size);
+		/*for(int y=0;aux2[y]!=NULL;y++)
+			free(aux2[y]);
+		free(aux2);*/
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 		}
 	fclose(archivo);
