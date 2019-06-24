@@ -413,8 +413,8 @@ void describeAll(int socket_memoria) {
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
 			if(existeTabla(tabla->nombre_tabla)){
 				int pos = obtener_pos_tabla(tabla->nombre_tabla);
-				list_remove(listaMemConectadas, pos);
-				list_add(listaMemConectadas, tabla);
+				list_remove(listaTablasCreadas, pos);
+				list_add(listaTablasCreadas, tabla);
 
 			}else{
 
@@ -685,7 +685,7 @@ void* funcionHiloRequest(void* pcb){
 	pthread_mutex_lock(&mutex_Exit);
 	list_add(listaExit, pcb);
 	pthread_mutex_unlock(&mutex_Exit);
-
+	logger(escribir_loguear, l_warning, "El LQL %s pasa a Exit\n", ((tp_lql_pcb) pcb)->path);
 	pthread_exit(ret);
 	return EXIT_SUCCESS;
 }
@@ -796,7 +796,9 @@ tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
 }
 
 tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
+	printf("entro a buscar\n");
 	tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
+	printf("hizo el calloc\n");
 
 	bool coincideNombre2(void* nodo){
 			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
@@ -806,6 +808,7 @@ tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
 		}
 
 	entrada = list_find(listaTablasCreadas, coincideNombre2);
+	printf("hizo el list_find\n");
 	return entrada;
 }
 
@@ -822,7 +825,7 @@ void iniciar_proceso_describe_all(){
 
 void* hacer_describe(){
 	while(1){
-		usleep(configKernel.refreshMetadata*1000);
+		usleep(configKernel.refreshMetadata*10000);
 		int max = list_size(listaMemConectadas);
 		int i;
 		for (i = 0; i < max; ++i) {
