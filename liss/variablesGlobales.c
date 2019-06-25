@@ -130,7 +130,7 @@ int vaciarMemTable(){
 	if(memTable!=NULL){
 		if(!list_is_empty(memTable)){
 			log_info(LOGGERFS,"La memtable tiene datos asi q paso a liberarla");
-			list_iterate(memTable,destruirTabla);
+			list_clean_and_destroy_elements(memTable,destruirTabla);
 		}else{
 			log_info(LOGGERFS,"La memtable no tenia datos asi q no libero nada");
 			}

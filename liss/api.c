@@ -135,7 +135,11 @@ void *funcionHiloConsola(void *arg){
 					imprimirMemtableEnPantalla();
 			}else{
 				if((strcmp(instruccion[0],"dumpear")==0)&&(instruccion[1]!=NULL)){
-					dump(instruccion[1]);
+					pthread_mutex_lock(&mutexDeDump);
+					list_iterate(memTable, dumpearAEseNodo);
+					vaciarMemTable();
+					memTable=list_create();
+					pthread_mutex_unlock(&mutexDeDump);
 			}else{
 				printf("Comando desconocido\n");
 				}}}}}}}}}}}}}
