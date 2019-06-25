@@ -109,8 +109,8 @@ int dump(char* nombreDeLaTabla){
 	insertarCadenaEnLosBloques();
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
+	log_info(LOGGERFS,"Tabla %s dumpeada, en el temp %s",nombreDeLaTabla, nombreDelArchivoTemp);
 	free(nombreDelArchivoTemp);
-	log_info(LOGGERFS,"Tabla %s dumpeada",nombreDeLaTabla);
 	//setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
 	free(bloques);
@@ -126,6 +126,7 @@ int dump(char* nombreDeLaTabla){
 
 int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 	//implementar
+	//no hace falta, al final borro toda la memtable
 	return EXIT_SUCCESS;
 }
 

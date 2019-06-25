@@ -146,6 +146,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		t_list* keysObtenidas = escanearPorLaKeyDeseada(key, nombreDeLaTabla, numeroDeParticionQueContieneLaKey);
 		resultado = obtenerKeyConTimeStampMasGrande(keysObtenidas);
 		vaciarListaDeKeys(keysObtenidas);
+		free(metadataDeLaTabla.consistencia);
 	}
 	return resultado;
 }

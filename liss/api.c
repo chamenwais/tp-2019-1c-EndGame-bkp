@@ -135,7 +135,11 @@ void *funcionHiloConsola(void *arg){
 					imprimirMemtableEnPantalla();
 			}else{
 				if((strcmp(instruccion[0],"dumpear")==0)&&(instruccion[1]!=NULL)){
-					dump(instruccion[1]);
+					pthread_mutex_lock(&mutexDeDump);
+					list_iterate(memTable, dumpearAEseNodo);
+					vaciarMemTable();
+					memTable=list_create();
+					pthread_mutex_unlock(&mutexDeDump);
 			}else{
 				printf("Comando desconocido\n");
 				}}}}}}}}}}}}}
@@ -185,6 +189,8 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 				log_error(LOGGERFS,"Resultado insaperado, alerta!!!");
 			}
 		}
+		//free(nodo->value);
+		//free(nodo);
 	}else{
 		log_error(LOGGERFS,"Resultado insaperado, alerta!!!, resultado del selectf==NULL");
 	}
