@@ -601,12 +601,12 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	log_info(LOGGERFS,"Archivo %s abierto",nombreDelArchivo);
 	char *linea = NULL;
 	char *aux = NULL;
-	char *aux2 = NULL;
+	char **aux2 = NULL;
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
 	linea_size = getline(&aux, &linea_buf_size, archivo);
-	while (linea_size > 0){
-		aux2=string_split(aux,"\n");
+	aux2=string_split(aux,"\n");
+	while ((linea_size > 0)&&(aux2[0]!=NULL)){
 		log_info(LOGGERFS,"Linea %s recuperada",aux2[0]);
 		linea=aux2[0]; //hago esto para sacarle el \n
 		linea=string_duplicate(aux2[0]);
@@ -624,10 +624,11 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
 		free(lineaParseada);
 		free(linea_size);
-		/*for(int y=0;aux2[y]!=NULL;y++)
+		for(int y=0;aux2[y]!=NULL;y++)
 			free(aux2[y]);
-		free(aux2);*/
+		free(aux2);
 		linea_size = getline(&aux, &linea_buf_size, archivo);
+		aux2=string_split(aux,"\n");
 		}
 	fclose(archivo);
 	log_info(LOGGERFS,"Archivo %s parseado",nombreDelArchivo);
