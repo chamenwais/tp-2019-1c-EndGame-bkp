@@ -145,12 +145,12 @@ int lanzarDumps(){
 	return EXIT_SUCCESS;
 }
 
+void dumpearAEseNodo(void* nodo){
+	dump(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla);
+	return;
+	}
+
 void funcionHiloDump(void *arg){
-
-	void dumpearAEseNodo(void* nodo) {
-		dump(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla);
-		}
-
 	int tiempoDeSleep;
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		tiempoDeSleep=obtenerTiempoDump();

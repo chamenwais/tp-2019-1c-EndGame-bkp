@@ -1,0 +1,4 @@
+create asd hc 3 30000
+insert asd 1 "hola mundo" 1
+select asd 1
+exit

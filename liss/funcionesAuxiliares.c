@@ -605,7 +605,7 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
 	linea_size = getline(&aux, &linea_buf_size, archivo);
-	if(aux!=NULL)
+	if((linea_size>0)&&(aux!=NULL))
 		aux2=string_split(aux,"\n");
 	while((linea_size>0)&&(aux!=NULL)&&(aux2!=NULL)&&(aux2[0]!=NULL)){
 		log_info(LOGGERFS,"Linea %s recuperada",aux2[0]);
@@ -630,7 +630,6 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 		for(int y=0;aux2[y]!=NULL;y++)
 			free(aux2[y]);
 		free(aux2);
-		free(aux);
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 		aux2=string_split(aux,"\n");
 		}
