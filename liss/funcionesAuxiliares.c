@@ -605,30 +605,42 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
 	linea_size = getline(&aux, &linea_buf_size, archivo);
-	aux2=string_split(aux,"\n");
-	while ((linea_size > 0)&&(aux2[0]!=NULL)){
+	if(aux!=NULL)
+		aux2=string_split(aux,"\n");
+	while((linea_size>0)&&(aux!=NULL)&&(aux2!=NULL)&&(aux2[0]!=NULL)){
 		log_info(LOGGERFS,"Linea %s recuperada",aux2[0]);
 		linea=aux2[0]; //hago esto para sacarle el \n
-		linea=string_duplicate(aux2[0]);
+		//linea=string_duplicate(aux2[0]);
+
 		lineaParseada = string_split(linea, ";");
-		log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
-		lineaParseada[0], lineaParseada[1], lineaParseada[2]);
-		if(key==atoi(lineaParseada[1])){
-			nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
-			nuevoNodo->key=atoi(lineaParseada[1]);
-			nuevoNodo->timeStamp=atoi(lineaParseada[0]);
-			nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
-			strcpy(nuevoNodo->value,lineaParseada[2]);
-			list_add(listaResultante,nuevoNodo);
+		if(lineaParseada!=NULL){
+			log_info(LOGGERFS,"TimeStamp:%s | Key:%s | Value:%s",
+					lineaParseada[0], lineaParseada[1], lineaParseada[2]);
+			if(key==atoi(lineaParseada[1])){
+				nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
+				nuevoNodo->key=atoi(lineaParseada[1]);
+				nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+				nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
+				strcpy(nuevoNodo->value,lineaParseada[2]);
+				list_add(listaResultante,nuevoNodo);
+				}
+			for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
+			free(lineaParseada);
 			}
-		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
-		free(lineaParseada);
-		free(linea_size);
 		for(int y=0;aux2[y]!=NULL;y++)
 			free(aux2[y]);
 		free(aux2);
+		free(aux);
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 		aux2=string_split(aux,"\n");
+		}
+	if(aux!=NULL){
+		free(aux);
+		}
+	if(aux2!=NULL){
+		for(int y=0;aux2[y]!=NULL;y++)
+			free(aux2[y]);
+		free(aux2);
 		}
 	fclose(archivo);
 	log_info(LOGGERFS,"Archivo %s parseado",nombreDelArchivo);
@@ -669,7 +681,9 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		string_append(&ubicacionDelTemp,".tmp");
 		if(existeElArchivo(ubicacionDelTemp)){
 			log_info(LOGGERFS,"Checkeando en el archivo temporal %s",ubicacionDelTemp);
-			list_add_all(listaResultante,obtenerListaDeDatosDeArchivo(ubicacionDelTemp, nombreDeLaTabla, key));
+			t_list* listaAux=obtenerListaDeDatosDeArchivo(ubicacionDelTemp, nombreDeLaTabla, key);
+			list_add_all(listaResultante,listaAux);
+			list_destroy(listaAux);
 		}else{
 			noHayMas=true;
 			}
@@ -752,6 +766,10 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 
 int vaciarListaDeKeys(t_list* keysObtenidas){
 	void vaciarNodo(void* nodo){
+		log_info(LOGGERFS,"Liberando memoria de value: %s, key: %d, timestamp: %d",
+				((tp_nodoDeLaTabla)nodo)->value,
+				((tp_nodoDeLaTabla)nodo)->key,
+				((tp_nodoDeLaTabla)nodo)->timeStamp);
 		free(((tp_nodoDeLaTabla)nodo)->value);
 		free((tp_nodoDeLaTabla)nodo);
 		return;
