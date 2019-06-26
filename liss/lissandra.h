@@ -19,5 +19,6 @@
 #include "dump.h"
 #include "server.h"
 #include "compactador.h"
+#include "actualizarConfig.h"
 
 #endif /* LISSANDRA_H_ */

@@ -648,6 +648,7 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	return listaResultante;
 }
 
+
 bool existeElArchivo(char* nombreDelArchivo){
 	//me dice si existe o no un archivo
 	FILE* archivo = fopen(nombreDelArchivo,"r");

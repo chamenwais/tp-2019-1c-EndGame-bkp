@@ -8,6 +8,7 @@
 #include "api.h"
 
 int lanzarConsola(){
+	sleep(2);
 	log_info(LOGGERFS,"Iniciando hilo de consola");
 	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
 			funcionHiloConsola, "Hilo consola");
@@ -152,17 +153,23 @@ void *funcionHiloConsola(void *arg){
 	return ret;
 }
 
-int esperarAQueTermineLaConsola(){
+int esperarPorHilos(){
 	log_info(LOGGERFS,"Esperando a threadConsola");
 	pthread_join( threadConsola, NULL);
+	log_info(LOGGERFS,"Hilo de consola finalizado");
 	log_info(LOGGERFS,"Esperando a threadDumps");
 	pthread_join( threadDumps, NULL);
+	log_info(LOGGERFS,"Hilo de threadDumps finalizado");
 	log_info(LOGGERFS,"Esperando a threadServer");
 	pthread_join( threadServer, NULL);
+	log_info(LOGGERFS,"Hilo de threadServer finalizado");
 	log_info(LOGGERFS,"Esperando a threadCompactador");
 	pthread_join( threadCompactador, NULL);
-
-	log_info(LOGGERFS,"Hilo de consola finalizado");
+	log_info(LOGGERFS,"Hilo de threadCompactador finalizado");
+	log_info(LOGGERFS,"Esperando a threadMonitoreadorDeArchivos");
+	pthread_join( threadMonitoreadorDeArchivos, NULL);
+	log_info(LOGGERFS,"Hilo de threadMonitoreadorDeArchivos finalizado");
+	log_info(LOGGERFS,"Todos los hilos han finalizado");
 	return EXIT_SUCCESS;
 }
 

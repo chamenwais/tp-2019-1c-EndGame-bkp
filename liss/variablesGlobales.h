@@ -65,7 +65,7 @@ extern char* directorioConLaMetadata;
 extern char* archivoDeBitmap;
 extern char* archivoDeLaMetadata;
 extern char* pathDeMontajeDelPrograma;
-extern pthread_t threadConsola, threadCompactador, threadDumps;
+extern pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
 	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
 extern t_bitarray *bitmap;

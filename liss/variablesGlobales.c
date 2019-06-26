@@ -14,7 +14,7 @@ char* directorioConLaMetadata;//el directorio
 char* archivoDeBitmap;
 char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
-pthread_t threadConsola, threadCompactador, threadDumps;
+pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
 	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump, mutexDeCompactacion;
 t_bitarray *bitmap;
