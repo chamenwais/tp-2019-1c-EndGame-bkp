@@ -7,93 +7,7 @@
 
 #include "funcionesKernel.h"
 
-void configurar_signals(void) {
-	struct sigaction signal_struct;
-	signal_struct.sa_handler = captura_signal;
-	signal_struct.sa_flags = 0;
 
-	sigemptyset(&signal_struct.sa_mask);
-
-	sigaddset(&signal_struct.sa_mask, SIGPIPE);
-	if (sigaction(SIGPIPE, &signal_struct, NULL) < 0) {
-		logger(escribir_loguear, l_error, " SIGACTION error ");
-	}
-
-	sigaddset(&signal_struct.sa_mask, SIGINT);
-	if (sigaction(SIGINT, &signal_struct, NULL) < 0) {
-		logger(escribir_loguear, l_error, " SIGACTION error ");
-	}
-
-}
-
-void captura_signal(int signo){
-
-    if(signo == SIGINT)
-    {
-    	logger(escribir_loguear, l_warning,"Finalizando proceso kernel...");
-    	terminar_programa(EXIT_SUCCESS);
-    }
-    else if(signo == SIGPIPE)
-    {
-    	logger(escribir_loguear, l_error," Se desconectó un proceso al que se quizo enviar.");
-
-    }
-
-}
-
-void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
-		char* log_colors[8], char* msj_salida) {
-
-	if ((tipo_esc == escribir) || (tipo_esc == escribir_loguear)) {
-		console_buffer = string_from_format("%s%s%s", log_colors[tipo_log],
-				msj_salida, log_colors[0]);
-		printf("%s", console_buffer);
-		printf("%s","\n");
-		fflush(stdout);
-		free(console_buffer);
-	}
-}
-
-void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida) {
-	if ((tipo_esc == loguear) || (tipo_esc == escribir_loguear)) {
-		if (tipo_log == l_info) {
-			log_info(LOG_KERNEL, msj_salida);
-		} else if (tipo_log == l_warning) {
-			log_warning(LOG_KERNEL, msj_salida);
-		} else if (tipo_log == l_error) {
-			log_error(LOG_KERNEL, msj_salida);
-		} else if (tipo_log == l_debug) {
-			log_debug(LOG_KERNEL, msj_salida);
-		} else if (tipo_log == l_trace) {
-			log_trace(LOG_KERNEL, msj_salida);
-		}
-	}
-}
-
-void logger(int tipo_esc, int tipo_log, const char* mensaje, ...){
-
-	//Colores (reset,vacio,vacio,cian,verde,vacio,amarillo,rojo)
-	char *log_colors[8] = {"\x1b[0m","","","\x1b[36m", "\x1b[32m", "", "\x1b[33m", "\x1b[31m" };
-	char *console_buffer=NULL;
-	char *msj_salida = malloc(sizeof(char) * 256);
-
-	//Captura los argumentos en una lista
-	va_list args;
-	va_start(args, mensaje);
-
-	//Arma el mensaje formateado con sus argumentos en msj_salida.
-	vsprintf(msj_salida, mensaje, args);
-
-	escribir_por_pantalla(tipo_esc, tipo_log, console_buffer, log_colors,
-			msj_salida);
-
-	definir_nivel_y_loguear(tipo_esc, tipo_log, msj_salida);
-
-	va_end(args);
-	free(msj_salida);
-
-	return;
-}
 
 void inicializarLogKernel(){
 	LOG_KERNEL = log_create("Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
@@ -222,21 +136,6 @@ int inicializarSemaforos(){
 	return EXIT_SUCCESS;
 }
 
-void apagar_semaforos(){
-		sem_destroy(&NEW);
-		sem_destroy(&READY);
-
-		pthread_mutex_destroy(&mutex_New);
-		pthread_mutex_destroy(&mutex_Ready);
-		pthread_mutex_destroy(&mutex_Exec);
-		pthread_mutex_destroy(&mutex_Exit);
-		pthread_mutex_destroy(&mutex_MemConectadas);
-		pthread_mutex_destroy(&mutex_SC);
-		pthread_mutex_destroy(&mutex_EC);
-		pthread_mutex_destroy(&mutex_HC);
-
-}
-
 int conectarse_con_memoria(char* ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
 			ip, puerto);
@@ -361,7 +260,6 @@ void conocer_pool_memorias(){
 }
 
 void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
-	int i = 0;
 	bool coincidePath(void* nodo){
 		return string_equals_ignore_case(((tp_lql_pcb) nodo)->path, pcb->path);
 	}
@@ -476,6 +374,23 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 	}
 }
 
+int obtener_pos_tabla(char* tabla){
+	int pos = 0;
+
+	bool coincideTabla(void* nodo){
+			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
+				return true;
+			}
+			pos++;
+			return false;
+	}
+
+			if(list_any_satisfy(listaMemConectadas, coincideTabla)){
+				return pos;
+			}
+		return -1;
+}
+
 void describeAll(int socket_memoria) {
 	//PIDIERON UN DESCRIBE ALL
 	prot_enviar_describeAll(socket_memoria);
@@ -489,13 +404,23 @@ void describeAll(int socket_memoria) {
 		tp_describeAll_rta info_de_las_tablas = prot_recibir_respuesta_describeAll(rta_pedido.tamanio, socket_memoria);
 
 		//actualizo metadata
-		list_clean(listaTablasCreadas);
+
+
 
 		void actualizarTabla(void* nodo) {
 			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = ((tp_describe_rta) nodo)->nombre;
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
-			list_add(listaTablasCreadas, tabla);
+			if(existeTabla(tabla->nombre_tabla)){
+				int pos = obtener_pos_tabla(tabla->nombre_tabla);
+				list_remove(listaTablasCreadas, pos);
+				list_add(listaTablasCreadas, tabla);
+
+			}else{
+
+				list_add(listaTablasCreadas, tabla);
+
+			}
 		}
 
 		list_iterate(info_de_las_tablas->lista, actualizarTabla);
@@ -666,6 +591,7 @@ void* funcionHiloPCP(){
 	while(1){
 		sem_wait(&READY);
 		if(list_size(listaReady) > 0 && list_size(listaExec) < configKernel.multiprocesamiento){
+			//sem_wait(&READY);
 			logger(escribir_loguear, l_trace, "Se activa el PCP");
 			tp_lql_pcb pcb_a_planificar;
 			pthread_mutex_lock(&mutex_Ready);
@@ -728,7 +654,7 @@ void* funcionHiloRequest(void* pcb){
 
 				//usleep(retardo);
 
-				int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto); //puntero?
+				int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto);
 
 				if(sockMem > 0){
 					realizar_operacion(rdo_del_parseado, pcb, sockMem);
@@ -759,7 +685,7 @@ void* funcionHiloRequest(void* pcb){
 	pthread_mutex_lock(&mutex_Exit);
 	list_add(listaExit, pcb);
 	pthread_mutex_unlock(&mutex_Exit);
-
+	logger(escribir_loguear, l_warning, "El LQL %s pasa a Exit\n", ((tp_lql_pcb) pcb)->path);
 	pthread_exit(ret);
 	return EXIT_SUCCESS;
 }
@@ -870,7 +796,9 @@ tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
 }
 
 tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
+	printf("entro a buscar\n");
 	tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
+	printf("hizo el calloc\n");
 
 	bool coincideNombre2(void* nodo){
 			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
@@ -880,5 +808,32 @@ tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
 		}
 
 	entrada = list_find(listaTablasCreadas, coincideNombre2);
+	printf("hizo el list_find\n");
 	return entrada;
+}
+
+void iniciar_proceso_describe_all(){
+	pthread_t hiloDescribeAll;
+		int resultado_de_crear_el_hilo = pthread_create (&hiloDescribeAll, NULL, hacer_describe, NULL);
+		if(resultado_de_crear_el_hilo!=0){
+			logger(escribir_loguear,l_error
+					,"Error al crear el hilo de describe all, el kernel se suicida");
+			terminar_programa(EXIT_FAILURE);
+		}
+		pthread_detach(hiloDescribeAll);
+}
+
+void* hacer_describe(){
+	while(1){
+		usleep(configKernel.refreshMetadata*10000);
+		int max = list_size(listaMemConectadas);
+		int i;
+		for (i = 0; i < max; ++i) {
+			tp_memo_del_pool_kernel memo = list_get(listaMemConectadas, i);
+			describeAll(memo->socket);
+			logger(escribir_loguear, l_debug, "Se le solicita a la memoria %i un describe all", memo->numero_memoria);
+
+		}
+	}
+	return EXIT_SUCCESS;
 }

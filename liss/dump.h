@@ -20,6 +20,7 @@ int lanzarHiloParaLaTablaDeDumpeo(char* nombreDeLaTabla);
 int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual);
 int crearElTemp(char* nombreDelArchivo,char* bloques,int size);
 void funcionHiloDump(void *arg);
+void dumpearAEseNodo(void* nodo);
 int lanzarDumps();
 
 #endif /* DUMP_H_ */

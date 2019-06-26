@@ -1,0 +1,7 @@
+create asd hc 3 999
+insert asd 1 "asddsadas as ssdaa sdsdas" 1
+describe asd
+dumpear asd
+select asd 1
+drop asd
+exit

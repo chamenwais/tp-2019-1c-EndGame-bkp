@@ -23,8 +23,9 @@ int main(int argc,char** argv) {
 	if(lanzarServer()==EXIT_SUCCESS){
 	if(lanzarDumps()==EXIT_SUCCESS){
 	if(lanzarCompactador()==EXIT_SUCCESS){
-	if(esperarAQueTermineLaConsola()==EXIT_FAILURE);
+	if(lanzarMonitoreadorDeArchivo()==EXIT_SUCCESS){
+	if(esperarPorHilos()==EXIT_FAILURE)
 		liberarRecursos();
-	}}}}}}}}}
+	}}}}}}}}}}
 	return EXIT_SUCCESS;
 }

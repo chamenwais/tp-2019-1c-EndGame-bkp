@@ -8,6 +8,7 @@
 #include "api.h"
 
 int lanzarConsola(){
+	sleep(2);
 	log_info(LOGGERFS,"Iniciando hilo de consola");
 	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
 			funcionHiloConsola, "Hilo consola");
@@ -135,7 +136,11 @@ void *funcionHiloConsola(void *arg){
 					imprimirMemtableEnPantalla();
 			}else{
 				if((strcmp(instruccion[0],"dumpear")==0)&&(instruccion[1]!=NULL)){
-					dump(instruccion[1]);
+					pthread_mutex_lock(&mutexDeDump);
+					list_iterate(memTable, dumpearAEseNodo);
+					vaciarMemTable();
+					memTable=list_create();
+					pthread_mutex_unlock(&mutexDeDump);
 			}else{
 				printf("Comando desconocido\n");
 				}}}}}}}}}}}}}
@@ -148,17 +153,23 @@ void *funcionHiloConsola(void *arg){
 	return ret;
 }
 
-int esperarAQueTermineLaConsola(){
+int esperarPorHilos(){
 	log_info(LOGGERFS,"Esperando a threadConsola");
 	pthread_join( threadConsola, NULL);
+	log_info(LOGGERFS,"Hilo de consola finalizado");
 	log_info(LOGGERFS,"Esperando a threadDumps");
 	pthread_join( threadDumps, NULL);
+	log_info(LOGGERFS,"Hilo de threadDumps finalizado");
 	log_info(LOGGERFS,"Esperando a threadServer");
 	pthread_join( threadServer, NULL);
+	log_info(LOGGERFS,"Hilo de threadServer finalizado");
 	log_info(LOGGERFS,"Esperando a threadCompactador");
 	pthread_join( threadCompactador, NULL);
-
-	log_info(LOGGERFS,"Hilo de consola finalizado");
+	log_info(LOGGERFS,"Hilo de threadCompactador finalizado");
+	log_info(LOGGERFS,"Esperando a threadMonitoreadorDeArchivos");
+	pthread_join( threadMonitoreadorDeArchivos, NULL);
+	log_info(LOGGERFS,"Hilo de threadMonitoreadorDeArchivos finalizado");
+	log_info(LOGGERFS,"Todos los hilos han finalizado");
 	return EXIT_SUCCESS;
 }
 
@@ -185,6 +196,8 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 				log_error(LOGGERFS,"Resultado insaperado, alerta!!!");
 			}
 		}
+		//free(nodo->value);
+		//free(nodo);
 	}else{
 		log_error(LOGGERFS,"Resultado insaperado, alerta!!!, resultado del selectf==NULL");
 	}
@@ -243,7 +256,7 @@ int consolaDescribeDeTabla(char* nombreDeLaTabla){
 		printf("Tipo de consistencia: %s\n",metadataDeLaTabla.consistencia);
 		printf("Tiempo de compactacion: %d\n",metadataDeLaTabla.tiempoDeCompactacion);
 		}
-
+	free(metadataDeLaTabla.consistencia);
 	return EXIT_SUCCESS;
 }
 

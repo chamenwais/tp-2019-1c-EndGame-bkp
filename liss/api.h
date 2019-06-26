@@ -19,7 +19,7 @@ int lanzarConsola();
 int lanzarCompactador();
 void *funcionHiloCompactador(void *arg);
 void *funcionHiloConsola(void *arg);
-int esperarAQueTermineLaConsola();
+int esperarPorHilos();
 char** parser_instruccion(char* linea);
 int consolaSelect(char* nombreDeLaTabla,uint16_t key);
 int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp);
