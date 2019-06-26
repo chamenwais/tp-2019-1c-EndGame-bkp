@@ -1,0 +1,14 @@
+create asd hc 3 999
+insert asd 1 "asddsadas as ssdaa sdsdas" 1
+describe asd
+dumpear asd
+select asd 1
+drop asd
+exit
+
+
+
+definitely lost: 290 bytes in 6 blocks
+==14402==    indirectly lost: 80 bytes in 4 blocks
+==14402==      possibly lost: 272 bytes in 2 blocks
+==14402==    still reachable: 64,897 bytes in 213 blocks
