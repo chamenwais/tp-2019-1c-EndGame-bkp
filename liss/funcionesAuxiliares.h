@@ -53,6 +53,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 		int numeroDeParticionQueContieneLaKey, char* nombreDeLaTabla);
 int vaciarListaDeKeys(t_list* keysObtenidas);
+char* recortarHastaUltimaBarra(char* path);
 t_list* obtenerTodosLosDescriptores();
 char* recortarDespuesUltimaBarra(char*);//ej: home/utnso/file -> file
 void liberarYDestruirTablaDeMetadata(t_list*);
@@ -60,5 +61,6 @@ void liberarBloque(char* numeroBloque);
 void liberarBloquesTmpc(char* pathCompletoTmpc);
 void liberarBloquesDelBitmap(t_list* bloques);
 t_list* insertarCadenaEnLosBloques(char* cadenaGigante);//retorna una lista de int 1,2, ..., o NULL si no quedan bloques(si ya tomo algun bloque lo libera)
-
+int cargarParticionATabla(char* nombreTabla,int numParticion,int size,t_list* bloques);
+t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante);
 #endif /* FUNCIONESAUXILIARES_H_ */

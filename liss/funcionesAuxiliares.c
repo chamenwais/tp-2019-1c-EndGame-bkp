@@ -605,7 +605,7 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
 	linea_size = getline(&aux, &linea_buf_size, archivo);
-	if(aux!=NULL)
+	if((linea_size>0)&&(aux!=NULL))
 		aux2=string_split(aux,"\n");
 	while((linea_size>0)&&(aux!=NULL)&&(aux2!=NULL)&&(aux2[0]!=NULL)){
 		log_info(LOGGERFS,"Linea %s recuperada",aux2[0]);
@@ -630,7 +630,6 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 		for(int y=0;aux2[y]!=NULL;y++)
 			free(aux2[y]);
 		free(aux2);
-		free(aux);
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 		aux2=string_split(aux,"\n");
 		}
@@ -873,6 +872,21 @@ t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista d
 	int cantBloques = (int)ceil((double)strlen(cadenaGigante)/(double)metadataDelFS.blockSize);
 	t_list* bloques = list_create();
 
+	if(cantBloques==0){
+		pthread_mutex_lock(&mutexBitmap);
+		bloqueActual=obtenerBloqueLibreDelBitMap();
+		ocuparBloqueDelBitmap(bloqueActual);
+		pthread_mutex_unlock(&mutexBitmap);
+		bajarADiscoBitmap();
+		if(bloqueActual==-1){
+			list_destroy(bloques);
+			return NULL;
+		}
+		list_add(bloques,bloqueActual);
+		insertarDatosEnElNuevoBloque("", bloqueActual);
+		return bloques;
+	}
+
 	for(int i=0;i<cantBloques;i++){
 		pthread_mutex_lock(&mutexBitmap);
 		bloqueActual=obtenerBloqueLibreDelBitMap();
@@ -895,7 +909,7 @@ t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista d
 		char* data = string_substring(cadenaGigante,i*metadataDelFS.blockSize,
 				i==0 ? (int)fmin((float)strlen(cadenaGigante),(float)metadataDelFS.blockSize)
 						:strlen(cadenaGigante)-metadataDelFS.blockSize*i);
-		log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
+		log_info(LOGGERFS,"Guardando:\n%s\n en el archivo de bloque %d",
 				data, list_get(bloques,i));
 		insertarDatosEnElNuevoBloque(data, (int)list_get(bloques,i));
 		free(data);
