@@ -74,7 +74,7 @@ void* crearCompactadorLissandra(){
 	while(1){
 		sleep(5);//puedo chequear por cambios en la carpeta para arrancar pero no me convence
 
-		//compactarNuevasTablas(); esta funcion inicia la compatacion@@@@@
+		compactarNuevasTablas();
 	}
 
 	while(pthread_mutex_destroy(&tablas_mutex));
@@ -111,8 +111,7 @@ int crearCompactadorDeTablas(const char *fpath, const struct stat *sb, int tflag
 			free(compactador);
 			if(resultadoDeCrearHilo)
 				log_error(LOGGERFS,"[Compactador]Error al crear thread de compactador para la tabla %s, return code: %d",path_nombre,resultadoDeCrearHilo);
-		}
-		free(path_nombre);
+		}else free(path_nombre);
 		return FTW_SKIP_SUBTREE;
 	}
 
@@ -183,7 +182,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 
 		tiempoCompactacion = obtenerTiempoCompactacion(tabla);
 		if(tiempoCompactacion==-1){
-			log_info(LOGGERFS,"[Compactador]Finalizando thread Compactador para la tabla %s",tabla);
+			log_info(LOGGERFS,"[Compactador %s]Finalizando thread Compactador",tabla);
 			eliminarDeTablas(tabla);
 			pthread_exit(0);
 		}
@@ -192,9 +191,10 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 		if(tmps->elements_count!=0){
 			//hay archivos para compactar
 			//le saco sus blocks y el size total
+			log_info(LOGGERFS,"[Compactador %s]Detectados nuevos tmps",tabla);
 
 			//Renombrar a tmpc
-			for(int i=0;i<tmps->elements_count;i++){
+			for(int i=0;i<tmps->elements_count;i++){//@@INFO: si llegara a fallar los archivos quedan renombrados a tmpc, arreglar?
 				char* tmpc = string_new();
 				string_append(&tmpc,(char*)list_get(tmps,i));
 				string_append(&tmpc,"c");
@@ -202,7 +202,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 					//hubo error
 					free(tmpc);
 					list_destroy_and_destroy_elements(tmps,free);
-					log_error(LOGGERFS,"[Compactador]No se pudo renombrar el archivo [%s] a [%s], finalizando compactador para la tabla [%s]",(char*)list_get(tmps,i),tmpc,tabla);
+					log_error(LOGGERFS,"[Compactador %s]No se pudo renombrar el archivo [%s] a [%s], finalizando compactador",tabla,(char*)list_get(tmps,i),tmpc);
 					eliminarDeTablas(tabla);
 					pthread_exit(0);
 				}
@@ -212,7 +212,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			//creo temp para tmpc
 			char* tempTmpc = crearTempParaTmpcs(tmps);//mi nuevo tmp
 			if(tempTmpc==NULL){
-				log_info(LOGGERFS,"[Compactador]Error al crear temporal para los tmpc de la tabla [%s], finalizando compactador para esta tabla",tabla);
+				log_info(LOGGERFS,"[Compactador %s]Error al crear temporal para los tmpc, finalizando compactador",tabla);
 				list_destroy_and_destroy_elements(tmps,free);
 				eliminarDeTablas(tabla);
 				pthread_exit(0);
@@ -220,7 +220,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 
 			t_list* tempBins = crearTempsParaBins(tabla);//le paso la tabla y cada archivo bin q tenga tiene varios bloques
 			if(tempBins==NULL){
-				log_info(LOGGERFS,"[Compactador]Error al crear temporal para los bins de la tabla [%s], finalizando compactador para esta tabla",tabla);
+				log_info(LOGGERFS,"[Compactador %s]Error al crear temporal para los bins, finalizando compactador",tabla);
 				list_destroy_and_destroy_elements(tmps,free);
 				free(tempTmpc);
 				eliminarDeTablas(tabla);
@@ -228,6 +228,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			}
 
 			//Comparacion
+			log_info(LOGGERFS,"[Compactador %s]Realizando la comparacion",tabla);
 			t_list* particionesComparadas = compararBinsContraTmpcs(tempBins,tempTmpc);
 			//
 			remove(tempTmpc);
@@ -246,12 +247,16 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 
 			//PASOS:
 			//1.bloquear la tabla@@
+			log_info(LOGGERFS,"[Compactador %s]Bloqueo la tabla",tabla);
 			clock_t inicio = clock();
 
 			//2.liberar bloques tmpc
+			log_info(LOGGERFS,"[Compactador %s]Libero tmpcs",tabla);
 			list_iterate(tmps,liberarBloquesTmpc);
+			list_iterate(tmps,remove);
 			list_destroy_and_destroy_elements(tmps,free);
 			//3.liberar bloques bin
+			log_info(LOGGERFS,"[Compactador %s]Libero bins",tabla);
 			liberarBloquesYParticiones(tabla);
 			//4.pedir bloques para el nuevo bin
 			t_list* bloquesPorParticion = list_create();
@@ -262,10 +267,10 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 					list_iterate(bloquesPorParticion,liberarBloquesDelBitmap);//si ya habia agarrado algun bloque lo libero
 					bajarADiscoBitmap();
 					list_destroy_and_destroy_elements(bloquesPorParticion,list_destroy);
-					log_info(LOGGERFS,"[Compactador]Deteniendo compactador de la tabla [%s], no quedan bloques en el fs",tabla);
+					log_info(LOGGERFS,"[Compactador %s]Deteniendo compactador, no quedan bloques en el fs",tabla);
 
 					for(int j=0;j<cantidadParticiones;j++){
-						log_info(LOGGERFS,"[Compactador]Tabla= %s , Particion= %d , Datos perdidos= %s",tabla,j,superString[j]);
+						log_info(LOGGERFS,"[Compactador %s]Particion= %d , Datos perdidos= %s",tabla,j,superString[j]);
 						free(superString[j]);//@por ahora tiro toda la info de la tabla
 					}
 					eliminarDeTablas(tabla);
@@ -275,17 +280,18 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 					list_add(bloquesPorParticion,bloques);
 			}
 			//5.cargar datos del nuevo bin
+			log_info(LOGGERFS,"[Compactador %s]Cargo los nuevos bins",tabla);
 			int result;
 			for(int i=0;i<cantidadParticiones;i++){
 				result=cargarParticionATabla(tabla,i,strlen(superString[i]),list_get(bloquesPorParticion,i));
 				if(result==0){
 					//la tabla ya no existe
+					log_info(LOGGERFS,"[Compactador %s]La tabla dejo de existir durante su compactacion, deteniendo compactador para ella",tabla);
 					list_iterate(bloquesPorParticion,liberarBloquesDelBitmap);
 					bajarADiscoBitmap();
 					list_destroy_and_destroy_elements(bloquesPorParticion,list_destroy);
 					for(int j=0;j<cantidadParticiones;j++)
 						free(superString[j]);
-					log_info(LOGGERFS,"[Compactador]La tabla [%s] dejo de existir durante su compactacion, deteniendo compactador para ella",tabla);
 					eliminarDeTablas(tabla);
 					pthread_exit(0);
 				}
@@ -299,7 +305,9 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			cantidadDeCompactaciones++;
 			if(cantidadDeCompactaciones>10)cantidadDeCompactaciones=0;
 			guardarMilisegundosBloqueada(tabla,msec,!cantidadDeCompactaciones);
+			log_info(LOGGERFS,"[Compactador %s]Tabla desbloqueada, guardo el tiempo de bloqueo en el archivo correspondiente",tabla);
 			//@@usar mutexDeCompactacion
+			log_info(LOGGERFS,"[Compactador %s]Compactacion realizada correctamente",tabla);
 
 		}else list_destroy(tmps);
 
@@ -459,7 +467,7 @@ char* crearTempParaTmpcs(t_list* tmpc){
 			string_append(&ubicacionDelBloque,directorioDeTrabajo);
 			string_append(&ubicacionDelBloque,arrayDeBloques[i]);
 			string_append(&ubicacionDelBloque,".bin");
-			log_info(LOGGERFS,"[Compactador]Voy a unir las keys del bloque %s",ubicacionDelBloque);//borrar
+			log_info(LOGGERFS,"[Compactador]Voy a unir las keys de un tmpc del bloque %s",ubicacionDelBloque);//borrar
 			FILE* archivoDeBloque=fopen(ubicacionDelBloque,"r");
 			if(archivoDeBloque==NULL){
 				free(directorioDeTrabajo);
@@ -493,8 +501,12 @@ t_list* crearTempsParaBins(char* tabla){
 	string_append(&binsMeta,"/Metadata");
 	t_config* bins_metadata = config_create(binsMeta);
 	free(binsMeta);
-	if(bins_metadata==NULL) return NULL;
+	if(bins_metadata==NULL){
+		log_info(LOGGERFS,"[Compactador %s]No se encontro el archivo de metadata",tabla);
+		return NULL;
+	}
 	if(!config_has_property(bins_metadata,"PARTITIONS")){
+		log_info(LOGGERFS,"[Compactador %s]No se encontro la clave PARTITIONS dentro de metadata",tabla);
 		config_destroy(bins_metadata);
 		return NULL;
 	}
@@ -504,40 +516,42 @@ t_list* crearTempsParaBins(char* tabla){
 
 	t_list* tempBins=list_create();//la lista va a estar ordenada: ej el primer elem es un file q referencia a los contenidos de 0.bin, el 2do a 1.bin, etc
 
-	char* directorioDeTrabajo= string_new();//@recordar hacer free
-	string_append(&directorioDeTrabajo,configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioDeTrabajo,"/Blocks/");
-
-
 	for(int i=0;i<cantBins;i++){
 		//por cada .bin desde 0 hasta cantBins-1 tengo q obtener sus bloques y meterlos en el super bloque
 		length= snprintf( NULL, 0, "%d", i );
 		char* str = malloc( length + 1 );
 		snprintf( str, length + 1, "%d", i );
+
 		char* bin = string_new();
+		string_append(&bin,configuracionDelFS.puntoDeMontaje);
+		string_append(&bin, "/Tables/");
 		string_append(&bin,tabla);
+		string_append(&bin,"/");
 		string_append(&bin,str);
 		string_append(&bin,".bin");
 		free(str);
 		t_config* bin_conf = config_create(bin);
-		free(bin);
 		if(bin_conf==NULL){
+			log_info(LOGGERFS,"[Compactador %s]No se encontro el bin= %s",tabla,bin);
 			list_destroy_and_destroy_elements(tempBins,free);
-			free(directorioDeTrabajo);
+			free(bin);
 			return NULL;
 		}
 		if(!config_has_property(bin_conf,"BLOCKS")){
+			log_info(LOGGERFS,"[Compactador %s]No se encontro la clave BLOCKS dentro del bin= %s",tabla,bin);
 			list_destroy_and_destroy_elements(tempBins,free);
-			free(directorioDeTrabajo);
 			config_destroy(bin_conf);
+			free(bin);
 			return NULL;
 		}
+
 		char** arrayDeBloques = config_get_array_value(bin_conf,"BLOCKS");
 		config_destroy(bin_conf);
 
 		//@
 		char* archivoTempUbicacion = string_new();
-		string_append(&archivoTempUbicacion,directorioDeTrabajo);
+		string_append(&archivoTempUbicacion,configuracionDelFS.puntoDeMontaje);
+		string_append(&archivoTempUbicacion,"/Blocks/");
 		char* nextTemp =getNextTemp();
 		string_append(&archivoTempUbicacion,nextTemp);
 		free(nextTemp);
@@ -546,14 +560,15 @@ t_list* crearTempsParaBins(char* tabla){
 		for(int i=0;arrayDeBloques[i]!=NULL;i++){
 			char ch;
 			char* ubicacionDelBloque=string_new();
-			string_append(&ubicacionDelBloque,directorioDeTrabajo);
+			string_append(&ubicacionDelBloque,configuracionDelFS.puntoDeMontaje);
+			string_append(&ubicacionDelBloque,"/Blocks/");
 			string_append(&ubicacionDelBloque,arrayDeBloques[i]);
 			string_append(&ubicacionDelBloque,".bin");
-			log_info(LOGGERFS,"[Compactador]Voy a unir las keys del bloque %s",ubicacionDelBloque);//borrar
+			log_info(LOGGERFS,"[Compactador %s]Voy a unir las keys del bloque %s",tabla,ubicacionDelBloque);//borrar
 			FILE* archivoDeBloque=fopen(ubicacionDelBloque,"r");
 			if(archivoDeBloque==NULL){
+				log_info(LOGGERFS,"[Compactador %s]No se encontro el bloque= %s",tabla,ubicacionDelBloque);
 				list_destroy_and_destroy_elements(tempBins,free);
-				free(directorioDeTrabajo);
 				free(ubicacionDelBloque);
 				for(int j=i;arrayDeBloques[j]!=NULL;j++)
 					free(arrayDeBloques[j]);
@@ -572,7 +587,6 @@ t_list* crearTempsParaBins(char* tabla){
 		list_add(tempBins,(void*)archivoTempUbicacion);
 		fclose(archivoTemp);//ya cargue todos los datos de los bins aca
 	}
-	free(directorioDeTrabajo);
 	return tempBins;
 }
 

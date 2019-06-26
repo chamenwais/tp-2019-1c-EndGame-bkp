@@ -872,6 +872,21 @@ t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista d
 	int cantBloques = (int)ceil((double)strlen(cadenaGigante)/(double)metadataDelFS.blockSize);
 	t_list* bloques = list_create();
 
+	if(cantBloques==0){
+		pthread_mutex_lock(&mutexBitmap);
+		bloqueActual=obtenerBloqueLibreDelBitMap();
+		ocuparBloqueDelBitmap(bloqueActual);
+		pthread_mutex_unlock(&mutexBitmap);
+		bajarADiscoBitmap();
+		if(bloqueActual==-1){
+			list_destroy(bloques);
+			return NULL;
+		}
+		list_add(bloques,bloqueActual);
+		insertarDatosEnElNuevoBloque("", bloqueActual);
+		return bloques;
+	}
+
 	for(int i=0;i<cantBloques;i++){
 		pthread_mutex_lock(&mutexBitmap);
 		bloqueActual=obtenerBloqueLibreDelBitMap();
@@ -894,7 +909,7 @@ t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista d
 		char* data = string_substring(cadenaGigante,i*metadataDelFS.blockSize,
 				i==0 ? (int)fmin((float)strlen(cadenaGigante),(float)metadataDelFS.blockSize)
 						:strlen(cadenaGigante)-metadataDelFS.blockSize*i);
-		log_info(LOGGERFS,"Guardando \n%s\n en el archivo de bloque %d",
+		log_info(LOGGERFS,"Guardando:\n%s\n en el archivo de bloque %d",
 				data, list_get(bloques,i));
 		insertarDatosEnElNuevoBloque(data, (int)list_get(bloques,i));
 		free(data);
