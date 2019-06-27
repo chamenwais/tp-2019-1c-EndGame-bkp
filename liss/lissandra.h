@@ -13,12 +13,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <commons/log.h>
+#include "actualizarConfig.h"
 #include "api.h"
 #include "variablesGlobales.h"
+#include "funcionesComunes.h"
 #include "fs.h"
 #include "dump.h"
 #include "server.h"
 #include "compactador.h"
-#include "actualizarConfig.h"
+
 
 #endif /* LISSANDRA_H_ */

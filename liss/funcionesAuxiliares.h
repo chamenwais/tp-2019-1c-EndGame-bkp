@@ -8,10 +8,10 @@
 #ifndef FUNCIONESAUXILIARES_H_
 #define FUNCIONESAUXILIARES_H_
 
-#ifndef _XOPEN_SOURCE //para ftw
+//#ifndef _XOPEN_SOURCE //para ftw
 #define _XOPEN_SOURCE 500
 #define _GNU_SOURCE //tmb
-#endif
+//#endif
 
 #include "lissandra.h"
 #include "variablesGlobales.h"

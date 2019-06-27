@@ -8,12 +8,12 @@
 #ifndef LISS_COMPACTADOR_H_
 #define LISS_COMPACTADOR_H_
 
-#ifndef _XOPEN_SOURCE
+//#ifndef _XOPEN_SOURCE
 #define XOPEN_SOURCE 500 //para ftw
 #define _GNU_SOURCE //tmb
-#endif
+//#endif
 
-#include "variablesGlobales.h"
+//#include "variablesGlobales.h"
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/string.h>
@@ -25,8 +25,11 @@
 #include <ftw.h>
 #include <stdio.h>
 //#include "dump.h"
-#include "funcionesAuxiliares.h"
+//#include "funcionesAuxiliares.h"
 #include <time.h>
+
+#include "lissandra.h"
+#include "variablesGlobales.h"
 
 typedef struct TKV {
 	unsigned timeStamp;

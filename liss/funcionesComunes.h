@@ -8,7 +8,7 @@
 #ifndef FUNCIONESCOMUNES_H_
 #define FUNCIONESCOMUNES_H_
 
-#include "lissandra.h"
+//#include "lissandra.h"
 #include "funcionesAuxiliares.h"
 #include "../COM/lqvg/com.h"
 #include "../COM/lqvg/protocolo.h"

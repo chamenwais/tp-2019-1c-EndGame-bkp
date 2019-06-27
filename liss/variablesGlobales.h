@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdint.h>
+//#include "fs.h"
 #include "../COM/lqvg/com.h"
 
 typedef struct definicionConfiguracionDelFS {
@@ -80,5 +81,6 @@ extern bool estadoDeFinalizacionDelSistema;
 int inicializarVariablesGlobales();
 void liberarRecursos();
 int vaciarMemTable();
+int vaciarDumpTable();
 
 #endif /* VARIABLESGLOBALES_H_ */

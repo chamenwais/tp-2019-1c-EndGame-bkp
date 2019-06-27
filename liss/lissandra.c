@@ -24,7 +24,7 @@ int main(int argc,char** argv) {
 	if(lanzarDumps()==EXIT_SUCCESS){
 	if(lanzarCompactador()==EXIT_SUCCESS){
 	if(lanzarMonitoreadorDeArchivo()==EXIT_SUCCESS){
-	if(esperarPorHilos()==EXIT_FAILURE)
+	if(esperarPorHilos()==EXIT_SUCCESS)
 		liberarRecursos();
 	}}}}}}}}}}
 	return EXIT_SUCCESS;
