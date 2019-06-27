@@ -43,6 +43,7 @@ int levantarConfiguracionInicialDelFS(){
 	char* pathCompletoDelArchivoDeConfiguracion;
 	pathCompletoDelArchivoDeConfiguracion=string_new();
 	string_append(&pathCompletoDelArchivoDeConfiguracion, pathDeMontajeDelPrograma);
+	string_append(&pathCompletoDelArchivoDeConfiguracion, "Configuracion/");
 	string_append(&pathCompletoDelArchivoDeConfiguracion, "configuracionFS.cfg");
 
 	t_config* configuracion = config_create(pathCompletoDelArchivoDeConfiguracion);
