@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../api.c \
+../actualizarConfig.c \
 ../compactador.c \
 ../dump.c \
 ../fs.c \
@@ -16,6 +17,7 @@ C_SRCS += \
 
 OBJS += \
 ./api.o \
+../actualizarConfig.o \
 ./compactador.o \
 ./dump.o \
 ./fs.o \
@@ -27,6 +29,7 @@ OBJS += \
 
 C_DEPS += \
 ./api.d \
+../actualizarConfig.d \
 ./compactador.d \
 ./dump.d \
 ./fs.d \
