@@ -8,7 +8,7 @@
 #ifndef ACTUALIZARCONFIG_H_
 #define ACTUALIZARCONFIG_H_
 
-#include "lissandra.h"
+//#include "lissandra.h"
 #include "funcionesComunes.h"
 #include <sys/types.h>
 #include <sys/inotify.h>
