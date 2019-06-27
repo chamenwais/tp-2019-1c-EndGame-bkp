@@ -313,8 +313,8 @@ int reloadConfig(){
 	 * en tiempo de ejecucion*/
 	char* pathCompleto;
 	pathCompleto=string_new();
-	string_append(&pathCompleto, pathDeMontajeDelPrograma);
-	string_append(&pathCompleto, "configuracionFS.cfg");
+	string_append(&pathCompleto, configuracionDelFS.puntoDeMontaje);
+	string_append(&pathCompleto, "/configuracionFS.cfg");
 
 	t_config* configuracion = config_create(pathCompleto);
 
