@@ -98,8 +98,9 @@ void *realizar_gossiping(){
 	while(1){
 		usleep(TIEMPO_GOSSIPING*1000);
 		logger(escribir_loguear, l_trace, "\nProcedo a realizar el gossiping...\n");
-
-		list_add_all(mi_tabla_de_gossip, conectarse_a_seeds());
+		t_list* nuevas_memorias_conectadas = conectarse_a_seeds();
+		list_add_all(mi_tabla_de_gossip, nuevas_memorias_conectadas);
+		list_destroy(nuevas_memorias_conectadas);
 
 	}
 	return EXIT_SUCCESS;
@@ -143,7 +144,7 @@ struct sockaddr_in crear_direccion_cliente() {
 	return client_addr;
 }
 
-int atender_clientes(int serv_socket){
+void atender_clientes(int serv_socket){
 	struct sockaddr_in client_addr = crear_direccion_cliente();
 	socklen_t client_len = sizeof(client_addr);
 
@@ -151,7 +152,6 @@ int atender_clientes(int serv_socket){
 	int socket_cliente = accept(serv_socket, (struct sockaddr *)&client_addr, &client_len);
 	if (socket_cliente < 0) {
 		logger(escribir_loguear,l_error,"Error al aceptar al cliente :(");
-		return -1;
 	}
 
 	logger(escribir_loguear,l_trace,"Se aceptó al cliente, conexión (%d)", socket_cliente);
@@ -164,7 +164,6 @@ int atender_clientes(int serv_socket){
 		logger(escribir_loguear,l_error,"Demasiadas conexiones. Cerrando nueva conexion\n");
 		close(socket_cliente);
 	}
-	return cliente_aceptado;
 }
 
 int agregar_conexion_lista_clientes(int socket_conexion,struct sockaddr_in direccion_cliente){
@@ -208,7 +207,6 @@ int comunicarse_con_lissandra(void){
 void escuchar_clientes(int server_memoria, int socket_lfs) {
 	fd_set readset, writeset, exepset;
 	int max_fd;
-	int socket_cliente=-1;
 	char read_buffer[MAX_LINEA];
 	struct timeval tv = { 0, 500 };
 
@@ -252,7 +250,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 				{
 			//Acepta la conexión del kernel
 			if (FD_ISSET(server_memoria, &readset)) {
-				socket_cliente = atender_clientes(server_memoria);
+				atender_clientes(server_memoria);
 			}
 			//Se ingresó algo a la consola
 			else if (FD_ISSET(STDIN_FILENO, &readset)) {
@@ -277,7 +275,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 							if(cabecera.tamanio<0)
 							{
 								loguear_cerrar_conexion(socket_llamador,
-										socket_cliente, socket_lfs, i, readset);
+										socket_lfs, i, readset);
 								continue;
 							}
 
@@ -286,7 +284,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 						} else if (FD_ISSET(conexiones_cliente[i].socket, &exepset)) {
 								//Excepciones del cliente, para la desconexion
 								loguear_cerrar_conexion(conexiones_cliente[i].socket,
-										socket_cliente, socket_lfs, i, readset);
+										socket_lfs, i, readset);
 								continue;
 						}
 					}// if != NO_SOCKET
@@ -297,23 +295,18 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 }
 
 void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensaje, int tamanio){
+	pthread_mutex_lock(&M_JOURNALING);
 	switch(tipoDeMensaje){
 		case CREATE: atender_create(socket_cliente, tamanio);
 			break;
 		case SELECT:
-			pthread_mutex_lock(&M_JOURNALING);
 			atender_select(socket_cliente, tamanio);
-			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case INSERT:
-			pthread_mutex_lock(&M_JOURNALING);
 			atender_insert(socket_cliente, tamanio);
-			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case DROP:
-			pthread_mutex_lock(&M_JOURNALING);
 			atender_drop(socket_cliente, tamanio);
-			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case DESCRIBE: atender_describe(socket_cliente, tamanio);
 			break;
@@ -322,14 +315,13 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 		default:
 			break;
 	}
+	pthread_mutex_unlock(&M_JOURNALING);
 }
 
-int clasificar_conexion_cerrada(int socket_cerrado, int sock_kernel, int sock_lfs){
+int clasificar_conexion_cerrada(int socket_cerrado, int sock_lfs){
 	int es_lfs=0;
 	//loguea un mensaje acertado de qué proceso se desconectó
-	if(socket_cerrado==sock_kernel){
-		logger(escribir_loguear,l_warning,"Conexión con el kernel cerrada en socket %d", sock_kernel);
-	} else if(socket_cerrado==sock_lfs){
+	if(socket_cerrado==sock_lfs){
 		logger(escribir_loguear,l_warning,"Conexión con lissandra fs cerrada en socket %d", sock_lfs);
 		return 1;
 	} else {
@@ -338,9 +330,8 @@ int clasificar_conexion_cerrada(int socket_cerrado, int sock_kernel, int sock_lf
 	return es_lfs;
 }
 
-void loguear_cerrar_conexion(int socket_llamador, int socket_kernel,
-		int socket_lfs, int i, fd_set bolsa_de_sockets) {
-	int conexion_con_lfs=clasificar_conexion_cerrada(socket_llamador, socket_kernel, socket_lfs);
+void loguear_cerrar_conexion(int socket_llamador, int socket_lfs, int i, fd_set bolsa_de_sockets) {
+	int conexion_con_lfs=clasificar_conexion_cerrada(socket_llamador, socket_lfs);
 	close(socket_llamador);
 	conexiones_cliente[i].socket = NO_SOCKET;
 	FD_CLR(socket_llamador,&bolsa_de_sockets);
