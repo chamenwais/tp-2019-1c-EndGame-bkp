@@ -350,10 +350,11 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 		if(rta_creacion == REQUEST_SUCCESS){
 			logger(escribir_loguear, l_info, "La memoria realizo el create correctamente");
 			tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
-			entrada->nombre_tabla = string_duplicate(nombre_tabla);
-			entrada->criterio = string_duplicate(tipo_consistencia);
+			entrada->nombre_tabla = nombre_tabla;
+			entrada->criterio = tipo_consistencia;
 			list_add(listaTablasCreadas, entrada);
-			logger(escribir_loguear, l_info, "Tabla %s agregada a metadata\n", nombre_tabla);
+			logger(escribir_loguear, l_info, "Tabla %s agregada a metadata\n", entrada->nombre_tabla);
+			mostrar_lista_tablas();
 
 		}
 		if(rta_creacion == TABLA_YA_EXISTIA){
@@ -435,9 +436,24 @@ void describeAll(int socket_memoria) {
 	}
 }
 
+void mostrar_lista_tablas(){
+	int i;
+	int size = list_size(listaTablasCreadas);
+
+	for (i = 0; i < size; ++i) {
+
+		tp_entrada_tabla_creada tabla = list_get(listaTablasCreadas, i);
+		printf("Tabla: %s. Criterio: %s\n", tabla->nombre_tabla, tabla->criterio);
+
+	}
+}
+
 void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 	if(nombre_tabla != NULL){
 		logger(escribir_loguear, l_info, "Se le solicita a la memoria el describe de la tabla: %s", nombre_tabla);
+
+		mostrar_lista_tablas();
+
 		prot_enviar_describe(nombre_tabla, socket_memoria);
 
 		logger(escribir_loguear, l_info, "Espero la rta de memoria...");
@@ -736,9 +752,9 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 }
 
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
-	tp_memo_del_pool_kernel memoria;
+	tp_memo_del_pool_kernel memoria = calloc(1, sizeof(t_memo_del_pool_kernel));
 	char* criterio = string_new();
-	tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
+	tp_entrada_tabla_creada entrada;
 
 	//memoria = list_get(listaSC, 0);
 
@@ -764,7 +780,6 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				pthread_mutex_unlock(&mutex_SC);
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
 				free(criterio);
-				free(entrada);
 				return memoria;
 		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
@@ -830,10 +845,14 @@ void* hacer_describe(){
 		int i;
 		for (i = 0; i < max; ++i) {
 			tp_memo_del_pool_kernel memo = list_get(listaMemConectadas, i);
-			describeAll(memo->socket);
 			logger(escribir_loguear, l_debug, "Se le solicita a la memoria %i un describe all", memo->numero_memoria);
+			describeAll(memo->socket);
+
 
 		}
 	}
 	return EXIT_SUCCESS;
 }
+
+
+
