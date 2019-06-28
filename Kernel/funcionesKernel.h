@@ -49,6 +49,7 @@ tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla);
 void iniciar_proceso_describe_all();
 void* hacer_describe();
 int obtener_pos_tabla(char* tabla);
+void mostrar_lista_tablas();
 
 
 #endif /* FUNCIONESKERNEL_H_ */
