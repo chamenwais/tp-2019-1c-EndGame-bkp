@@ -473,11 +473,11 @@ void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 			tp_entrada_tabla_creada entrada_tabla = buscarTablaEnMetadata(info_tabla->nombre);
 			if(entrada_tabla != NULL){
 				logger(escribir_loguear, l_info, "Existe la tabla %s en metadata y se va a actualizar", info_tabla->nombre);
-				entrada_tabla->criterio = info_tabla->consistencia;
+				entrada_tabla->criterio = string_duplicate(info_tabla->consistencia);
 			}else{
 				logger(escribir_loguear, l_info, "No existe la tabla %s en metadata y se va a crear", info_tabla->nombre);
-				entrada_tabla->nombre_tabla = info_tabla->nombre;
-				entrada_tabla->criterio = info_tabla->consistencia;
+				entrada_tabla->nombre_tabla = string_duplicate(info_tabla->nombre);
+				entrada_tabla->criterio = string_duplicate(info_tabla->consistencia);
 			}
 
 
@@ -779,7 +779,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				memoria = list_get(listaSC, 0);
 				pthread_mutex_unlock(&mutex_SC);
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
-				free(criterio);
+				//free(criterio);
 				return memoria;
 		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
 				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
@@ -791,8 +791,8 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 
 	logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
 	memoria = NULL;
-	free(criterio);
-	free(entrada);
+	//free(criterio);
+	//free(entrada);
 	return memoria;
 }
 
@@ -811,9 +811,7 @@ tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
 }
 
 tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
-	printf("entro a buscar\n");
 	tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
-	printf("hizo el calloc\n");
 
 	bool coincideNombre2(void* nodo){
 			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
@@ -823,7 +821,6 @@ tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
 		}
 
 	entrada = list_find(listaTablasCreadas, coincideNombre2);
-	printf("hizo el list_find\n");
 	return entrada;
 }
 
