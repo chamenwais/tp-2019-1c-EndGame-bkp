@@ -122,6 +122,11 @@ int levantarConfiguracionInicialDelFS(){
 	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");
 
 	free(pathCompletoDelArchivoDeConfiguracion);
+
+	//-+-busqueda de tablas existentes
+	buscarTablasYaCreadasFS();
+	//-+-
+
 	return EXIT_SUCCESS;
 	}
 

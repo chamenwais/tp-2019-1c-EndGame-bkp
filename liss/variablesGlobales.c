@@ -16,17 +16,124 @@ char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
 pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
-	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump, mutexDeCompactacion;
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
 t_bitarray *bitmap;
 int sizeDelBitmap;
 char * srcMmap;
 char * bufferArchivo;
 t_list* memTable;
 t_list* dumpTables;
+//tablas fs
+pthread_mutex_t mutexListaTablasFS;
+t_list* tablasFS;
+//
 bool estadoDeFinalizacionDelSistema;
 
 pthread_t threadServer;//thread para el server de lissandra
 
+bool esTablaNuevaFS(char* nuevaTabla){
+	bool retorno=false;
+	bool _stringCompare(void* elem){
+		return !strcmp(((tp_tablaDeFS)elem)->nombreTabla,nuevaTabla);
+	}
+	pthread_mutex_lock(&mutexListaTablasFS);
+	retorno = !list_any_satisfy(tablasFS,_stringCompare);
+	pthread_mutex_unlock(&mutexListaTablasFS);
+	return retorno;
+}
+
+void liberarTablaFS(tp_tablaDeFS tablaALiberar){
+	pthread_mutex_lock(tablaALiberar->mutexTabla);
+	pthread_mutex_unlock(tablaALiberar->mutexTabla);
+	pthread_mutex_destroy(tablaALiberar->mutexTabla);
+	free(tablaALiberar->mutexTabla);
+	free(tablaALiberar->nombreTabla);
+	free(tablaALiberar);
+}
+
+void desbloquearTablaFS(pthread_mutex_t* mutexTabla){
+	pthread_mutex_unlock(mutexTabla);
+}
+
+pthread_mutex_t* bloquearTablaFS(char* nombreTabla){
+	bool _stringCompare(void* elem){
+		return !strcmp(((tp_tablaDeFS)elem)->nombreTabla,nombreTabla);
+	}
+	pthread_mutex_lock(&mutexListaTablasFS);
+	tp_tablaDeFS tablaPedida = (tp_tablaDeFS)list_find(tablasFS,_stringCompare);
+	pthread_mutex_unlock(&mutexListaTablasFS);//capaz conviene desbloquearlo dsps q bloquee la tabla@@
+	if(tablaPedida!=NULL){
+		pthread_mutex_lock(tablaPedida->mutexTabla);
+	}
+	return tablaPedida->mutexTabla;
+}
+
+bool eliminarDeListaDeTablasFS(char* tablaABorrar){
+	bool eliminada=false;
+	bool _stringCompare(void* elem){
+		bool result =!strcmp(((tp_tablaDeFS)elem)->nombreTabla,tablaABorrar);
+		if(result)eliminada=true;
+		return result;
+	}
+	pthread_mutex_lock(&mutexListaTablasFS);
+	list_remove_and_destroy_by_condition(tablasFS,_stringCompare,liberarTablaFS);
+	pthread_mutex_unlock(&mutexListaTablasFS);
+	return eliminada;
+}
+
+bool agregarAListaDeTablasFS(char* nuevaTabla){//tal vez deberia bloquear la tabla durante toda la ejecucion de esta funcion@@
+	if(esTablaNuevaFS(nuevaTabla)){
+		tp_tablaDeFS tabla = malloc(sizeof(t_tablaDeFS));
+		tabla->nombreTabla = string_new();
+		string_append(&(tabla->nombreTabla),nuevaTabla);
+		tabla->mutexTabla = malloc(sizeof(pthread_mutex_t));
+		if(pthread_mutex_init(tabla->mutexTabla, NULL) != 0) {
+			log_error(LOGGERFS,"CUIDADO: No se pudo inicializar un semaforo para una tabla del FS");
+			free(tabla->nombreTabla);
+			free(tabla->mutexTabla);
+			free(tabla);
+			return false;
+		}
+		pthread_mutex_lock(&mutexListaTablasFS);
+		list_add(tablasFS,tabla);
+		pthread_mutex_unlock(&mutexListaTablasFS);
+		return true;//la agrego
+	}
+	else return false;//esa tabla ya existe
+}
+
+char* recortarHastaUltimaBarraFS(char* path){
+	int indice = (int)(strrchr(path,'/')-path)+1;
+	char* ultimoNombre = string_substring_from(path,indice);
+	return ultimoNombre;
+}
+
+int buscarTablasFS(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
+
+	if (ftwbuf->level == 0) return FTW_CONTINUE;
+	if (ftwbuf->level > 1) return FTW_SKIP_SUBTREE;
+
+	if(tflag == FTW_D) {
+		char* path_nombre = recortarHastaUltimaBarraFS(fpath);
+
+		if(agregarAListaDeTablasFS(path_nombre)){
+			//encontre una tabla nueva
+			log_info(LOGGERFS,"Se carga la tabla %s",path_nombre);
+		}
+		free(path_nombre);
+		return FTW_SKIP_SUBTREE;
+	}
+
+	return FTW_CONTINUE;
+}
+
+void buscarTablasYaCreadasFS(){
+	char* main_directorio=string_new();
+	string_append(&main_directorio, configuracionDelFS.puntoDeMontaje);
+	string_append(&main_directorio, "/Tables/");
+	nftw(main_directorio,buscarTablasFS,20,FTW_ACTIONRETVAL|FTW_PHYS);
+	free(main_directorio);
+}
 
 int inicializarVariablesGlobales(){
 	configuracionDelFS.puertoEscucha=-1;
@@ -66,8 +173,8 @@ int inicializarVariablesGlobales(){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeOperacionCritica");
 		return EXIT_FAILURE;
 		}
-	if(pthread_mutex_init(&mutexDeCompactacion, NULL) != 0) {
-		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeCompactacion");
+	if(pthread_mutex_init(&mutexListaTablasFS, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexListaTablasFS");
 		return EXIT_FAILURE;
 		}
 
@@ -78,6 +185,7 @@ int inicializarVariablesGlobales(){
 	archivoDeLaMetadata=NULL;
 	memTable=list_create();
 	dumpTables=list_create();
+	tablasFS= list_create();
 	return EXIT_SUCCESS;
 }
 
@@ -105,7 +213,11 @@ void liberarRecursos(){
 	pthread_mutex_destroy(&mutexBitmap);
 	pthread_mutex_destroy(&mutexDeDump);
 	pthread_mutex_destroy(&mutexEstadoDeFinalizacionDelSistema);
-	pthread_mutex_destroy(&mutexDeCompactacion);
+
+	pthread_mutex_lock(&mutexListaTablasFS);
+	list_destroy_and_destroy_elements(tablasFS,liberarTablaFS);
+	pthread_mutex_unlock(&mutexListaTablasFS);
+	pthread_mutex_destroy(&mutexListaTablasFS);
 	printf("Memoria liberada, programa finalizado\n");
 	return;
 }
