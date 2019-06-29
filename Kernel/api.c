@@ -75,10 +75,6 @@ int dropConsola(char* linea){
 	return EXIT_SUCCESS;
 }
 
-int reloadConfig(){
-	//actualiza quantum, sleep y metadata_refresh del arch de config
-	return EXIT_SUCCESS;
-}
 
 int journalConsola(char* linea){
 	//journal
@@ -175,7 +171,7 @@ int man(){
 	return EXIT_SUCCESS;
 }
 
-int reloadConfig(){
+int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de config
 	//Actualiza los datos lissandra con las modificaciones que se le hayan hecho a los achivos de configuracion
 	/* Solamente se pueden actualizar los valores:
 	 * retardo
