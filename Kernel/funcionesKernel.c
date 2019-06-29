@@ -782,10 +782,41 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				//free(criterio);
 				return memoria;
 		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
-				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
-				return memoria;
+				if((operacion.tipo_de_operacion == _SELECT)){
+					int numHash = calcularHash(operacion.parametros.select.key);
+					pthread_mutex_lock(&mutex_HC);
+					memoria = list_get(listaHC, numHash);
+					pthread_mutex_unlock(&mutex_HC);
+					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
+					return memoria;
+				}else if((operacion.tipo_de_operacion == _INSERT)){
+					int numHash = calcularHash(operacion.parametros.insert.key);
+					pthread_mutex_lock(&mutex_HC);
+					memoria = list_get(listaHC, numHash);
+					pthread_mutex_unlock(&mutex_HC);
+					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
+					return memoria;
+				}else{
+					int num = (rand() % list_size(listaHC));
+					pthread_mutex_lock(&mutex_HC);
+					memoria = list_get(listaHC, num);
+					pthread_mutex_unlock(&mutex_HC);
+					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
+					return memoria;
+				}
 		}else if(string_equals_ignore_case(criterio, "EC") && (!list_is_empty(listaEC))){
-				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
+				bool entra = true;
+				while(entra){
+				int num = (rand() % list_size(listaEC)); // calcula un random entre 0 y list size
+				pthread_mutex_lock(&mutex_EC);
+				memoria = list_get(listaEC, num);
+				pthread_mutex_unlock(&mutex_EC);
+				if(memoria->numero_memoria != ultima_memoria_EC){
+					ultima_memoria_EC = memoria->numero_memoria;
+					entra = false;
+				}
+				}
+				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio EC", memoria->numero_memoria);
 				return memoria;
 		}}
 
@@ -794,6 +825,11 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	//free(criterio);
 	//free(entrada);
 	return memoria;
+}
+
+int calcularHash(int key){
+	int hash = (key % list_size(listaHC));
+	return hash;
 }
 
 tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){

@@ -148,6 +148,7 @@ extern sem_t READY;
 extern int quantum;
 extern int retardo;
 extern int path_api;
+int ultima_memoria_EC;
 
 int inicializarVariablesGlobales();
 void terminar_programa(int codigo_finalizacion);
