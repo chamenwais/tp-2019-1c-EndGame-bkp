@@ -133,6 +133,7 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&mutex_SC, NULL);
 	pthread_mutex_init(&mutex_EC, NULL);
 	pthread_mutex_init(&mutex_HC, NULL);
+	pthread_mutex_init(&mutex_tablas, NULL);
 	return EXIT_SUCCESS;
 }
 
@@ -352,7 +353,9 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 			tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
 			entrada->nombre_tabla = nombre_tabla;
 			entrada->criterio = tipo_consistencia;
+			pthread_mutex_lock(&mutex_tablas);
 			list_add(listaTablasCreadas, entrada);
+			pthread_mutex_unlock(&mutex_tablas);
 			logger(escribir_loguear, l_info, "Tabla %s agregada a metadata\n", entrada->nombre_tabla);
 			mostrar_lista_tablas();
 
@@ -414,13 +417,15 @@ void describeAll(int socket_memoria) {
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
 			if(existeTabla(tabla->nombre_tabla)){
 				int pos = obtener_pos_tabla(tabla->nombre_tabla);
+				pthread_mutex_lock(&mutex_tablas);
 				list_remove(listaTablasCreadas, pos);
 				list_add(listaTablasCreadas, tabla);
+				pthread_mutex_unlock(&mutex_tablas);
 
 			}else{
-
+				pthread_mutex_lock(&mutex_tablas);
 				list_add(listaTablasCreadas, tabla);
-
+				pthread_mutex_unlock(&mutex_tablas);
 			}
 		}
 
@@ -873,7 +878,7 @@ void iniciar_proceso_describe_all(){
 
 void* hacer_describe(){
 	while(1){
-		usleep(configKernel.refreshMetadata*10000);
+		usleep(configKernel.refreshMetadata*1000);
 		int max = list_size(listaMemConectadas);
 		int i;
 		for (i = 0; i < max; ++i) {

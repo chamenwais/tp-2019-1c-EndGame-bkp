@@ -75,7 +75,7 @@ int dropConsola(char* linea){
 	return EXIT_SUCCESS;
 }
 
-int realoadConfig(){
+int reloadConfig(){
 	//actualiza quantum, sleep y metadata_refresh del arch de config
 	return EXIT_SUCCESS;
 }
@@ -161,7 +161,7 @@ tp_lql_pcb crear_PCB_sin_file(char* linea){
 }
 
 int man(){
-	/*printf("Mostrando funciones disponibles de la consola:\n");
+	printf("Mostrando funciones disponibles de la consola:\n");
 	printf("1) \"exit\" finaliza el programa\n");
 	printf("2) SELECT [NOMBRE_TABLA] [KEY]\n");
 	printf("3) INSERT [NOMBRE_TABLA] [KEY] “[VALUE]” [Timestamp]\n");
@@ -169,12 +169,9 @@ int man(){
 	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
 	printf("6) DESCRIBE, da la info de todas las tablas\n");
 	printf("7) DROP [NOMBRE_TABLA]\n");
-	printf("8) \"config\", muestra por pantalla la configuracion actual de todo el sistema\n");
-	printf("9) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
-	printf("10) \"bitmap\", imprime el estado de cada bloque del FS\n");
-	printf("11) \"existeLaTabla\", te dice si la tabla existe o no\n");
-	printf("12) \"pmemtable\", imprime los datos de la memtable en pantalla\n");
-	printf("13) \"dumpear\" [NOMBRE DE LA TABLA], fuerza el dumpeo de la tabla\n");*/
+	printf("8) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("9) \"METRICS\", informa las metricas actuales del Kernel\n");
+	printf("10) ADD MEMORY [NUMERO] TO [CRITERIO]\n");
 	return EXIT_SUCCESS;
 }
 

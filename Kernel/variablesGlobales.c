@@ -31,6 +31,7 @@ pthread_mutex_t mutex_MemConectadas;
 pthread_mutex_t mutex_EC;
 pthread_mutex_t mutex_HC;
 pthread_mutex_t mutex_SC;
+pthread_mutex_t mutex_tablas;
 
 sem_t NEW;
 sem_t READY;
