@@ -31,6 +31,7 @@ pthread_mutex_t mutex_MemConectadas;
 pthread_mutex_t mutex_EC;
 pthread_mutex_t mutex_HC;
 pthread_mutex_t mutex_SC;
+pthread_mutex_t mutex_tablas;
 
 sem_t NEW;
 sem_t READY;
@@ -38,6 +39,7 @@ sem_t READY;
 int quantum;
 int retardo;
 int path_api = 0;
+int ultima_memoria_EC = 100;
 
 void configurar_signals(void) {
 	struct sigaction signal_struct;
@@ -152,6 +154,7 @@ void terminar_programa(int codigo_finalizacion){
 	log_destroy(LOG_KERNEL);
 	//destruirListas();
 	apagar_semaforos();
+
 
 	exit(codigo_finalizacion);
 }

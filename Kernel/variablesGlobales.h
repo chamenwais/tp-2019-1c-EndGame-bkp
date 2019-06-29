@@ -143,11 +143,13 @@ extern pthread_mutex_t mutex_MemConectadas;
 extern pthread_mutex_t mutex_EC;
 extern pthread_mutex_t mutex_HC;
 extern pthread_mutex_t mutex_SC;
+extern pthread_mutex_t mutex_tablas;
 extern sem_t NEW;
 extern sem_t READY;
 extern int quantum;
 extern int retardo;
 extern int path_api;
+int ultima_memoria_EC;
 
 int inicializarVariablesGlobales();
 void terminar_programa(int codigo_finalizacion);

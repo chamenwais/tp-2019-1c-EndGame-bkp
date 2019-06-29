@@ -133,6 +133,7 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&mutex_SC, NULL);
 	pthread_mutex_init(&mutex_EC, NULL);
 	pthread_mutex_init(&mutex_HC, NULL);
+	pthread_mutex_init(&mutex_tablas, NULL);
 	return EXIT_SUCCESS;
 }
 
@@ -352,7 +353,9 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 			tp_entrada_tabla_creada entrada = calloc(1, sizeof(t_entrada_tabla_creada));
 			entrada->nombre_tabla = nombre_tabla;
 			entrada->criterio = tipo_consistencia;
+			pthread_mutex_lock(&mutex_tablas);
 			list_add(listaTablasCreadas, entrada);
+			pthread_mutex_unlock(&mutex_tablas);
 			logger(escribir_loguear, l_info, "Tabla %s agregada a metadata\n", entrada->nombre_tabla);
 			mostrar_lista_tablas();
 
@@ -414,13 +417,15 @@ void describeAll(int socket_memoria) {
 			tabla->criterio = ((tp_describe_rta) nodo)->consistencia;
 			if(existeTabla(tabla->nombre_tabla)){
 				int pos = obtener_pos_tabla(tabla->nombre_tabla);
+				pthread_mutex_lock(&mutex_tablas);
 				list_remove(listaTablasCreadas, pos);
 				list_add(listaTablasCreadas, tabla);
+				pthread_mutex_unlock(&mutex_tablas);
 
 			}else{
-
+				pthread_mutex_lock(&mutex_tablas);
 				list_add(listaTablasCreadas, tabla);
-
+				pthread_mutex_unlock(&mutex_tablas);
 			}
 		}
 
@@ -782,10 +787,41 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				//free(criterio);
 				return memoria;
 		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
-				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el HC"); //TODO
-				return memoria;
+				if((operacion.tipo_de_operacion == _SELECT)){
+					int numHash = calcularHash(operacion.parametros.select.key);
+					pthread_mutex_lock(&mutex_HC);
+					memoria = list_get(listaHC, numHash);
+					pthread_mutex_unlock(&mutex_HC);
+					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
+					return memoria;
+				}else if((operacion.tipo_de_operacion == _INSERT)){
+					int numHash = calcularHash(operacion.parametros.insert.key);
+					pthread_mutex_lock(&mutex_HC);
+					memoria = list_get(listaHC, numHash);
+					pthread_mutex_unlock(&mutex_HC);
+					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
+					return memoria;
+				}else{
+					int num = (rand() % list_size(listaHC));
+					pthread_mutex_lock(&mutex_HC);
+					memoria = list_get(listaHC, num);
+					pthread_mutex_unlock(&mutex_HC);
+					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
+					return memoria;
+				}
 		}else if(string_equals_ignore_case(criterio, "EC") && (!list_is_empty(listaEC))){
-				logger(escribir_loguear, l_info, "Facundito todavia no hizo nada para el EC"); //TODO
+				bool entra = true;
+				while(entra){
+				int num = (rand() % list_size(listaEC)); // calcula un random entre 0 y list size
+				pthread_mutex_lock(&mutex_EC);
+				memoria = list_get(listaEC, num);
+				pthread_mutex_unlock(&mutex_EC);
+				if(memoria->numero_memoria != ultima_memoria_EC){
+					ultima_memoria_EC = memoria->numero_memoria;
+					entra = false;
+				}
+				}
+				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio EC", memoria->numero_memoria);
 				return memoria;
 		}}
 
@@ -794,6 +830,11 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	//free(criterio);
 	//free(entrada);
 	return memoria;
+}
+
+int calcularHash(int key){
+	int hash = (key % list_size(listaHC));
+	return hash;
 }
 
 tp_memo_del_pool_kernel buscar_memorias_segun_numero(t_list* lista, int numero){
@@ -837,7 +878,7 @@ void iniciar_proceso_describe_all(){
 
 void* hacer_describe(){
 	while(1){
-		usleep(configKernel.refreshMetadata*10000);
+		usleep(configKernel.refreshMetadata*1000);
 		int max = list_size(listaMemConectadas);
 		int i;
 		for (i = 0; i < max; ++i) {
