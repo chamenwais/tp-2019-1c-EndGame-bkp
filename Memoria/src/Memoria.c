@@ -75,7 +75,11 @@ t_list * conectarse_a_seeds(){
 	for(int i=0;i<cantidad_de_seeds;i++){
 		t_memo_del_pool * memoria_a_utilizar = list_get(seeds,i);
 
-		if(memoria_a_utilizar->estado == 0){
+		bool esta_la_memoria(void* memoria_consultar){
+			return ((t_memo_del_pool *) memoria_consultar == memoria_a_utilizar);
+		}
+
+		if(!list_any_satisfy(mi_tabla_de_gossip,esta_la_memoria)){
 			logger(escribir_loguear, l_trace, "Se va a tratar de conectar a la ip %s, puerto %s"
 					,memoria_a_utilizar->ip, memoria_a_utilizar->puerto);
 
@@ -85,7 +89,6 @@ t_list * conectarse_a_seeds(){
 				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
 				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
 				list_add(tabla_de_gossip, memoria_a_utilizar);
-				memoria_a_utilizar->estado=1;
 			}
 		}
 	}
@@ -310,7 +313,9 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 			break;
 		case DESCRIBE: atender_describe(socket_cliente, tamanio);
 			break;
-		case  JOURNAL: atender_journal(socket_cliente);
+		case JOURNAL: atender_journal(socket_cliente);
+			break;
+		case GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
 			break;
 		default:
 			break;
