@@ -15,7 +15,6 @@
 #define _GNU_SOURCE //tmb
 #endif
 
-//#include "variablesGlobales.h"
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/string.h>

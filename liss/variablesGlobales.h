@@ -82,6 +82,7 @@ extern char* directorioConLaMetadata;
 extern char* archivoDeBitmap;
 extern char* archivoDeLaMetadata;
 extern char* pathDeMontajeDelPrograma;
+extern char* nombreArchivoInfoMsBloqueada;
 extern pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
 	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
@@ -102,8 +103,11 @@ int vaciarDumpTable();
 pthread_mutex_t* bloquearTablaFS(char* nombreTabla);//bloquea el mutex correspondiente y te lo devuelve para que cuando termines lo desbloquees,
 													//si la tabla no existe devuelve NULL
 void desbloquearTablaFS(pthread_mutex_t* mutexTabla);
-bool agregarAListaDeTablasFS(char* nuevaTabla);//se queda con una copia del char*, hacele free al tuyo
-bool eliminarDeListaDeTablasFS(char* tablaABorrar);
+bool agregarAListaDeTablasFS(char* nuevaTabla);//devuelve true si agrego la tabla o false si ya existe
+bool eliminarDeListaDeTablasFS(char* tablaABorrar);//devuelve true si la elimino o false si no existe
+
+t_list* bloquearListaDeTablasFS();//te devuelve la tabla "maestra" por si queres x ej ver todas sus tablas, SOLO PARA LECTURA, el formato de cada elemento es tp_tablaDeFS
+void desbloquearListaDeTablasFS();//desbloquear la tabla en cuanto termines tu busqueda, estas bloqueando todo el fs
 
 void buscarTablasYaCreadasFS();//solo se usa al inicio del programa
 //-+-

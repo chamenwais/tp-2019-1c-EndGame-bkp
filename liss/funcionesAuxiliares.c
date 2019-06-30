@@ -218,6 +218,12 @@ int eliminarDirectorio(char* nombreDeLaTabla){
 	string_append(&directorioABorrar, configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioABorrar, "/Tables/");
 	string_append(&directorioABorrar, nombreDeLaTabla);
+	char* infoFile = string_new();
+	string_append(&infoFile,directorioABorrar);
+	string_append(&infoFile,"/");
+	string_append(&infoFile,nombreArchivoInfoMsBloqueada);
+	remove(infoFile);
+	free(infoFile);
 	int resultado=rmdir(directorioABorrar);
 
 	if(resultado==0){
@@ -780,7 +786,6 @@ char* recortarHastaUltimaBarra(char* path){
 }
 
 t_list* obtenerTodosLosDescriptores(){
-	int result;
 	char* main_directorio=string_new();
 	string_append(&main_directorio, configuracionDelFS.puntoDeMontaje);
 	string_append(&main_directorio, "/Tables/");
@@ -797,7 +802,9 @@ t_list* obtenerTodosLosDescriptores(){
 
 			path_nombre = recortarHastaUltimaBarra(fpath);
 
+			pthread_mutex_t* mutexTabla = bloquearTablaFS(path_nombre);
 			t_metadataDeLaTabla unaMetadata = obtenerMetadataDeLaTabla(path_nombre);
+			if(mutexTabla!=NULL)desbloquearTablaFS(mutexTabla);
 
 			if(unaMetadata.consistencia!=NULL){
 				tp_describe_rta metadataEncodeada = malloc(sizeof(t_describe_rta));
@@ -816,7 +823,7 @@ t_list* obtenerTodosLosDescriptores(){
 		return FTW_CONTINUE;
 	}
 
-	result = nftw(main_directorio,guardar_metadata_descriptores,20,FTW_ACTIONRETVAL|FTW_PHYS);//deberia retornar FTW_STOP
+	nftw(main_directorio,guardar_metadata_descriptores,20,FTW_ACTIONRETVAL|FTW_PHYS);//deberia retornar FTW_STOP
 	//@@hacer if con result, ver primero que devuelve
 	//@@revisar si devuelve el nombre de la carpeta o todo el path
 

@@ -14,6 +14,7 @@ char* directorioConLaMetadata;//el directorio
 char* archivoDeBitmap;
 char* archivoDeLaMetadata;//el archivo
 char* pathDeMontajeDelPrograma;
+char* nombreArchivoInfoMsBloqueada;
 pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
 	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
@@ -49,6 +50,15 @@ void liberarTablaFS(tp_tablaDeFS tablaALiberar){
 	free(tablaALiberar->mutexTabla);
 	free(tablaALiberar->nombreTabla);
 	free(tablaALiberar);
+}
+
+t_list* bloquearListaDeTablasFS(){
+	pthread_mutex_lock(&mutexListaTablasFS);
+	return tablasFS;
+}
+
+void desbloquearListaDeTablasFS(){
+	pthread_mutex_unlock(&mutexListaTablasFS);
 }
 
 void desbloquearTablaFS(pthread_mutex_t* mutexTabla){
@@ -147,6 +157,7 @@ int inicializarVariablesGlobales(){
 	LOGGERFS=NULL;
 	directorioConLaMetadata=NULL;
 	pathDeMontajeDelPrograma=NULL;
+	nombreArchivoInfoMsBloqueada = "MSBlocked.info";
 	if(pthread_mutex_init(&mutexVariableRetardo, NULL) != 0) {
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexVariableRetardo");
 		return EXIT_FAILURE;

@@ -365,7 +365,7 @@ void guardarMilisegundosBloqueada(char* nombreTabla,int milisegundos,bool resetF
 	string_append(&archivoMSBloqueada, "/Tables/");
 	string_append(&archivoMSBloqueada, nombreTabla);
 	string_append(&archivoMSBloqueada, "/");
-	string_append(&archivoMSBloqueada, "MSBlocked.info");
+	string_append(&archivoMSBloqueada, nombreArchivoInfoMsBloqueada);
 	FILE* archivo;
 	if(resetFile) archivo = fopen(archivoMSBloqueada,"w");
 	else archivo = fopen(archivoMSBloqueada,"a");
