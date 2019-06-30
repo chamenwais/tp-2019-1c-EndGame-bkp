@@ -20,7 +20,7 @@ int lanzarServer(){//@@crear una funcion que lance hilos de estos especiales ser
 
 	log_info(LOGGERFS,"Iniciando hilo de server lissandra");
 	int resultado = pthread_create( &threadServer, NULL, crearServerLissandra, (void*)NULL);
-	pthread_detach(threadServer);
+	//pthread_detach(threadServer);
 	if(resultado){
 		log_error(LOGGERFS,"Error al crear hilo de server lissandra, return code: %d",resultado);
 		exit(EXIT_FAILURE);
@@ -173,10 +173,12 @@ void* crearServerLissandra(){
 
 
 	}
-	log_info(LOGGERFS,"[LissServer] Finalizando server");
+	pthread_mutex_lock(&fd_mutex);
+	pthread_mutex_unlock(&fd_mutex);
 	pthread_mutex_destroy(&fd_mutex);
 	cerrarConexion(*escuchador);
 	list_destroy_and_destroy_elements(fd_conocidos.lista,free);
+	log_info(LOGGERFS,"[LissServer] Server Finalizado");
 	pthread_exit(0);
 }
 

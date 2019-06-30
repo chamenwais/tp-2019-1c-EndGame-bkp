@@ -27,7 +27,7 @@
 #include <ftw.h>
 #include <stdio.h>
 //#include "dump.h"
-//#include "funcionesAuxiliares.h"
+#include "funcionesAuxiliares.h"
 #include <time.h>
 
 #include "lissandra.h"

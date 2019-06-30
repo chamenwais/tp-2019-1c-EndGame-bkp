@@ -12,7 +12,7 @@ int lanzarCompactador(){
 
 	log_info(LOGGERFS,"Iniciando hilo de compactador de lissandra");
 	int resultado = pthread_create( &threadCompactador, NULL, crearCompactadorLissandra, NULL);
-	pthread_detach(threadCompactador);
+	//pthread_detach(threadCompactador);
 
 	if(resultado){
 		log_error(LOGGERFS,"Error al crear hilo del compactador de lissandra, return code: %d",
@@ -71,13 +71,16 @@ void* crearCompactadorLissandra(){
 		pthread_exit(0);
 	}
 
-	while(1){
+	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		sleep(5);//puedo chequear por cambios en la carpeta para arrancar pero no me convence
 
 		compactarNuevasTablas();
 	}
-
+	pthread_mutex_lock(&tablas_mutex);
+	pthread_mutex_unlock(&tablas_mutex);
 	while(pthread_mutex_destroy(&tablas_mutex));
+	pthread_mutex_lock(&nextTmp);
+	pthread_mutex_unlock(&nextTmp);
 	while(pthread_mutex_destroy(&nextTmp));
 	log_info(LOGGERFS,"[Compactador]Finalizando compactador");
 	pthread_exit(0);
