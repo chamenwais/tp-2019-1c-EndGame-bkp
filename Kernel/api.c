@@ -76,9 +76,20 @@ int dropConsola(char* linea){
 }
 
 
-int journalConsola(char* linea){
-	//journal
-	return EXIT_SUCCESS;
+void journalConsola(char* linea){
+	int max = list_size(listaMemConectadas);
+	int i;
+	for (i = 0; i < max; ++i) {
+		tp_memo_del_pool_kernel memo = list_get(listaMemConectadas, i);
+		logger(escribir_loguear, l_debug, "Se le solicita a la memoria %i un Journal", memo->numero_memoria);
+		prot_enviar_journal(memo->socket);
+		enum MENSAJES respuesta = prot_recibir_respuesta_journal(memo->socket);
+		if(respuesta == REQUEST_SUCCESS){
+			puts("La memoria %i realizo un JOURNAL correctamente", memo->numero_memoria);
+		}else{
+			puts("Error al realizar el JOURNAL en la memoria %i", memo->numero_memoria);
+		}
+	}
 }
 
 int runConsola(char* path){
@@ -252,7 +263,7 @@ void *funcionHiloConsola(void *arg){
 				if((strcmp(instruccion[0],"select")==0) || (strcmp(instruccion[0],"SELECT")==0)){
 					if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)){
 						printf("Voy a hacer un select por consola de la tabla %s, con la key %d\n",instruccion[1],atoi(instruccion[2]));
-						selectConsola(linea);//chequear si la tabla la conoce, si no da error TODO
+						selectConsola(linea);
 					}else{
 						printf("Faltan parametros para poder hacer un select\n");
 						}
@@ -262,13 +273,13 @@ void *funcionHiloConsola(void *arg){
 							&&(instruccion[4]!=NULL)){
 						printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y el timestamp %d\n",
 								instruccion[1],atoi(instruccion[2]),instruccion[3],atoi(instruccion[4]));
-						insertConsola(linea);//chequear si la tabla la conoce, si no da error TODO
+						insertConsola(linea);
 					}else{
 						if((instruccion[1]!=NULL)&&(instruccion[2]!=NULL)&&
 								(instruccion[3]!=NULL)&&(instruccion[4]==NULL)){
 							printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y sin timestamp\n",
 									instruccion[1],atoi(instruccion[2]),instruccion[3]);
-							insertConsolaNoTime(linea);//chequear si la tabla la conoce, si no da error TODO
+							insertConsolaNoTime(linea);
 						}else{
 							printf("Faltan parametros para poder hacer un insert\n");}
 						}
@@ -295,7 +306,7 @@ void *funcionHiloConsola(void *arg){
 					if((strcmp(instruccion[0],"drop")==0) || (strcmp(instruccion[0],"DROP")==0)){
 						if((instruccion[1]!=NULL)){
 							printf("Voy a hacer un drop de la tabla %s\n", instruccion[1]);
-							dropConsola(linea);//chequear si la tabla la conoce, si no da error TODO
+							dropConsola(linea);
 						}else{
 							printf("Faltan parametros para poder hacer un drop\n");
 						}
@@ -313,7 +324,7 @@ void *funcionHiloConsola(void *arg){
 					if((strcmp(instruccion[0],"run")==0) || (strcmp(instruccion[0], "RUN")==0)){
 						if((instruccion[1]!=NULL)){
 							printf("Voy a ejecutar el LQL en el path %s\n", instruccion[1]);
-							runConsola(instruccion[1]);//TODO el file esta en el filesystem de la maquina
+							runConsola(instruccion[1]);
 						}else{
 								printf("Te comiste el path\n");
 							}
