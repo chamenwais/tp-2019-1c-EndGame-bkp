@@ -47,7 +47,7 @@ void liberarTKV(tp_tkv);
 void liberarListaTKV(t_list*);
 t_list* cargarTimeStampKeyValue(char*);
 t_list* crearTempsParaBins(char*);
-char* crearTempParaTmpcs(t_list*);
+char* crearTempParaTmpcs(t_list*,char*);
 t_list* compararBinsContraTmpcs(t_list*,char*);
 void compactarNuevasTablas();
 int crearCompactadorDeTablas(const char*, const struct stat*, int, struct FTW*);

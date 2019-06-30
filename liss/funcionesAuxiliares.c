@@ -344,12 +344,6 @@ void liberarBloquesTmpc(char* pathCompletoTmpc){
 	}
 }
 
-
-int desbloquearTabla(char* nombreDeLaTabla){
-	// Esta funcion desbloquea la tabla para q la pueda usar algun hilo
-	return EXIT_SUCCESS;
-}
-
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 	t_metadataDeLaTabla metadataDeLaTabla;
 	metadataDeLaTabla.consistencia=NULL;

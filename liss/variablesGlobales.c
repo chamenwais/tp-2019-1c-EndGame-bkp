@@ -64,8 +64,8 @@ pthread_mutex_t* bloquearTablaFS(char* nombreTabla){
 	pthread_mutex_unlock(&mutexListaTablasFS);//capaz conviene desbloquearlo dsps q bloquee la tabla@@
 	if(tablaPedida!=NULL){
 		pthread_mutex_lock(tablaPedida->mutexTabla);
-	}
-	return tablaPedida->mutexTabla;
+		return tablaPedida->mutexTabla;
+	} else return NULL;
 }
 
 bool eliminarDeListaDeTablasFS(char* tablaABorrar){
