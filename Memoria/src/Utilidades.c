@@ -264,7 +264,6 @@ void construir_lista_seeds(){
 		t_memo_del_pool *memoria_del_pool=malloc(sizeof(t_memo_del_pool));
 		memoria_del_pool->ip=IPS_SEEDS[i];
 		memoria_del_pool->puerto=PUERTOS_SEEDS[i];
-		memoria_del_pool->estado=0;
 		list_add(seeds, memoria_del_pool);
 	}
 }
@@ -480,6 +479,9 @@ void recibir_handshake_kernel(int socket){
 }
 
 void recibir_handshakes(int socket){
+	t_tabla_gossiping descriptores;
+		descriptores.lista = mi_tabla_de_gossip;
+
 	enum PROCESO procesoRecibido;
 	recibir(socket,&procesoRecibido,sizeof(procesoRecibido));
 	enum PROCESO procesoMemoria = MEMORIA;
@@ -489,7 +491,9 @@ void recibir_handshakes(int socket){
 		prot_enviar_int(NUMERO_MEMORIA,socket);
 	}
 	if(procesoRecibido == MEMORIA){
-		logger(escribir_loguear, l_info, "Me llego algo de una memoria");
+		prot_enviar_mi_tabla_gossiping(descriptores, socket);
+		logger(escribir_loguear, l_info, "Envie mi tabla de gossip");
+
 	}
 }
 
@@ -512,6 +516,17 @@ void apagar_semaforos(){
 	pthread_mutex_destroy(&M_PATH_ARCHIVO_CONFIGURACION);
 	pthread_mutex_destroy(&M_RUTA_ARCHIVO_CONF);
 	pthread_mutex_destroy(&M_JOURNALING);
+}
+
+void recibir_tabla_de_gossip(int socket, int tamanio){
+	logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
+	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio, socket);
+
+	list_add_all(mi_tabla_de_gossip, tabla_ajena);
+
+	//Libero la lista
+	prot_free_tp_tabla_gossiping(tabla_ajena);
+
 }
 
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){

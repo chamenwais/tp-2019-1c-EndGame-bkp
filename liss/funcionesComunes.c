@@ -35,9 +35,11 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		crearMetadataParaLaTabla(nombreDeLaTabla,tipoDeConsistencia,
 				numeroDeParticiones,tiempoDeCompactacion);
 		if(crearArchivosBinariosYAsignarBloques(nombreDeLaTabla,numeroDeParticiones)==EXIT_SUCCESS){
+			agregarAListaDeTablasFS(nombreDeLaTabla);
 			log_info(LOGGERFS,"La tabla %s se creo correctamente", nombreDeLaTabla);
 		}else{
-			log_error(LOGGERFS,"No se puedo crear la tabla %s", nombreDeLaTabla);
+			log_error(LOGGERFS,"No se pudo crear la tabla %s", nombreDeLaTabla);
+			//@@@@@@eliminar el directorio y la metadata!!!
 			return EXIT_FAILURE;
 			}
 		return TABLA_CREADA;
@@ -54,7 +56,7 @@ int drop(char* nombreDeLaTabla){
 	// 1) Verificar que la tabla exista en el file system.
 	// 2) Eliminar directorio y todos los archivos de dicha tabla.
 
-	if(exiteLaTabla(nombreDeLaTabla)==false){
+	if(eliminarDeListaDeTablasFS(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe %s", nombreDeLaTabla);
 		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
 		return TABLA_NO_EXISTIA;
@@ -71,7 +73,9 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 	 *	2) Leer el archivo Metadata de dicha tabla.
 	 *	3) Retornar el contenido del archivo.
 	 */
+	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	t_metadataDeLaTabla metadata=obtenerMetadataDeLaTabla(nombreDeLaTabla);
+	if(mutexTabla!=NULL)desbloquearTablaFS(mutexTabla);
 	return metadata;
 }
 
