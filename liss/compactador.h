@@ -8,10 +8,12 @@
 #ifndef LISS_COMPACTADOR_H_
 #define LISS_COMPACTADOR_H_
 
-//#ifndef _XOPEN_SOURCE
+#ifndef _XOPEN_SOURCE
 #define XOPEN_SOURCE 500 //para ftw
+#endif
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE //tmb
-//#endif
+#endif
 
 //#include "variablesGlobales.h"
 #include <stdbool.h>
@@ -25,7 +27,7 @@
 #include <ftw.h>
 #include <stdio.h>
 //#include "dump.h"
-//#include "funcionesAuxiliares.h"
+#include "funcionesAuxiliares.h"
 #include <time.h>
 
 #include "lissandra.h"

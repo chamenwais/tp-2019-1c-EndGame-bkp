@@ -8,14 +8,24 @@
 #ifndef VARIABLESGLOBALES_H_
 #define VARIABLESGLOBALES_H_
 
+#ifndef _XOPEN_SOURCE
+#define XOPEN_SOURCE 500 //para ftw
+#endif
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE //tmb
+#endif
+
+#include <ftw.h>
 #include <commons/log.h>
 #include <commons/bitarray.h>
 #include <commons/collections/list.h>
+#include <commons/string.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdint.h>
 //#include "fs.h"
 #include "../COM/lqvg/com.h"
+//#include "funcionesAuxiliares.h"
 
 typedef struct definicionConfiguracionDelFS {
 	int puertoEscucha;
@@ -59,6 +69,12 @@ typedef struct definicionHiloDeDumpeo {
 } t_hiloDeDumpeo;
 typedef t_hiloDeDumpeo* tp_hiloDeDumpeo;
 
+typedef struct tablaDeFS {//Para la lista de tablas del fs
+	pthread_mutex_t* mutexTabla;
+	char* nombreTabla;
+} t_tablaDeFS;
+typedef t_tablaDeFS* tp_tablaDeFS;
+
 extern t_metadataDelFS metadataDelFS;
 extern t_configuracionDelFS configuracionDelFS;
 extern t_log* LOGGERFS;
@@ -82,5 +98,13 @@ int inicializarVariablesGlobales();
 void liberarRecursos();
 int vaciarMemTable();
 int vaciarDumpTable();
+//-+-Para operaciones sobre la lista que contiene todas las tablas del fs
+pthread_mutex_t* bloquearTablaFS(char* nombreTabla);//bloquea el mutex correspondiente y te lo devuelve para que cuando termines lo desbloquees,
+													//si la tabla no existe devuelve NULL
+void desbloquearTablaFS(pthread_mutex_t* mutexTabla);
+bool agregarAListaDeTablasFS(char* nuevaTabla);//se queda con una copia del char*, hacele free al tuyo
+bool eliminarDeListaDeTablasFS(char* tablaABorrar);
 
+void buscarTablasYaCreadasFS();//solo se usa al inicio del programa
+//-+-
 #endif /* VARIABLESGLOBALES_H_ */
