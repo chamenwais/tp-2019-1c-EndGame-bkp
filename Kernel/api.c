@@ -85,9 +85,9 @@ void journalConsola(char* linea){
 		prot_enviar_journal(memo->socket);
 		enum MENSAJES respuesta = prot_recibir_respuesta_journal(memo->socket);
 		if(respuesta == REQUEST_SUCCESS){
-			puts("La memoria %i realizo un JOURNAL correctamente", memo->numero_memoria);
+			logger(escribir_loguear, l_info, "La memoria %i realizo un JOURNAL correctamente", memo->numero_memoria);
 		}else{
-			puts("Error al realizar el JOURNAL en la memoria %i", memo->numero_memoria);
+			logger(escribir_loguear, l_info, "Error al realizar el JOURNAL en la memoria %i", memo->numero_memoria);
 		}
 	}
 }
