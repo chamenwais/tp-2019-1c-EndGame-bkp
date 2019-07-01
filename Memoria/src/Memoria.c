@@ -87,6 +87,7 @@ t_list * conectarse_a_seeds(){
 
 			if(memoria_conectada>0){
 				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
+				agregar_conexion_lista_clientes(memoria_conectada, crear_direccion_cliente());
 				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 			}
@@ -98,6 +99,10 @@ t_list * conectarse_a_seeds(){
 
 void *realizar_gossiping(){
 	mi_tabla_de_gossip = list_create();
+	t_memo_del_pool * memoria_a_utilizar = malloc(sizeof(t_memo_del_pool));
+	memoria_a_utilizar->ip="127.0.0.1";
+	memoria_a_utilizar->puerto=PUERTO_ESCUCHA;
+	list_add(mi_tabla_de_gossip, memoria_a_utilizar);
 	while(1){
 		usleep(TIEMPO_GOSSIPING*1000);
 		logger(escribir_loguear, l_trace, "\nProcedo a realizar el gossiping...\n");
