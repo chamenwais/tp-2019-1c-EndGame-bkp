@@ -370,6 +370,7 @@ void terminar_programa(int codigo_finalizacion){
 
 	if(mi_tabla_de_gossip!=NULL){
 		list_destroy(mi_tabla_de_gossip);
+		//TODO ver de hacer free de la propia memoria
 	}
 
 	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
@@ -492,6 +493,7 @@ void recibir_handshakes(int socket){
 	}
 	if(procesoRecibido == MEMORIA){
 		prot_enviar_mi_tabla_gossiping(descriptores, socket);
+
 		logger(escribir_loguear, l_info, "Envie mi tabla de gossip");
 
 	}
