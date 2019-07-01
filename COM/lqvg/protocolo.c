@@ -185,6 +185,28 @@ void prot_enviar_drop(char * nom_tabla,int socket){
 	eliminar_paquete(paquete);
 }
 
+void prot_enviar_ip(char * ip,int socket){
+	t_paquete* paquete = crear_paquete(IP_MEMORIA);
+	agregar_string_a_paquete(paquete, ip, strlen(ip));
+	enviar_paquete(paquete, socket);
+	eliminar_paquete(paquete);
+}
+
+tp_ip prot_recibir_ip(int tamanio_paq, int socket){
+	void * buffer = malloc(tamanio_paq);
+	recibir(socket, buffer, tamanio_paq);
+	int tamanio_ip;
+	int desplazamiento = 0;
+	memcpy(&tamanio_ip, buffer + desplazamiento, sizeof(int));
+	desplazamiento+=sizeof(int);
+	char* ip=malloc(tamanio_ip);
+	memcpy(ip, buffer+desplazamiento, tamanio_ip);
+	tp_ip param_ip=malloc(sizeof(t_ip));
+	param_ip->ip=ip;
+	free(buffer);
+	return param_ip;
+}
+
 tp_drop prot_recibir_drop(int tamanio_paq, int socket){
 	void * buffer = malloc(tamanio_paq);
 	recibir(socket, buffer, tamanio_paq);
@@ -392,7 +414,7 @@ tp_tabla_gossiping prot_recibir_tabla_gossiping(int tamanio_paq, int socket){
 	desplazamiento+=sizeof(int);
 
 	for(int i=0; i<cantidad_descripciones;i++){
-		tp_memo_del_pool descriptor = malloc(sizeof(tp_memo_del_pool));
+		tp_memo_del_pool descriptor = malloc(sizeof(t_memo_del_pool));
 
 		memcpy(&tamanio_ip, buffer+desplazamiento, sizeof(int));
 		desplazamiento+=sizeof(int);
