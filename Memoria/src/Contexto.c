@@ -39,4 +39,5 @@ t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 t_log* g_logger;
 t_config* g_config;
 t_bitarray *bitmap_marcos=NULL;
-t_list * tabla_de_segmentos=NULL;;
+t_list * tabla_de_segmentos=NULL;
+char * ip_de_esta_memoria;

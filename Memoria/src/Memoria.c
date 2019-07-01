@@ -89,6 +89,7 @@ t_list * conectarse_a_seeds(){
 				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
 				agregar_conexion_lista_clientes(memoria_conectada, crear_direccion_cliente());
 				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
+				//prot_enviar_ip(memoria_a_utilizar->ip, memoria_conectada);
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 			}
 		}
@@ -321,6 +322,8 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 		case JOURNAL: atender_journal(socket_cliente);
 			break;
 		case GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
+			break;
+		case IP_MEMORIA: recibir_mi_propia_ip(socket_cliente, tamanio);
 			break;
 		default:
 			break;

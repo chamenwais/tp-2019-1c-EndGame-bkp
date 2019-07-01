@@ -469,16 +469,6 @@ void mandar_handshake_a(char * proceso, int socket, enum PROCESO enumProceso){
 }
 
 
-void recibir_handshake_kernel(int socket){
-	logger(escribir_loguear, l_info, "Se esperará handshake del %s", _KERNEL);
-	if(recibirHandshake(MEMORIA, KERNEL, socket)==0){
-		loguear_handshake_erroneo(_KERNEL);
-		cerrar_socket_y_terminar(socket);
-	}
-	loguear_handshake_exitoso(socket, _KERNEL);
-	prot_enviar_int(NUMERO_MEMORIA,socket);
-}
-
 void recibir_handshakes(int socket){
 	t_tabla_gossiping descriptores;
 		descriptores.lista = mi_tabla_de_gossip;
@@ -492,10 +482,13 @@ void recibir_handshakes(int socket){
 		prot_enviar_int(NUMERO_MEMORIA,socket);
 	}
 	if(procesoRecibido == MEMORIA){
+		/*t_memo_del_pool * memoria_a_utilizar = malloc(sizeof(t_memo_del_pool));
+		memoria_a_utilizar->ip=ip_de_esta_memoria;
+		memoria_a_utilizar->puerto=PUERTO_ESCUCHA;
+		list_add(descriptores.lista, memoria_a_utilizar);*/
+
 		prot_enviar_mi_tabla_gossiping(descriptores, socket);
-
 		logger(escribir_loguear, l_info, "Envie mi tabla de gossip");
-
 	}
 }
 
@@ -520,11 +513,19 @@ void apagar_semaforos(){
 	pthread_mutex_destroy(&M_JOURNALING);
 }
 
+void imprimir_informacion_tabla_ajena(void * tabla_ajena){
+	logger(escribir_loguear, l_info, "El ip de la tabla es: %s", (*(t_memo_del_pool*)tabla_ajena).ip);
+	logger(escribir_loguear, l_info, "El puerto de la tabla es: %s", (*(t_memo_del_pool*)tabla_ajena).puerto);
+}
+
 void recibir_tabla_de_gossip(int socket, int tamanio){
 	logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
+	//tp_tabla_gossiping tabla_ajena = malloc(sizeof(t_tabla_gossiping));
 	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio, socket);
+	logger(escribir_loguear, l_debug, "Voy a meter la sgte informacion en mi tabla de gossip:");
+	list_iterate(tabla_ajena->lista, imprimir_informacion_tabla_ajena);
 
-	list_add_all(mi_tabla_de_gossip, tabla_ajena);
+	list_add_all(mi_tabla_de_gossip, tabla_ajena->lista);
 
 	//Libero la lista
 	prot_free_tp_tabla_gossiping(tabla_ajena);

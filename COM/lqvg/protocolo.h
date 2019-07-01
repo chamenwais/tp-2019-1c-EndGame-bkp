@@ -43,6 +43,11 @@ typedef struct struDrop{
 } t_drop;
 typedef t_drop* tp_drop;
 
+typedef struct struIP{
+	char * ip;
+} t_ip;
+typedef t_ip* tp_ip;
+
 typedef struct struSelectRta{
 	unsigned int timestamp;
 	uint16_t key;
@@ -121,5 +126,6 @@ enum MENSAJES prot_recibir_respuesta_journal(int);//@NO necesita antes hacer un 
 void prot_enviar_mi_tabla_gossiping(t_tabla_gossiping, int);
 tp_tabla_gossiping prot_recibir_tabla_gossiping(int, int);
 void prot_free_tp_tabla_gossiping(tp_tabla_gossiping);
+void prot_enviar_ip(char *,int);
 
 #endif
