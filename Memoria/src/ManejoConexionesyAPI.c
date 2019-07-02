@@ -68,14 +68,6 @@ void atender_drop(int cliente, int tamanio){
 	free(dropeo);
 }
 
-void recibir_mi_propia_ip(int cliente, int tamanio){
-	tp_ip mi_ip = prot_recibir_ip(tamanio, cliente);
-	ip_de_esta_memoria = mi_ip->ip;
-
-	free(mi_ip->ip);
-	free(mi_ip);
-}
-
 void atender_describe(int cliente, int tamanio){
 	if(tamanio==0){
 		atender_describe_de_todas_las_tablas(cliente);

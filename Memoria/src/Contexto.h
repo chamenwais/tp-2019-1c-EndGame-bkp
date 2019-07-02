@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <lqvg/com.h>
 #include <lqvg/protocolo.h>
+#include <lqvg/utils.h>
 #include <time.h>
 
 /* Claves archivo de configuracion*/
@@ -150,6 +151,5 @@ extern t_list * tabla_de_segmentos;
 extern t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 extern t_log* g_logger;
 extern t_config* g_config;
-extern char * ip_de_esta_memoria;
 
 #endif /* CONTEXTO_H_ */

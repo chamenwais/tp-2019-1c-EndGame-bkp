@@ -361,16 +361,25 @@ void terminar_programa(int codigo_finalizacion){
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
 
+	if(mi_tabla_de_gossip!=NULL){
+		char* ip_address = conocer_ip_propia();
+		bool es_memoria_propia(void* memoria){
+			return string_equals_ignore_case(((t_memo_del_pool*) memoria)->ip, ip_address);
+		}
+		void destructor_memoria_propia(void * memo_del_pool){
+			free(((t_memo_del_pool*) memo_del_pool)->ip);
+			free((t_memo_del_pool *) memo_del_pool);
+		}
+		list_remove_and_destroy_by_condition(mi_tabla_de_gossip, es_memoria_propia, destructor_memoria_propia);
+		list_destroy(mi_tabla_de_gossip);
+		free(ip_address);
+	}
+
 	if(seeds!=NULL){
 		void destructor_memo_del_pool(void * memo_del_pool){
 			free((t_memo_del_pool *) memo_del_pool);
 		}
 		list_destroy_and_destroy_elements(seeds, destructor_memo_del_pool);
-	}
-
-	if(mi_tabla_de_gossip!=NULL){
-		list_destroy(mi_tabla_de_gossip);
-		//TODO ver de hacer free de la propia memoria
 	}
 
 	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
@@ -482,11 +491,6 @@ void recibir_handshakes(int socket){
 		prot_enviar_int(NUMERO_MEMORIA,socket);
 	}
 	if(procesoRecibido == MEMORIA){
-		/*t_memo_del_pool * memoria_a_utilizar = malloc(sizeof(t_memo_del_pool));
-		memoria_a_utilizar->ip=ip_de_esta_memoria;
-		memoria_a_utilizar->puerto=PUERTO_ESCUCHA;
-		list_add(descriptores.lista, memoria_a_utilizar);*/
-
 		prot_enviar_mi_tabla_gossiping(descriptores, socket);
 		logger(escribir_loguear, l_info, "Envie mi tabla de gossip");
 	}
@@ -520,7 +524,6 @@ void imprimir_informacion_tabla_ajena(void * tabla_ajena){
 
 void recibir_tabla_de_gossip(int socket, int tamanio){
 	logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
-	//tp_tabla_gossiping tabla_ajena = malloc(sizeof(t_tabla_gossiping));
 	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio, socket);
 	logger(escribir_loguear, l_debug, "Voy a meter la sgte informacion en mi tabla de gossip:");
 	list_iterate(tabla_ajena->lista, imprimir_informacion_tabla_ajena);
