@@ -89,7 +89,6 @@ t_list * conectarse_a_seeds(){
 				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
 				agregar_conexion_lista_clientes(memoria_conectada, crear_direccion_cliente());
 				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
-				//prot_enviar_ip(memoria_a_utilizar->ip, memoria_conectada);
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 			}
 		}
@@ -101,7 +100,7 @@ t_list * conectarse_a_seeds(){
 void *realizar_gossiping(){
 	mi_tabla_de_gossip = list_create();
 	t_memo_del_pool * memoria_a_utilizar = malloc(sizeof(t_memo_del_pool));
-	memoria_a_utilizar->ip="127.0.0.1";
+	memoria_a_utilizar->ip=conocer_ip_propia();
 	memoria_a_utilizar->puerto=PUERTO_ESCUCHA;
 	list_add(mi_tabla_de_gossip, memoria_a_utilizar);
 	while(1){
@@ -322,8 +321,6 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 		case JOURNAL: atender_journal(socket_cliente);
 			break;
 		case GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
-			break;
-		case IP_MEMORIA: recibir_mi_propia_ip(socket_cliente, tamanio);
 			break;
 		default:
 			break;
