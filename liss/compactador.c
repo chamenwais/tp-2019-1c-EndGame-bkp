@@ -189,12 +189,44 @@ t_list* obtenerTmps(char* tabla){
 	return temps;
 }
 
+t_list* obtenerTmpcs(char* tabla){
+	t_list* tempcs=list_create();//NO hacer free
+	char* main_directorio=string_new();
+	string_append(&main_directorio, configuracionDelFS.puntoDeMontaje);
+	string_append(&main_directorio, "/Tables/");
+	string_append(&main_directorio, tabla);
+	string_append(&main_directorio, "/");
+
+	int buscarTmpc(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
+		int length=strlen(fpath);
+		if(length<5)return FTW_CONTINUE;
+		length--;
+		if(fpath[length-4]=='.' && fpath[length-3]=='t' && fpath[length-2]=='m' && fpath[length-1]=='p' && fpath[length]=='c'){
+			char* temp=string_new();
+			string_append(&temp,fpath);
+			list_add(tempcs,temp);
+			return FTW_CONTINUE;
+		}
+		return FTW_CONTINUE;
+	}
+	pthread_mutex_t* mutexTabla = bloquearTablaFS(tabla);
+	if(mutexTabla==NULL){
+		free(main_directorio);
+		return tempcs;
+	}
+	nftw(main_directorio,buscarTmpc,20,FTW_ACTIONRETVAL|FTW_PHYS);
+	desbloquearTablaFS(mutexTabla);
+	free(main_directorio);
+	return tempcs;
+}
+
 void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configuracionDelFS.puntoDeMontaje+/Tables/ si quiero el path completo
 	pthread_mutex_t* mutexTabla;
 	int tiempoCompactacion=0;
 	//t_list* bins= list_create();//se q adentro de los bloques de los bins no hay duplicados
 	//tmb se q estos son los nros originales de bloques de la tabla, no se si me sirve pa algo dsps
 	t_list* tmps;//lista de los tmp q van a entrar en compactacion, y se van a convertir en tmpc
+	t_list* tmpcsViejos;
 	int cantidadDeCompactaciones=0;
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
 
@@ -206,15 +238,19 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 		}
 
 		tmps=obtenerTmps(tabla);
+		tmpcsViejos = obtenerTmpcs(tabla);
 		if(tmps->elements_count!=0){
 			//hay archivos para compactar
 			//le saco sus blocks y el size total
 			log_info(LOGGERFS,"[Compactador %s]Detectados nuevos tmps",tabla);
+			if(tmpcsViejos->elements_count!=0)
+				log_info(LOGGERFS,"[Compactador %s]Detectados viejos tmpcs que no se compactaron",tabla);
 
 			//Renombrar a tmpc
 			mutexTabla = bloquearTablaFS(tabla);
 			if(mutexTabla==NULL){
 				list_destroy_and_destroy_elements(tmps,free);
+				list_destroy_and_destroy_elements(tmpcsViejos,free);
 				log_info(LOGGERFS,"[Compactador %s]La tabla dejo de existir antes de poder renombrar tmps a tmpc, finalizando compactador",tabla);
 				eliminarDeTablas(tabla);
 				pthread_exit(0);
@@ -228,6 +264,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 					desbloquearTablaFS(mutexTabla);
 					free(tmpc);
 					list_destroy_and_destroy_elements(tmps,free);
+					list_destroy_and_destroy_elements(tmpcsViejos,free);
 					log_error(LOGGERFS,"[Compactador %s]No se pudo renombrar el archivo [%s] a [%s], finalizando compactador",tabla,(char*)list_get(tmps,i),tmpc);
 					eliminarDeTablas(tabla);
 					pthread_exit(0);
@@ -235,6 +272,24 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				list_replace_and_destroy_element(tmps,i,tmpc,free);
 			}
 			desbloquearTablaFS(mutexTabla);
+
+			//--agrego los tmpc viejos a los recien cambiados de tmp a tmpc(si tuvieran el mismo nombre no lo agrego, deberia hacer una doble compactacion?)
+			int cantidadTmpcsViejos = tmpcsViejos->elements_count;
+			char* tmpc_old;
+
+			bool _stringCompare(void* elem){
+				return !strcmp((char*)elem,tmpc_old);
+			}
+
+			for(int i=0;i<cantidadTmpcsViejos;i++){
+				tmpc_old = list_remove(tmpcsViejos,0);
+				if(list_any_satisfy(tmps,_stringCompare))
+					free(tmpc_old);
+				else
+					list_add(tmps,tmpc_old);
+			}
+			list_destroy(tmpcsViejos);
+			//--
 
 			//creo temp para tmpc
 			char* tempTmpc = crearTempParaTmpcs(tmps,tabla);//mi nuevo tmp
@@ -350,7 +405,13 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 
 			log_info(LOGGERFS,"[Compactador %s]Compactacion realizada correctamente",tabla);
 
-		}else list_destroy(tmps);
+		}else{
+			list_destroy(tmps);
+			if(tmpcsViejos->elements_count==0)
+				list_destroy(tmpcsViejos);
+			else
+				list_destroy_and_destroy_elements(tmpcsViejos,free);
+		}
 
 		usleep(tiempoCompactacion*1000);
 	}
