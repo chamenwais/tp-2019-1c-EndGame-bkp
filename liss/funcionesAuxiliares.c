@@ -193,6 +193,7 @@ int crearArchivoDeBloque(int bloqueLibre){
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
 	pthread_mutex_lock(&mutexDeDump);
 	if((liberarBloquesYParticiones(nombreDeLaTabla)==EXIT_SUCCESS) &&
+			(eliminarTemporales(nombreDeLaTabla)==EXIT_SUCCESS) &&
 			(eliminarArchivoDeMetada(nombreDeLaTabla)==EXIT_SUCCESS) &&
 			(eliminarDirectorio(nombreDeLaTabla)==EXIT_SUCCESS)&&
 			(eliminarDeLaMemtable(nombreDeLaTabla)==EXIT_SUCCESS)
@@ -268,6 +269,36 @@ int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 		free(nombreDelArchivoDeMetaData);
 		return EXIT_FAILURE;
 	}
+}
+
+int eliminarTemporales(char nombreDeLaTabla){
+	char* aux=string_new();
+	string_append(&aux, configuracionDelFS.puntoDeMontaje);
+	string_append(&aux, "/Tables/");
+	string_append(&aux, nombreDeLaTabla);
+	string_append(&aux, "/");
+	string_append(&aux, nombreDeLaTabla);
+	char* pathDelTemp;
+	//FILE* archivo;
+	bool encontrado=true;
+	for(int i=1;encontrado==true;i++){
+		pathDelTemp=string_new();
+		string_append(&pathDelTemp, aux);
+		char * auxitoa=string_itoa(i);
+		string_append(&pathDelTemp, auxitoa);
+		free(auxitoa);
+		string_append(&pathDelTemp, ".tmp");
+		log_info(LOGGERFS,"Viendo si existe el archivo %s", pathDelTemp);
+		encontrado=existeElArchivo(pathDelTemp);
+		if(encontrado==true){
+			log_error(LOGGERFS,"El nombre %s ya esta usado en otro dump", pathDelTemp);
+		}else{
+			log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
+			}
+		}
+	log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
+	free(aux);
+	return EXIT_SUCCESS;
 }
 
 int liberarBloquesYParticiones(char* nombreDeLaTabla){
@@ -498,7 +529,13 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	log_info(LOGGERFS,"Voy a escanear todo el FS a ver donde existe la key %d para la tabla %s",
 			key, nombreDeLaTabla);
 
-	pthread_mutex_lock(&mutexDeDump);
+	//pthread_mutex_lock(&mutexDeDump);
+
+	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	if(mutexTabla!=NULL)
+		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
+	else
+		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
 
 	t_list* keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
@@ -509,7 +546,13 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
-	pthread_mutex_unlock(&mutexDeDump);
+
+	if(mutexTabla!=NULL){
+		desbloquearTablaFS(mutexTabla);
+		log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+		}
+
+	//pthread_mutex_unlock(&mutexDeDump);
 
 	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
 			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);

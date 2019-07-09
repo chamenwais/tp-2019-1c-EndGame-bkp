@@ -130,7 +130,7 @@ void *funcionHiloConsola(void *arg){
 					imprimirEstadoDelBitmap();
 			}else{
 				if(strcmp(instruccion[0],"existeLaTabla")==0){
-					exiteLaTabla(instruccion[1]);
+					existeLaTabla(instruccion[1]);
 			}else{
 				if(strcmp(instruccion[0],"pmemtable")==0){
 					imprimirMemtableEnPantalla();
@@ -167,7 +167,12 @@ int esperarPorHilos(){
 	pthread_join( threadCompactador, NULL);
 	log_info(LOGGERFS,"Hilo de threadCompactador finalizado");
 	log_info(LOGGERFS,"Esperando a threadMonitoreadorDeArchivos");
-	pthread_join( threadMonitoreadorDeArchivos, NULL);
+	//pthread_join(threadMonitoreadorDeArchivos, NULL);
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	ts.tv_sec += 8;
+	//hago esto para q despues de 8 segundo force el cerrado del hilo
+	int s = pthread_timedjoin_np(threadMonitoreadorDeArchivos, NULL, &ts);
 	log_info(LOGGERFS,"Hilo de threadMonitoreadorDeArchivos finalizado");
 	log_info(LOGGERFS,"Todos los hilos han finalizado");
 	return EXIT_SUCCESS;

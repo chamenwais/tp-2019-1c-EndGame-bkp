@@ -16,6 +16,8 @@ int dump(char* nombreDeLaTabla){
 	char* cadenaFinal;
 	char* bloques;
 
+
+
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
@@ -88,6 +90,13 @@ int dump(char* nombreDeLaTabla){
 			}
 		return EXIT_SUCCESS;
 		}
+
+	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	if(mutexTabla!=NULL)
+		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
+	else
+		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
+
 	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMem = list_find(memTable,esMiNodo);
 	if(nodoDeLaMem==NULL){
@@ -115,6 +124,12 @@ int dump(char* nombreDeLaTabla){
 	liberarMemoriaDelNodo(nombreDeLaTabla);
 	free(bloques);
 	pthread_mutex_unlock(&mutexDeLaMemtable);
+
+	if(mutexTabla!=NULL){
+		desbloquearTablaFS(mutexTabla);
+		log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+		}
+
 	if(hayBloquesLibres){
 		log_info(LOGGERFS,"Dump correcto");
 		return DUMP_CORRECTO;
