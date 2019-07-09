@@ -474,11 +474,14 @@ void mandar_handshake_a(char * proceso, int socket, enum PROCESO enumProceso){
 	loguear_handshake_exitoso(socket, proceso);
 }
 
+void enviar_tabla_gossip(int socket) {
+	t_tabla_gossiping descriptores;
+	descriptores.lista = mi_tabla_de_gossip;
+	prot_enviar_mi_tabla_gossiping(descriptores, socket);
+	logger(escribir_loguear, l_info, "Envie mi tabla de gossip por el socket %d",socket);
+}
 
 void recibir_handshakes(int socket){
-	t_tabla_gossiping descriptores;
-		descriptores.lista = mi_tabla_de_gossip;
-
 	enum PROCESO procesoRecibido;
 	recibir(socket,&procesoRecibido,sizeof(procesoRecibido));
 	enum PROCESO procesoMemoria = MEMORIA;
@@ -488,8 +491,7 @@ void recibir_handshakes(int socket){
 		prot_enviar_int(NUMERO_MEMORIA,socket);
 	}
 	if(procesoRecibido == MEMORIA){
-		prot_enviar_mi_tabla_gossiping(descriptores, socket);
-		logger(escribir_loguear, l_info, "Envie mi tabla de gossip");
+		enviar_tabla_gossip(socket);
 	}
 }
 
@@ -514,23 +516,36 @@ void apagar_semaforos(){
 	pthread_mutex_destroy(&M_JOURNALING);
 }
 
-void imprimir_informacion_tabla_ajena(void * tabla_ajena){
-	logger(escribir_loguear, l_info, "El ip de la tabla es: %s", (*(t_memo_del_pool*)tabla_ajena).ip);
-	logger(escribir_loguear, l_info, "El puerto de la tabla es: %s", (*(t_memo_del_pool*)tabla_ajena).puerto);
-	((t_memo_del_pool*)tabla_ajena)->socket=0;
+void imprimir_informacion_tabla_ajena(void * memoria_ajena){
+	logger(escribir_loguear, l_info, "El ip de la tabla es: %s", (*(t_memo_del_pool*)memoria_ajena).ip);
+	logger(escribir_loguear, l_info, "El puerto de la tabla es: %s", (*(t_memo_del_pool*)memoria_ajena).puerto);
 }
 
 void recibir_tabla_de_gossip(int socket, int tamanio){
 	logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
 	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio, socket);
-	logger(escribir_loguear, l_debug, "Voy a meter la sgte informacion en mi tabla de gossip:");
 	list_iterate(tabla_ajena->lista, imprimir_informacion_tabla_ajena);
 
-	list_add_all(mi_tabla_de_gossip, tabla_ajena->lista);
+	agregar_memorias_no_existentes_en_mi_tabla_gossip(tabla_ajena->lista);
 
 	//Libero la lista
 	prot_free_tp_tabla_gossiping(tabla_ajena);
 
+}
+
+void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){
+	void verificar_si_memoria_existe_en_mi_tabla_para_agregarla(void * memoria_ajena){
+		bool memoria_existe_en_mi_tabla(void * memoria){
+			return string_equals_ignore_case(((t_memo_del_pool*)memoria_ajena)->ip,((t_memo_del_pool*)memoria)->ip)
+					&& string_equals_ignore_case(((t_memo_del_pool*)memoria_ajena)->puerto,((t_memo_del_pool*)memoria)->puerto);
+		}
+		if(!list_any_satisfy(memorias, memoria_existe_en_mi_tabla)){
+			((t_memo_del_pool*)memoria_ajena)->socket=0;
+			logger(escribir_loguear, l_debug, "Voy a meter la sgte informacion en mi tabla de gossip:");
+			list_add(mi_tabla_de_gossip, memoria_ajena);
+		}
+	}
+	list_iterate(memorias, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
 }
 
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
@@ -552,7 +567,7 @@ enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
 	return resultado;
 }
 
-void actualizar_de_tabla_gossip(int un_socket){
+void remover_memoria_cerrada_de_tabla_gossip(int un_socket){
 	bool es_socket_de_memoria(void* memoria){
 		return ((t_memo_del_pool*) memoria)->socket==un_socket;
 	}
