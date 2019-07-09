@@ -92,6 +92,10 @@ t_list * conectarse_a_seeds(){
 				memoria_a_utilizar->socket=memoria_conectada;
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 			}
+		} else {
+			if(memoria_a_utilizar->socket>0){
+				enviar_tabla_gossip(memoria_a_utilizar->socket);
+			}
 		}
 	}
 
@@ -335,7 +339,7 @@ int clasificar_conexion_cerrada(int socket_cerrado, int sock_lfs){
 	} else {
 		logger(escribir_loguear,l_warning,"Conexión con cliente %d cerrada", socket_cerrado);
 		//Pregunto si fue una memoria para sacarla de la tabla Gossip
-		actualizar_de_tabla_gossip(socket_cerrado);
+		remover_memoria_cerrada_de_tabla_gossip(socket_cerrado);
 	}
 	return es_lfs;
 }

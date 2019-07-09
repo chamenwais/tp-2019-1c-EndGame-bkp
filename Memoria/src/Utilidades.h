@@ -53,10 +53,12 @@ void apagar_semaforos();
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int);
 void separar_path_pasado_por_parametro(char **, char **, char ** parametros);
 void recibir_handshakes(int);
-void recibir_tabla_de_gossip(int,int);
 void imprimir_informacion_tabla_ajena(void *);
-void actualizar_de_tabla_gossip(int);
+void recibir_tabla_de_gossip(int,int);
+void remover_memoria_cerrada_de_tabla_gossip(int);
+void enviar_tabla_gossip(int);
 t_memo_del_pool* crear_memo_del_pool(char*, char*);
+void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list *);
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;
