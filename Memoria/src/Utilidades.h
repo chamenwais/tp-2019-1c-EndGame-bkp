@@ -55,6 +55,8 @@ void separar_path_pasado_por_parametro(char **, char **, char ** parametros);
 void recibir_handshakes(int);
 void recibir_tabla_de_gossip(int,int);
 void imprimir_informacion_tabla_ajena(void *);
+void actualizar_de_tabla_gossip(int);
+t_memo_del_pool* crear_memo_del_pool(char*, char*);
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;

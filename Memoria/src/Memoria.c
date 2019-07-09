@@ -89,6 +89,7 @@ t_list * conectarse_a_seeds(){
 				logger(escribir_loguear,l_debug, "Me conecte con una memoria de los seeds");
 				agregar_conexion_lista_clientes(memoria_conectada, crear_direccion_cliente());
 				enviarHandshake(MEMORIA, MEMORIA, memoria_conectada);
+				memoria_a_utilizar->socket=memoria_conectada;
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 			}
 		}
@@ -99,9 +100,7 @@ t_list * conectarse_a_seeds(){
 
 void *realizar_gossiping(){
 	mi_tabla_de_gossip = list_create();
-	t_memo_del_pool * memoria_a_utilizar = malloc(sizeof(t_memo_del_pool));
-	memoria_a_utilizar->ip=conocer_ip_propia();
-	memoria_a_utilizar->puerto=PUERTO_ESCUCHA;
+	t_memo_del_pool* memoria_a_utilizar = crear_memo_del_pool(conocer_ip_propia(),PUERTO_ESCUCHA);
 	list_add(mi_tabla_de_gossip, memoria_a_utilizar);
 	while(1){
 		usleep(TIEMPO_GOSSIPING*1000);
@@ -109,7 +108,6 @@ void *realizar_gossiping(){
 		t_list* nuevas_memorias_conectadas = conectarse_a_seeds();
 		list_add_all(mi_tabla_de_gossip, nuevas_memorias_conectadas);
 		list_destroy(nuevas_memorias_conectadas);
-
 	}
 	return EXIT_SUCCESS;
 }
@@ -336,6 +334,8 @@ int clasificar_conexion_cerrada(int socket_cerrado, int sock_lfs){
 		return 1;
 	} else {
 		logger(escribir_loguear,l_warning,"Conexión con cliente %d cerrada", socket_cerrado);
+		//Pregunto si fue una memoria para sacarla de la tabla Gossip
+		actualizar_de_tabla_gossip(socket_cerrado);
 	}
 	return es_lfs;
 }

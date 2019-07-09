@@ -260,10 +260,7 @@ void leer_config(void) {
 void construir_lista_seeds(){
 	seeds=list_create();
 	for(int i=0;IPS_SEEDS[i]!=NULL;i++){
-
-		t_memo_del_pool *memoria_del_pool=malloc(sizeof(t_memo_del_pool));
-		memoria_del_pool->ip=IPS_SEEDS[i];
-		memoria_del_pool->puerto=PUERTOS_SEEDS[i];
+		t_memo_del_pool *memoria_del_pool=crear_memo_del_pool(IPS_SEEDS[i],PUERTOS_SEEDS[i]);
 		list_add(seeds, memoria_del_pool);
 	}
 }
@@ -520,6 +517,7 @@ void apagar_semaforos(){
 void imprimir_informacion_tabla_ajena(void * tabla_ajena){
 	logger(escribir_loguear, l_info, "El ip de la tabla es: %s", (*(t_memo_del_pool*)tabla_ajena).ip);
 	logger(escribir_loguear, l_info, "El puerto de la tabla es: %s", (*(t_memo_del_pool*)tabla_ajena).puerto);
+	((t_memo_del_pool*)tabla_ajena)->socket=0;
 }
 
 void recibir_tabla_de_gossip(int socket, int tamanio){
@@ -552,4 +550,24 @@ enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
 	enum MENSAJES resultado=*resultado_anterior;
 	free(resultado_anterior);
 	return resultado;
+}
+
+void actualizar_de_tabla_gossip(int un_socket){
+	bool es_socket_de_memoria(void* memoria){
+		return ((t_memo_del_pool*) memoria)->socket==un_socket;
+	}
+	void reiniciar_socket_memoria(void * memoria){
+		((t_memo_del_pool*) memoria)->socket=0;
+		logger(escribir_loguear, l_trace, "Removí la memoria %s, %s de mi tabla de gossip",
+				((t_memo_del_pool*) memoria)->ip, ((t_memo_del_pool*) memoria)->puerto);
+	}
+	list_remove_and_destroy_by_condition(mi_tabla_de_gossip, es_socket_de_memoria, reiniciar_socket_memoria);
+}
+
+t_memo_del_pool* crear_memo_del_pool(char* ip, char* puerto) {
+	t_memo_del_pool* memoria_a_utilizar = malloc(sizeof(t_memo_del_pool));
+	memoria_a_utilizar->ip = ip;
+	memoria_a_utilizar->puerto = puerto;
+	memoria_a_utilizar->socket = 0;
+	return memoria_a_utilizar;
 }
