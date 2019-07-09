@@ -22,6 +22,7 @@ typedef t_insert* tp_insert;
 typedef struct memo_del_pool {
 	char * ip;
 	char * puerto;
+	int socket;
 }t_memo_del_pool;
 typedef t_memo_del_pool* tp_memo_del_pool;
 
