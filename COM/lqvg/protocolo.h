@@ -122,5 +122,7 @@ enum MENSAJES prot_recibir_respuesta_journal(int);//@NO necesita antes hacer un 
 void prot_enviar_mi_tabla_gossiping(t_tabla_gossiping, int);
 tp_tabla_gossiping prot_recibir_tabla_gossiping(int, int);
 void prot_free_tp_tabla_gossiping(tp_tabla_gossiping);
+void prot_enviar_pedido_tabla_gossiping(int);
+void prot_enviar_mi_tabla_gossiping_a_kernel(t_tabla_gossiping, int);
 
 #endif

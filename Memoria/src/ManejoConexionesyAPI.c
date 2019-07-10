@@ -84,6 +84,14 @@ void atender_describe(int cliente, int tamanio){
 	free(descripcion);
 }
 
+void atender_gossiping_kernel(int socket_cliente){
+	t_tabla_gossiping descriptores;
+		descriptores.lista = mi_tabla_de_gossip;
+	logger(escribir_loguear, l_info, "El kernel solicito mi tabla de gossiping");
+	prot_enviar_mi_tabla_gossiping_a_kernel(descriptores, socket_cliente);
+	logger(escribir_loguear, l_info, "Se ha enviado la tabla");
+}
+
 void atender_describe_de_todas_las_tablas(int cliente){
 	logger(escribir_loguear, l_info, "El kernel solicito realizar un describe de todas las tablas que tiene liss");
 
