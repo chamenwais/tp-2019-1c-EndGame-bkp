@@ -88,17 +88,23 @@ int drop(char* nombreDeLaTabla){
 	// 1) Verificar que la tabla exista en el file system.
 	// 2) Eliminar directorio y todos los archivos de dicha tabla.
 
+	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	if(mutexTabla!=NULL)
+		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
+	else
+		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
 
+	//pthread_mutex_lock(&mutexDeDump);
 	if(existeLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe %s", nombreDeLaTabla);
 		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
+		//pthread_mutex_unlock(&mutexDeDump);
+		if(mutexTabla!=NULL){
+			desbloquearTablaFS(mutexTabla);
+			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+			}
 		return TABLA_NO_EXISTIA;
 	}else{
-		pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
-		if(mutexTabla!=NULL)
-			log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-		else
-			log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
 
 		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
 
@@ -108,6 +114,7 @@ int drop(char* nombreDeLaTabla){
 			}
 		eliminarDeListaDeTablasFS(nombreDeLaTabla);
 		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
+		//pthread_mutex_unlock(&mutexDeDump);
 		return TABLA_BORRADA;
 		}
 
@@ -155,19 +162,23 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	 * 5)Insertar en la memoria temporal del punto anterior una nueva entrada que
 	 * contenga los datos enviados en la request.
 	 */
+	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	if(mutexTabla!=NULL)
+		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
+	else
+		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
+
 	if(existeLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando hace un insert de una tabla que no existe %s", nombreDeLaTabla);
 		printf("Se esta intentando insertar una tabla que no existe %s\n", nombreDeLaTabla);
+		if(mutexTabla!=NULL){
+			desbloquearTablaFS(mutexTabla);
+			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+			}
 		return TABLA_NO_EXISTIA;
 	}else{
 		//t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
 		//pthread_mutex_lock(&mutexDeDump);
-
-		pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
-		if(mutexTabla!=NULL)
-			log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-		else
-			log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
 
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
