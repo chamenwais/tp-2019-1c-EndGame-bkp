@@ -271,7 +271,7 @@ int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 	}
 }
 
-int eliminarTemporales(char nombreDeLaTabla){
+int eliminarTemporales(char* nombreDeLaTabla){
 	char* aux=string_new();
 	string_append(&aux, configuracionDelFS.puntoDeMontaje);
 	string_append(&aux, "/Tables/");
@@ -280,8 +280,8 @@ int eliminarTemporales(char nombreDeLaTabla){
 	string_append(&aux, nombreDeLaTabla);
 	char* pathDelTemp;
 	//FILE* archivo;
-	bool encontrado=true;
-	for(int i=1;encontrado==true;i++){
+	bool encontrado=false;
+	for(int i=1;encontrado==false;i++){
 		pathDelTemp=string_new();
 		string_append(&pathDelTemp, aux);
 		char * auxitoa=string_itoa(i);
@@ -291,12 +291,12 @@ int eliminarTemporales(char nombreDeLaTabla){
 		log_info(LOGGERFS,"Viendo si existe el archivo %s", pathDelTemp);
 		encontrado=existeElArchivo(pathDelTemp);
 		if(encontrado==true){
-			log_error(LOGGERFS,"El nombre %s ya esta usado en otro dump", pathDelTemp);
+			remove(pathDelTemp);
+			log_info(LOGGERFS,"Voy a borrar el archivo %s", pathDelTemp);
 		}else{
-			log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
+			log_info(LOGGERFS,"No hay mas archivos temporales para borrar");
 			}
 		}
-	log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
 	free(aux);
 	return EXIT_SUCCESS;
 }
