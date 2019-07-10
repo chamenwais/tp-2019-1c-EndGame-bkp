@@ -53,7 +53,7 @@ void apagar_semaforos();
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int);
 void separar_path_pasado_por_parametro(char **, char **, char ** parametros);
 void recibir_handshakes(int);
-void imprimir_informacion_tabla_ajena(void *);
+void imprimir_informacion_memoria_ajena(void *);
 void recibir_tabla_de_gossip(int,int);
 void remover_memoria_cerrada_de_tabla_gossip(int);
 void enviar_tabla_gossip(int);
