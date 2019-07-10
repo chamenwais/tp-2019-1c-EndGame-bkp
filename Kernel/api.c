@@ -176,7 +176,7 @@ int man(){
 	printf("5) DESCRIBE [NOMBRE_TABLA]\n");
 	printf("6) DESCRIBE, da la info de todas las tablas\n");
 	printf("7) DROP [NOMBRE_TABLA]\n");
-	printf("8) \"reloadconfig\", recarga la configuracion del los archivos al sistema\n");
+	printf("8) \"reloadConfig\", recarga la configuracion del los archivos al sistema\n");
 	printf("9) \"METRICS\", informa las metricas actuales del Kernel\n");
 	printf("10) ADD MEMORY [NUMERO] TO [CRITERIO]\n");
 	return EXIT_SUCCESS;
@@ -216,6 +216,7 @@ int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de co
 	actualizarQuantum(nuevoQuantum);
 	log_info(LOG_KERNEL,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
 			configKernel.quantum);
+	quantum = nuevoQuantum;
 
 	//Recupero el tiempo refresh metadata
 	if(!config_has_property(configuracion,"REFRESH_METADATA")) {
@@ -237,11 +238,12 @@ int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de co
 		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	int retardo;
-	retardo = config_get_int_value(configuracion,"RETARDO_CICLO");
-	actualizarRetardo(retardo);
+	int retardoNuevo;
+	retardoNuevo = config_get_int_value(configuracion,"RETARDO_CICLO");
+	actualizarRetardo(retardoNuevo);
 	log_info(LOG_KERNEL,"Retardo ciclo del archivo de configuracion del KERNEL recuperado: %d",
 			configKernel.retardoCiclo);
+	retardo = retardoNuevo;
 
 	//Recupero el tiempo de gossip
 	if(!config_has_property(configuracion,"GOSSIP_TIME")) {

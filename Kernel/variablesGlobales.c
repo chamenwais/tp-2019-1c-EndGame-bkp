@@ -15,6 +15,7 @@ pthread_t threadRequest;
 pthread_t threadPCP;
 pthread_t hiloDescribeAll;
 pthread_t threadMonitoreadorDeArchivos;
+pthread_t hiloGossip;
 t_list* listaNew;
 t_list* listaReady;
 t_list* listaExec;
@@ -45,6 +46,7 @@ int quantum;
 int retardo;
 int path_api = 0;
 int ultima_memoria_EC = 100;
+int socket_primera_memoria;
 
 void configurar_signals(void) {
 	struct sigaction signal_struct;

@@ -15,6 +15,7 @@ int main(int argc,char** argv) {
 	if(levantarConfiguracionInicialDelKernel()==EXIT_SUCCESS){
 	configurar_signals();
 	if(conectarse_con_memoria(configKernel.ipMemoria, configKernel.puertoMemoria)==EXIT_SUCCESS){
+		socket_primera_memoria = ((tp_memo_del_pool_kernel)listaMemConectadas->head)->socket;
 		iniciar_proceso_describe_all();
 		if(lanzarConsola()==EXIT_SUCCESS){
 			if(lanzarPlanificador()==EXIT_SUCCESS){

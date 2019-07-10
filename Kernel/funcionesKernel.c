@@ -130,9 +130,9 @@ int actualizarRefresh(int refresh){
 	return EXIT_SUCCESS;
 	}
 
-int actualizarRetardo(int retardo){
+int actualizarRetardo(int retardoNuevo){
 	pthread_mutex_lock(&mutexVariableRetardo);
-	configKernel.retardoCiclo = retardo;
+	configKernel.retardoCiclo = retardoNuevo;
 	pthread_mutex_unlock(&mutexVariableRetardo);
 	return EXIT_SUCCESS;
 	}
@@ -181,7 +181,7 @@ int inicializarSemaforos(){
 }
 
 int conectarse_con_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectandose a la primera memoria en ip %s y puerto %i",
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
 	if(socket_mem < 0){
@@ -198,7 +198,6 @@ int conectarse_con_memoria(char* ip, int puerto){
 	entrada_tabla_memorias->puerto = puerto;
 	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
-
 
 	list_add(listaMemConectadas, entrada_tabla_memorias);
 
@@ -294,14 +293,6 @@ t_operacion parsear(char * linea){
 	return resultado_de_parsear;
 }
 
-
-void conocer_pool_memorias(){
-	logger(escribir_loguear, l_info, "Voy a consultar el pool de memorias");
-	tp_memo_del_pool_kernel primera_memo = list_get(listaMemConectadas, 0);
-	//TODO controlar si la primera sigue conectada, sino sacarla de la lista y pedirsela a la segunda.Quizas algun flag marcando que existe la q tomé?
-	enviarCabecera(primera_memo->socket, POOL_REQUEST, sizeof(int));
-
-}
 
 void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
 	bool coincidePath(void* nodo){
@@ -933,6 +924,63 @@ void* hacer_describe(){
 		}
 	}
 	return EXIT_SUCCESS;
+}
+
+void iniciar_pedido_gossip(){
+	pthread_t hiloGossip;
+	int resultado_de_crear_el_hilo = pthread_create (&hiloGossip, NULL, pedir_gossip, NULL);
+	if(resultado_de_crear_el_hilo!=0){
+		logger(escribir_loguear,l_error
+				,"Error al crear el hilo de pedido de gossip, el kernel se suicida");
+		terminar_programa(EXIT_FAILURE);
+	}
+	pthread_detach(hiloGossip);
+}
+
+void* pedir_gossip(){
+	while(1){
+		usleep(configKernel.gossip_time*1000);
+		logger(escribir_loguear, l_info, "Voy a pedir la tabla de gossip");
+		prot_enviar_pedido_tabla_gossiping(socket_primera_memoria);
+
+		logger(escribir_loguear, l_info, "Espero la rta de memoria...");
+		t_cabecera rta_pedido = recibirCabecera(socket_primera_memoria);
+
+		if(rta_pedido.tipoDeMensaje == PEDIDO_KERNEL_GOSSIP){
+			logger(escribir_loguear, l_info, "La memoria envio la tabla de gossip correctamente");
+			tp_tabla_gossiping tabla_nueva = prot_recibir_tabla_gossiping(rta_pedido.tamanio, socket_primera_memoria);
+
+			//conectarme a las memorias nuevas de la tabla gossip
+			conectarse_a_memorias_gossip(tabla_nueva);
+
+			logger(escribir_loguear, l_info, "Esta es la informacion recibida:");
+			//TODO mostrar lista memorias
+
+
+			//Libero la estructura que recibi
+			free(tabla_nueva);
+
+		}
+
+	}
+
+}
+
+void conectarse_a_memorias_gossip(t_list* lista_gossip){
+
+	void verificar_si_memoria_existe_en_mi_tabla_para_agregarla(void * memoria_gossip){
+			bool memoria_existe_en_mi_lista(void * memoria){
+				return string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_gossip)->ip,((tp_memo_del_pool_kernel)memoria)->ip)
+						&& string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_gossip)->puerto,((tp_memo_del_pool_kernel)memoria)->puerto);
+			}
+			if(!list_any_satisfy(listaMemConectadas, memoria_existe_en_mi_lista)){
+				logger(escribir_loguear, l_debug, "Voy a conectarme a la memoria");
+				conectarse_con_memoria(string_duplicate(((t_memo_del_pool*)memoria_gossip)->ip),
+								string_duplicate(((t_memo_del_pool*)memoria_gossip)->puerto));
+			}
+		}
+		list_iterate(listaMemConectadas, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
+
 }
 
 

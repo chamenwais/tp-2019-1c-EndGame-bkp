@@ -296,28 +296,11 @@ int eliminarTemporales(char* nombreDeLaTabla){
 		if(encontrado==true){
 
 			////////////////////
-			/*
-			char* directorio=string_new();
-			string_append(&directorio, configuracionDelFS.puntoDeMontaje);
-			string_append(&directorio, "/Tables/");
-			string_append(&directorio, nombreDeLaTabla);
-			string_append(&directorio, "/");
-			char* ubicacionDelBloque;
-			char* directorioDeBloques= string_new();
-			string_append(&directorioDeBloques,configuracionDelFS.puntoDeMontaje);
-			string_append(&directorioDeBloques,"/Blocks/");
-			char* auxatoi;
-			for(int i=0;i<metadataDeLaTabla.particiones;i++){
-				char* nombreDelArchivo=string_new();
-				string_append(&nombreDelArchivo, directorio);
-				auxatoi=string_itoa(i);
-				string_append(&nombreDelArchivo, auxatoi);
-				free(auxatoi);
-				string_append(&nombreDelArchivo, ".bin");
-				t_config* configuracion = config_create(nombreDelArchivo);
+				t_config* configuracion = config_create(pathDelTemp);
 				char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
 				config_destroy(configuracion);
 				pthread_mutex_lock(&mutexBitmap);
+				char* ubicacionDelBloque;
 				for(int i=0;arrayDeBloques[i]!=NULL;i++){
 					ubicacionDelBloque=string_new();
 					log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
@@ -332,19 +315,15 @@ int eliminarTemporales(char* nombreDeLaTabla){
 					}
 				free(arrayDeBloques);
 				pthread_mutex_unlock(&mutexBitmap);
-				log_info(LOGGERFS,"Borrando el archivo %s", nombreDelArchivo);
-				remove(nombreDelArchivo);
-				free(nombreDelArchivo);
-				}
-			free(directorio);
-			free(metadataDeLaTabla.consistencia);
-			free(directorioDeBloques);
-			*/
+				log_info(LOGGERFS,"Borrando el archivo %s", pathDelTemp);
+				remove(pathDelTemp);
+				free(pathDelTemp);
+
 			///////////////////
 
-
-			remove(pathDelTemp);
 			log_info(LOGGERFS,"Voy a borrar el archivo %s", pathDelTemp);
+			remove(pathDelTemp);
+
 		}else{
 			log_info(LOGGERFS,"No hay mas archivos temporales para borrar");
 			}

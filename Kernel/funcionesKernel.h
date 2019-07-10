@@ -21,7 +21,6 @@ int levantarConfiguracionInicialDelKernel();
 int conectarse_con_memoria(char* ip, int puerto);
 int inicializarListas();
 t_operacion parsear(char * linea);
-void conocer_pool_memorias();
 void enviar_handshake(int socket);
 void* funcionHiloRequest(void* pcb);
 int lanzarPlanificador();
@@ -55,6 +54,9 @@ int actualizarQuantum(int nuevoQuantum);
 int actualizarRefresh(int refresh);
 int actualizarRetardo(int retardo);
 int actualizarGossip(int gossip);
+void* pedir_gossip();
+void iniciar_pedido_gossip();
+void conectarse_a_memorias_gossip(t_list* lista_gossip);
 
 
 #endif /* FUNCIONESKERNEL_H_ */
