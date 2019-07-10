@@ -14,6 +14,7 @@ pthread_t threadPlanif;
 pthread_t threadRequest;
 pthread_t threadPCP;
 pthread_t hiloDescribeAll;
+pthread_t threadMonitoreadorDeArchivos;
 t_list* listaNew;
 t_list* listaReady;
 t_list* listaExec;
@@ -32,6 +33,10 @@ pthread_mutex_t mutex_EC;
 pthread_mutex_t mutex_HC;
 pthread_mutex_t mutex_SC;
 pthread_mutex_t mutex_tablas;
+pthread_mutex_t mutexVariableQuantum;
+pthread_mutex_t mutexVariableRefresh;
+pthread_mutex_t mutexVariableRetardo;
+pthread_mutex_t mutexVariableGossip;
 
 sem_t NEW;
 sem_t READY;

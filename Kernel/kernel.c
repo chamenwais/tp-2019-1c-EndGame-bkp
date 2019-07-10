@@ -19,9 +19,10 @@ int main(int argc,char** argv) {
 		if(lanzarConsola()==EXIT_SUCCESS){
 			if(lanzarPlanificador()==EXIT_SUCCESS){
 			if(lanzarPCP()==EXIT_SUCCESS){
+			if(lanzarMonitoreadorDeArchivo()){
 			if(esperarAQueTermineLaConsola()==EXIT_FAILURE){
 				terminar_programa(EXIT_FAILURE);
-			}}}}}}}
+			}}}}}}}}
 
 	return EXIT_SUCCESS;
 }
