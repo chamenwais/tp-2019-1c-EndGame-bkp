@@ -16,7 +16,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-bool exiteLaTabla(char* nombreDeLaTabla);
+bool existeLaTabla(char* nombreDeLaTabla);
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion);
 int drop(char* nombreDeLaTabla);

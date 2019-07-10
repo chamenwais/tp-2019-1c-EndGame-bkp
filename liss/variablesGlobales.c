@@ -229,7 +229,7 @@ void liberarRecursos(){
 	list_destroy_and_destroy_elements(tablasFS,liberarTablaFS);
 	pthread_mutex_unlock(&mutexListaTablasFS);
 	pthread_mutex_destroy(&mutexListaTablasFS);
-	printf("Memoria liberada, programa finalizado\n");
+	printf("Memoria liberada\nPROGRAMA FINALIZADO CORRECTAMENTE\n");
 	return;
 }
 
