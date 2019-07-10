@@ -131,6 +131,7 @@ extern pthread_t threadRequest;
 extern pthread_t threadPCP;
 extern pthread_t hiloDescribeAll;
 extern pthread_t threadMonitoreadorDeArchivos;
+extern pthread_t hiloGossip;
 extern t_list* listaNew;
 extern t_list* listaReady;
 extern t_list* listaExec;
@@ -158,7 +159,8 @@ extern sem_t READY;
 extern int quantum;
 extern int retardo;
 extern int path_api;
-int ultima_memoria_EC;
+extern int ultima_memoria_EC;
+extern int socket_primera_memoria;
 
 int inicializarVariablesGlobales();
 void terminar_programa(int codigo_finalizacion);

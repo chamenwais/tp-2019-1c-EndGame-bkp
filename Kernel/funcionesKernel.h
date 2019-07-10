@@ -21,7 +21,6 @@ int levantarConfiguracionInicialDelKernel();
 int conectarse_con_memoria(char* ip, int puerto);
 int inicializarListas();
 t_operacion parsear(char * linea);
-void conocer_pool_memorias();
 void enviar_handshake(int socket);
 void* funcionHiloRequest(void* pcb);
 int lanzarPlanificador();
