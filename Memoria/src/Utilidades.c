@@ -260,7 +260,8 @@ void leer_config(void) {
 void construir_lista_seeds(){
 	seeds=list_create();
 	for(int i=0;IPS_SEEDS[i]!=NULL;i++){
-		t_memo_del_pool *memoria_del_pool=crear_memo_del_pool(IPS_SEEDS[i],PUERTOS_SEEDS[i]);
+		t_memo_del_pool *memoria_del_pool=
+				crear_memo_del_pool(string_duplicate(IPS_SEEDS[i]),string_duplicate(PUERTOS_SEEDS[i]));
 		list_add(seeds, memoria_del_pool);
 	}
 }
@@ -358,7 +359,12 @@ void terminar_programa(int codigo_finalizacion){
 	config_destroy(g_config);
 	free(MEMORIA_PRINCIPAL);
 
-	if(mi_tabla_de_gossip!=NULL){
+	void destructor_memoria_del_pool(void * memo_del_pool){
+		free(((t_memo_del_pool*) memo_del_pool)->ip);
+		free(((t_memo_del_pool*) memo_del_pool)->puerto);
+		free((t_memo_del_pool *) memo_del_pool);
+	}
+	if(mi_tabla_de_gossip!=NULL && !list_is_empty(mi_tabla_de_gossip)){
 		char* ip_address = conocer_ip_propia();
 		bool es_memoria_propia(void* memoria){
 			return string_equals_ignore_case(((t_memo_del_pool*) memoria)->ip, ip_address);
@@ -368,15 +374,27 @@ void terminar_programa(int codigo_finalizacion){
 			free((t_memo_del_pool *) memo_del_pool);
 		}
 		list_remove_and_destroy_by_condition(mi_tabla_de_gossip, es_memoria_propia, destructor_memoria_propia);
+		bool no_es_una_seed(void* memoria){
+			if(list_is_empty(seeds)){
+				return true;
+			}
+			bool es_memoria_seed(void* memoria_seed){
+				logger(escribir_loguear, l_debug,"Evaluaremos %s, %s en es_memoria_seed", ((t_memo_del_pool*) memoria)->ip
+											, ((t_memo_del_pool*) memoria)->puerto);
+				return string_equals_ignore_case(((t_memo_del_pool*) memoria_seed)->ip
+							, ((t_memo_del_pool*) memoria)->ip)
+						&& string_equals_ignore_case(((t_memo_del_pool*) memoria_seed)->puerto
+								, ((t_memo_del_pool*) memoria)->puerto);
+			}
+			return !list_any_satisfy(seeds, es_memoria_seed);
+		}
+		list_remove_and_destroy_by_condition(mi_tabla_de_gossip, no_es_una_seed, destructor_memoria_del_pool);
 		list_destroy(mi_tabla_de_gossip);
 		free(ip_address);
 	}
 
-	if(seeds!=NULL){
-		void destructor_memo_del_pool(void * memo_del_pool){
-			free((t_memo_del_pool *) memo_del_pool);
-		}
-		list_destroy_and_destroy_elements(seeds, destructor_memo_del_pool);
+	if(seeds!=NULL && !list_is_empty(seeds)){
+		list_destroy_and_destroy_elements(seeds, destructor_memoria_del_pool);
 	}
 
 	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
@@ -516,15 +534,15 @@ void apagar_semaforos(){
 	pthread_mutex_destroy(&M_JOURNALING);
 }
 
-void imprimir_informacion_tabla_ajena(void * memoria_ajena){
-	logger(escribir_loguear, l_info, "El ip de la tabla es: %s", (*(t_memo_del_pool*)memoria_ajena).ip);
-	logger(escribir_loguear, l_info, "El puerto de la tabla es: %s", (*(t_memo_del_pool*)memoria_ajena).puerto);
+void imprimir_informacion_memoria_ajena(void * memoria_ajena){
+	logger(escribir_loguear, l_debug, "El ip de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).ip);
+	logger(escribir_loguear, l_debug, "El puerto de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).puerto);
 }
 
 void recibir_tabla_de_gossip(int socket, int tamanio){
 	logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
 	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio, socket);
-	list_iterate(tabla_ajena->lista, imprimir_informacion_tabla_ajena);
+	list_iterate(tabla_ajena->lista, imprimir_informacion_memoria_ajena);
 
 	agregar_memorias_no_existentes_en_mi_tabla_gossip(tabla_ajena->lista);
 
@@ -539,10 +557,11 @@ void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){
 			return string_equals_ignore_case(((t_memo_del_pool*)memoria_ajena)->ip,((t_memo_del_pool*)memoria)->ip)
 					&& string_equals_ignore_case(((t_memo_del_pool*)memoria_ajena)->puerto,((t_memo_del_pool*)memoria)->puerto);
 		}
-		if(!list_any_satisfy(memorias, memoria_existe_en_mi_tabla)){
-			((t_memo_del_pool*)memoria_ajena)->socket=0;
+		if(!list_any_satisfy(mi_tabla_de_gossip, memoria_existe_en_mi_tabla)){
 			logger(escribir_loguear, l_debug, "Voy a meter la sgte informacion en mi tabla de gossip:");
-			list_add(mi_tabla_de_gossip, memoria_ajena);
+			list_add(mi_tabla_de_gossip,
+					crear_memo_del_pool(string_duplicate(((t_memo_del_pool*)memoria_ajena)->ip),
+							string_duplicate(((t_memo_del_pool*)memoria_ajena)->puerto)));
 		}
 	}
 	list_iterate(memorias, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
