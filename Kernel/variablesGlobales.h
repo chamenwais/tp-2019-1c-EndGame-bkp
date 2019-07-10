@@ -21,6 +21,9 @@
 #include <semaphore.h>
 #include <commons/config.h>
 
+#define DIRECTORIO_CONFIG_DEFAULT "../"
+#define NOMBRE_ARCH_CONFIG_DEFAULT "kernel.config"
+
 enum tipo_logueo {
 	escribir,
 	loguear,
@@ -39,6 +42,7 @@ typedef struct definicionConfiguracionDelKernel {
 	int multiprocesamiento; //cantidad de scripts corriendo a la vez
 	int refreshMetadata;
 	int retardoCiclo;
+	int gossip_time;
 } t_configuracionDelKernel;
 
 typedef struct memo_del_pool_kernel {
@@ -126,6 +130,7 @@ extern pthread_t threadPlanif;
 extern pthread_t threadRequest;
 extern pthread_t threadPCP;
 extern pthread_t hiloDescribeAll;
+extern pthread_t threadMonitoreadorDeArchivos;
 extern t_list* listaNew;
 extern t_list* listaReady;
 extern t_list* listaExec;
@@ -144,6 +149,10 @@ extern pthread_mutex_t mutex_EC;
 extern pthread_mutex_t mutex_HC;
 extern pthread_mutex_t mutex_SC;
 extern pthread_mutex_t mutex_tablas;
+extern pthread_mutex_t mutexVariableQuantum;
+extern pthread_mutex_t mutexVariableRefresh;
+extern pthread_mutex_t mutexVariableRetardo;
+extern pthread_mutex_t mutexVariableGossip;
 extern sem_t NEW;
 extern sem_t READY;
 extern int quantum;

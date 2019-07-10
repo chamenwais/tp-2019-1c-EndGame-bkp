@@ -183,55 +183,81 @@ int man(){
 }
 
 int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de config
-	//Actualiza los datos lissandra con las modificaciones que se le hayan hecho a los achivos de configuracion
+	//Actualiza los datos Kernel con las modificaciones que se le hayan hecho a los achivos de configuracion
 	/* Solamente se pueden actualizar los valores:
-	 * retardo
-	 * tiempo_dump
-	 * en tiempo de ejecucion
-	char* pathCompleto;
-	pathCompleto=string_new();
-	string_append(&pathCompleto, pathDeMontajeDelPrograma);
-	string_append(&pathCompleto, "configuracionFS.cfg");
+	 * quantum
+	 * retardo del ciclo
+	 * refresh metadata
+	 * tiempo de gossip
+	 * en tiempo de ejecucion*/
+	char* ubicacionDelArchivoDeConfiguracion;
+		ubicacionDelArchivoDeConfiguracion="/Configuracion/kernel.config";
 
-	t_config* configuracion = config_create(pathCompleto);
+		t_config* configuracion = config_create(ubicacionDelArchivoDeConfiguracion);
 
-	if(configuracion!=NULL){
-		log_info(LOGGERFS,"El archivo de configuracion existe");
-	}else{
-		log_error(LOGGERFS,"No existe el archivo de configuracion en: %s",pathCompleto);
-		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		if(configuracion!=NULL){
+			logger(escribir_loguear, l_info,"El archivo de configuracion existe");
+		}else{
+			log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",ubicacionDelArchivoDeConfiguracion);
+			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+			return EXIT_FAILURE;
+			}
+		logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
+
+	//Recupero el quantum
+	if(!config_has_property(configuracion,"QUANTUM")) {
+		log_error(LOG_KERNEL,"No esta el QUANTUM en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	log_info(LOGGERFS,"Abriendo el archivo de configuracion del FS, su ubicacion es: %s",pathCompleto);
+	int nuevoQuantum;
+	nuevoQuantum = config_get_int_value(configuracion,"QUANTUM");
+	actualizarQuantum(nuevoQuantum);
+	log_info(LOG_KERNEL,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
+			configKernel.quantum);
 
-	//Recupero el tiempo dump
-	if(!config_has_property(configuracion,"TIEMPO_DUMP")) {
-		log_error(LOGGERFS,"No esta el TIEMPO_DUMP en el archivo de configuracion");
+	//Recupero el tiempo refresh metadata
+	if(!config_has_property(configuracion,"REFRESH_METADATA")) {
+		log_error(LOG_KERNEL,"No esta el REFRESH_METADATA en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	int tiempoDump;
-	tiempoDump = config_get_int_value(configuracion,"TIEMPO_DUMP");
-	actualizarTiempoDump(tiempoDump);
-	log_info(LOGGERFS,"Tiempo dump del archivo de configuracion del FS recuperado: %d",
-			obtenerTiempoDump());
+	int refresh;
+	refresh = config_get_int_value(configuracion,"REFRESH_METADATA");
+	actualizarRefresh(refresh);
+	log_info(LOG_KERNEL,"Refresh metadata del archivo de configuracion del KERNEL recuperado: %d",
+			configKernel.refreshMetadata);
 
-	//Recupero el retardo
-	if(!config_has_property(configuracion,"RETARDO")) {
-		log_error(LOGGERFS,"No esta el RETARDO en el archivo de configuracion");
+	//Recupero el tiempo de retardo del ciclo
+	if(!config_has_property(configuracion,"RETARDO_CICLO")) {
+		log_error(LOG_KERNEL,"No esta el RETARDO_CICLO en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOGGERFS,"No se pudo levantar la configuracion del FS, abortando");
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	int retardo;
-	retardo = config_get_int_value(configuracion,"RETARDO");
+	retardo = config_get_int_value(configuracion,"RETARDO_CICLO");
 	actualizarRetardo(retardo);
-	log_info(LOGGERFS,"Retardo del archivo de configuracion del FS recuperado: %d",
-			obtenerRetardo());
+	log_info(LOG_KERNEL,"Retardo ciclo del archivo de configuracion del KERNEL recuperado: %d",
+			configKernel.retardoCiclo);
+
+	//Recupero el tiempo de gossip
+	if(!config_has_property(configuracion,"GOSSIP_TIME")) {
+		log_error(LOG_KERNEL,"No esta el GOSSIP_TIME en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		return EXIT_FAILURE;
+		}
+	int gossip;
+	gossip = config_get_int_value(configuracion, "GOSSIP_TIME");
+	actualizarGossip(gossip);
+	log_info(LOG_KERNEL,"Gossip time del archivo de configuracion del KERNEL recuperado: %d",
+				configKernel.gossip_time);
 
 	config_destroy(configuracion);
-	log_info(LOGGERFS,"Configuracion del FS recuperada exitosamente");*/
+	log_info(LOG_KERNEL,"Configuracion del KERNEL recuperada exitosamente");
 
 	return EXIT_SUCCESS;
 }

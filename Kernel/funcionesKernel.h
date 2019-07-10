@@ -51,6 +51,10 @@ void* hacer_describe();
 int obtener_pos_tabla(char* tabla);
 void mostrar_lista_tablas();
 int calcularHash(int key);
+int actualizarQuantum(int nuevoQuantum);
+int actualizarRefresh(int refresh);
+int actualizarRetardo(int retardo);
+int actualizarGossip(int gossip);
 
 
 #endif /* FUNCIONESKERNEL_H_ */

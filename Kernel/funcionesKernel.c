@@ -18,7 +18,7 @@ void inicializarLogKernel(){
 int levantarConfiguracionInicialDelKernel(){
 
 	char* ubicacionDelArchivoDeConfiguracion;
-	ubicacionDelArchivoDeConfiguracion="kernel.config";
+	ubicacionDelArchivoDeConfiguracion="/Configuracion/kernel.config";
 
 	t_config* configuracion = config_create(ubicacionDelArchivoDeConfiguracion);
 
@@ -99,9 +99,48 @@ int levantarConfiguracionInicialDelKernel(){
 				configKernel.retardoCiclo);
 		retardo = configKernel.retardoCiclo;
 
+	//Recupero el tiempo de gossip
+		if(!config_has_property(configuracion,"GOSSIP_TIME")) {
+			log_error(LOG_KERNEL,"No esta el GOSSIP_TIME en el archivo de configuracion");
+			config_destroy(configuracion);
+			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+			return EXIT_FAILURE;
+			}
+		configKernel.gossip_time = config_get_int_value(configuracion,"GOSSIP_TIME");
+		logger(escribir_loguear, l_info,"gossip_time del archivo de configuracion del Kernel recuperado: %d",
+				configKernel.gossip_time);
+
 	config_destroy(configuracion);
 	logger(escribir_loguear, l_info,"Configuracion del Kernel recuperada exitosamente");
 
+	return EXIT_SUCCESS;
+	}
+
+int actualizarQuantum(int nuevoQuantum){
+	pthread_mutex_lock(&mutexVariableQuantum);
+	configKernel.quantum = nuevoQuantum;
+	pthread_mutex_unlock(&mutexVariableQuantum);
+	return EXIT_SUCCESS;
+	}
+
+int actualizarRefresh(int refresh){
+	pthread_mutex_lock(&mutexVariableRefresh);
+	configKernel.refreshMetadata = refresh;
+	pthread_mutex_unlock(&mutexVariableRefresh);
+	return EXIT_SUCCESS;
+	}
+
+int actualizarRetardo(int retardo){
+	pthread_mutex_lock(&mutexVariableRetardo);
+	configKernel.retardoCiclo = retardo;
+	pthread_mutex_unlock(&mutexVariableRetardo);
+	return EXIT_SUCCESS;
+	}
+
+int actualizarGossip(int gossip){
+	pthread_mutex_lock(&mutexVariableGossip);
+	configKernel.gossip_time = gossip;
+	pthread_mutex_unlock(&mutexVariableGossip);
 	return EXIT_SUCCESS;
 	}
 
@@ -134,6 +173,10 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&mutex_EC, NULL);
 	pthread_mutex_init(&mutex_HC, NULL);
 	pthread_mutex_init(&mutex_tablas, NULL);
+	pthread_mutex_init(&mutexVariableQuantum, NULL);
+	pthread_mutex_init(&mutexVariableRefresh, NULL);
+	pthread_mutex_init(&mutexVariableRetardo, NULL);
+	pthread_mutex_init(&mutexVariableGossip, NULL);
 	return EXIT_SUCCESS;
 }
 
