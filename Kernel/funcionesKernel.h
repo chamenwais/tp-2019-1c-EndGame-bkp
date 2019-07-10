@@ -54,6 +54,9 @@ int actualizarQuantum(int nuevoQuantum);
 int actualizarRefresh(int refresh);
 int actualizarRetardo(int retardo);
 int actualizarGossip(int gossip);
+void* pedir_gossip();
+void iniciar_pedido_gossip();
+void conectarse_a_memorias_gossip(t_list* lista_gossip);
 
 
 #endif /* FUNCIONESKERNEL_H_ */
