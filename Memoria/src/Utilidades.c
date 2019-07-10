@@ -374,21 +374,19 @@ void terminar_programa(int codigo_finalizacion){
 			free((t_memo_del_pool *) memo_del_pool);
 		}
 		list_remove_and_destroy_by_condition(mi_tabla_de_gossip, es_memoria_propia, destructor_memoria_propia);
+
 		bool no_es_una_seed(void* memoria){
 			if(list_is_empty(seeds)){
 				return true;
 			}
 			bool es_memoria_seed(void* memoria_seed){
-				logger(escribir_loguear, l_debug,"Evaluaremos %s, %s en es_memoria_seed", ((t_memo_del_pool*) memoria)->ip
-											, ((t_memo_del_pool*) memoria)->puerto);
-				return string_equals_ignore_case(((t_memo_del_pool*) memoria_seed)->ip
-							, ((t_memo_del_pool*) memoria)->ip)
-						&& string_equals_ignore_case(((t_memo_del_pool*) memoria_seed)->puerto
-								, ((t_memo_del_pool*) memoria)->puerto);
+				return ((t_memo_del_pool*) memoria_seed)==((t_memo_del_pool*) memoria);
 			}
 			return !list_any_satisfy(seeds, es_memoria_seed);
 		}
-		list_remove_and_destroy_by_condition(mi_tabla_de_gossip, no_es_una_seed, destructor_memoria_del_pool);
+		if(!list_is_empty(mi_tabla_de_gossip)){
+			list_remove_and_destroy_by_condition(mi_tabla_de_gossip, no_es_una_seed, destructor_memoria_del_pool);
+		}
 		list_destroy(mi_tabla_de_gossip);
 		free(ip_address);
 	}
@@ -545,6 +543,10 @@ void recibir_tabla_de_gossip(int socket, int tamanio){
 	list_iterate(tabla_ajena->lista, imprimir_informacion_memoria_ajena);
 
 	agregar_memorias_no_existentes_en_mi_tabla_gossip(tabla_ajena->lista);
+
+	//TODO solo para debuggear
+	logger(escribir_loguear, l_debug, "\nImprimo mi tabla de gossiping");
+	list_iterate(mi_tabla_de_gossip, imprimir_informacion_memoria_ajena);
 
 	//Libero la lista
 	prot_free_tp_tabla_gossiping(tabla_ajena);
