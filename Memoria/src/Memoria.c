@@ -324,6 +324,8 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 			break;
 		case GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
 			break;
+		case PEDIDO_KERNEL_GOSSIP: atender_gossiping_kernel(socket_cliente);
+			break;
 		default:
 			break;
 	}

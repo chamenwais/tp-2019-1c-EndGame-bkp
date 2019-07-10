@@ -279,9 +279,12 @@ int eliminarTemporales(char* nombreDeLaTabla){
 	string_append(&aux, "/");
 	string_append(&aux, nombreDeLaTabla);
 	char* pathDelTemp;
+	char* directorioDeBloques= string_new();
+	string_append(&directorioDeBloques,configuracionDelFS.puntoDeMontaje);
+	string_append(&directorioDeBloques,"/Blocks/");
 	//FILE* archivo;
-	bool encontrado=false;
-	for(int i=1;encontrado==false;i++){
+	bool encontrado=true;
+	for(int i=1;encontrado==true;i++){
 		pathDelTemp=string_new();
 		string_append(&pathDelTemp, aux);
 		char * auxitoa=string_itoa(i);
@@ -291,6 +294,55 @@ int eliminarTemporales(char* nombreDeLaTabla){
 		log_info(LOGGERFS,"Viendo si existe el archivo %s", pathDelTemp);
 		encontrado=existeElArchivo(pathDelTemp);
 		if(encontrado==true){
+
+			////////////////////
+			/*
+			char* directorio=string_new();
+			string_append(&directorio, configuracionDelFS.puntoDeMontaje);
+			string_append(&directorio, "/Tables/");
+			string_append(&directorio, nombreDeLaTabla);
+			string_append(&directorio, "/");
+			char* ubicacionDelBloque;
+			char* directorioDeBloques= string_new();
+			string_append(&directorioDeBloques,configuracionDelFS.puntoDeMontaje);
+			string_append(&directorioDeBloques,"/Blocks/");
+			char* auxatoi;
+			for(int i=0;i<metadataDeLaTabla.particiones;i++){
+				char* nombreDelArchivo=string_new();
+				string_append(&nombreDelArchivo, directorio);
+				auxatoi=string_itoa(i);
+				string_append(&nombreDelArchivo, auxatoi);
+				free(auxatoi);
+				string_append(&nombreDelArchivo, ".bin");
+				t_config* configuracion = config_create(nombreDelArchivo);
+				char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
+				config_destroy(configuracion);
+				pthread_mutex_lock(&mutexBitmap);
+				for(int i=0;arrayDeBloques[i]!=NULL;i++){
+					ubicacionDelBloque=string_new();
+					log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
+					liberarBloqueDelBitmap(atoi(arrayDeBloques[i]));
+					string_append(&ubicacionDelBloque,directorioDeBloques);
+					string_append(&ubicacionDelBloque,arrayDeBloques[i]);
+					string_append(&ubicacionDelBloque,".bin");
+					log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
+					remove(ubicacionDelBloque);
+					free(ubicacionDelBloque);
+					free(arrayDeBloques[i]);
+					}
+				free(arrayDeBloques);
+				pthread_mutex_unlock(&mutexBitmap);
+				log_info(LOGGERFS,"Borrando el archivo %s", nombreDelArchivo);
+				remove(nombreDelArchivo);
+				free(nombreDelArchivo);
+				}
+			free(directorio);
+			free(metadataDeLaTabla.consistencia);
+			free(directorioDeBloques);
+			*/
+			///////////////////
+
+
 			remove(pathDelTemp);
 			log_info(LOGGERFS,"Voy a borrar el archivo %s", pathDelTemp);
 		}else{
