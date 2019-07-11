@@ -180,6 +180,35 @@ int inicializarSemaforos(){
 	return EXIT_SUCCESS;
 }
 
+int conectarse_con_primera_memoria(char* ip, int puerto){
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
+			ip, puerto);
+	int socket_mem = conectarseA(ip, puerto);
+	if(socket_mem < 0){
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		close(socket_mem);
+		terminar_programa(EXIT_SUCCESS);
+	}
+	enviar_handshake(socket_mem);
+
+	int numero_de_memoria = prot_recibir_int(socket_mem);
+
+	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
+	entrada_tabla_memorias->ip = ip;
+	entrada_tabla_memorias->puerto = puerto;
+	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
+	entrada_tabla_memorias->socket = socket_mem;
+
+	list_add(listaMemConectadas, entrada_tabla_memorias);
+
+	socket_primera_memoria = socket_mem;
+
+	describeAll(socket_mem);
+
+	return EXIT_SUCCESS;
+}
+
+
 int conectarse_con_memoria(char* ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
 			ip, puerto);
