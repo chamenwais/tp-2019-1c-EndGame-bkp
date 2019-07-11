@@ -12,7 +12,7 @@
 #define BUF_LEN ( 1024 * EVENT_SIZE )
 
 int lanzarMonitoreadorDeArchivo(){
-	log_info(LOG_KERNEL,"Iniciando hilo monitoreador de archivo");
+	logger(escribir_loguear, l_info,"Iniciando hilo monitoreador de archivo");
 	int resultadoDeCrearHilo = pthread_create( &threadMonitoreadorDeArchivos, NULL,
 			funcionMonitorDeArchivos, "Hilo monitor de archivos");
 	pthread_detach(threadMonitoreadorDeArchivos);
@@ -21,7 +21,7 @@ int lanzarMonitoreadorDeArchivo(){
 				resultadoDeCrearHilo);
 		exit(EXIT_FAILURE);
 	}else{
-		log_info(LOG_KERNEL,"El hilo monitor de arhivos se creo exitosamente");
+		logger(escribir_loguear, l_info,"El hilo monitor de archivos se creo exitosamente");
 		return EXIT_SUCCESS;
 		}
 	return EXIT_SUCCESS;
@@ -34,7 +34,7 @@ int funcionMonitorDeArchivos(){
 	int file_descriptor;
 	char* directorioDeConfig = string_new();
 	string_append(&directorioDeConfig, "/home/utnso/Escritorio/tp-2019-1c-EndGame/Kernel/Debug/Configuracion");
-	log_info(LOG_KERNEL,"El directorio sobre el que va a trabajar el inotify es %s", directorioDeConfig);
+	logger(escribir_loguear, l_info,"El directorio sobre el que va a trabajar el inotify es %s", directorioDeConfig);
 
 	file_descriptor = inotify_init();
 	if(file_descriptor<0){
@@ -47,17 +47,17 @@ int funcionMonitorDeArchivos(){
 		}
 	offset = 0;
 	while((offset<length)){
-		log_info(LOG_KERNEL,"Aguardando por una modificacion");
+		logger(escribir_loguear, l_info,"Aguardando por una modificacion");
 		struct inotify_event *event = (struct inotify_event *) &buffer[offset];
 		// El campo "len" nos indica la longitud del tamaño del nombre
 		if(event->len){
 			if (event->mask & IN_MODIFY) {
 				if (event->mask & IN_ISDIR) {
-					log_info(LOG_KERNEL,"El directorio %s fue modificado", event->name);
+					logger(escribir_loguear, l_info,"El directorio %s fue modificado", event->name);
 				}else{
 					//log_error(LOG_KERNEL,"1 El archivo %s fue modificado", event->name);
 					if(strcmp(event->name,"kernel.config")==0){
-						log_info(LOG_KERNEL,"El archivo %s fue modificado", event->name);
+						logger(escribir_loguear, l_info,"El archivo %s fue modificado", event->name);
 						reloadConfig();
 						}
 					}
@@ -68,7 +68,7 @@ int funcionMonitorDeArchivos(){
 		}
 	inotify_rm_watch(file_descriptor, watch_descriptor);
 	close(file_descriptor);
-	log_info(LOG_KERNEL,"Finalizando funcion funcionMonitorDeArchivos");
+	logger(escribir_loguear, l_info,"Finalizando funcion funcionMonitorDeArchivos");
 	return EXIT_SUCCESS;
 
 }
