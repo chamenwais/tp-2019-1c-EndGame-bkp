@@ -16,26 +16,25 @@ void inicializarLogKernel(){
 }
 
 int levantarConfiguracionInicialDelKernel(){
-
 	char* ubicacionDelArchivoDeConfiguracion;
-	ubicacionDelArchivoDeConfiguracion="/Configuracion/kernel.config";
+	ubicacionDelArchivoDeConfiguracion="Configuracion/kernel.config";
 
 	t_config* configuracion = config_create(ubicacionDelArchivoDeConfiguracion);
 
 	if(configuracion!=NULL){
 		logger(escribir_loguear, l_info,"El archivo de configuracion existe");
 	}else{
-		log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",ubicacionDelArchivoDeConfiguracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		logger(escribir_loguear, l_error,"No existe el archivo de configuracion en: %s",ubicacionDelArchivoDeConfiguracion);
+		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
 
 	//Recupero el IP de la Memoria
 	if(!config_has_property(configuracion,"IP_MEMORIA")) {
-		log_error(LOG_KERNEL,"No esta el IP_MEMORIA en el archivo de configuracion");
+		logger(escribir_loguear, l_error,"No esta el IP_MEMORIA en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	char* ipMemoria = config_get_string_value(configuracion,"IP_MEMORIA");
@@ -45,9 +44,9 @@ int levantarConfiguracionInicialDelKernel(){
 			configKernel.ipMemoria);
 	//Recupero el puerto de la memoria
 	if(!config_has_property(configuracion,"PUERTO_MEMORIA")) {
-		log_error(LOG_KERNEL,"No esta el PUERTO_MEMORIA en el archivo de configuracion");
+		logger(escribir_loguear, l_error,"No esta el PUERTO_MEMORIA en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	configKernel.puertoMemoria = config_get_int_value(configuracion, "PUERTO_MEMORIA");
@@ -55,9 +54,9 @@ int levantarConfiguracionInicialDelKernel(){
 		configKernel.puertoMemoria);
 	//Recupero el quantum
 	if(!config_has_property(configuracion,"QUANTUM")) {
-		log_error(LOG_KERNEL,"No esta el QUANTUM en el archivo de configuracion");
+		logger(escribir_loguear, l_error,"No esta el QUANTUM en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	configKernel.quantum = config_get_int_value(configuracion,"QUANTUM");
@@ -67,9 +66,9 @@ int levantarConfiguracionInicialDelKernel(){
 
 	//Recupero el valor de multiprocesamiento
 	if(!config_has_property(configuracion,"MULTIPROCESAMIENTO")) {
-		log_error(LOG_KERNEL,"No esta el MULTIPROCESAMIENTO en el archivo de configuracion");
+		logger(escribir_loguear, l_error,"No esta el MULTIPROCESAMIENTO en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	configKernel.multiprocesamiento = config_get_int_value(configuracion,"MULTIPROCESAMIENTO");
@@ -78,9 +77,9 @@ int levantarConfiguracionInicialDelKernel(){
 
 	//Recupero el tiempo refresh metadata
 	if(!config_has_property(configuracion,"REFRESH_METADATA")) {
-		log_error(LOG_KERNEL,"No esta el REFRESH_METADATA en el archivo de configuracion");
+		logger(escribir_loguear, l_error,"No esta el REFRESH_METADATA en el archivo de configuracion");
 		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	configKernel.refreshMetadata = config_get_int_value(configuracion,"REFRESH_METADATA");
@@ -89,9 +88,9 @@ int levantarConfiguracionInicialDelKernel(){
 
 	//Recupero el tiempo de retardo del ciclo
 		if(!config_has_property(configuracion,"RETARDO_CICLO")) {
-			log_error(LOG_KERNEL,"No esta el RETARDO_CICLO en el archivo de configuracion");
+			logger(escribir_loguear, l_error,"No esta el RETARDO_CICLO en el archivo de configuracion");
 			config_destroy(configuracion);
-			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+			logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 			return EXIT_FAILURE;
 			}
 		configKernel.retardoCiclo = config_get_int_value(configuracion,"RETARDO_CICLO");
@@ -101,9 +100,9 @@ int levantarConfiguracionInicialDelKernel(){
 
 	//Recupero el tiempo de gossip
 		if(!config_has_property(configuracion,"GOSSIP_TIME")) {
-			log_error(LOG_KERNEL,"No esta el GOSSIP_TIME en el archivo de configuracion");
+			logger(escribir_loguear, l_error,"No esta el GOSSIP_TIME en el archivo de configuracion");
 			config_destroy(configuracion);
-			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+			logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 			return EXIT_FAILURE;
 			}
 		configKernel.gossip_time = config_get_int_value(configuracion,"GOSSIP_TIME");
@@ -179,6 +178,35 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&mutexVariableGossip, NULL);
 	return EXIT_SUCCESS;
 }
+
+int conectarse_con_primera_memoria(char* ip, int puerto){
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
+			ip, puerto);
+	int socket_mem = conectarseA(ip, puerto);
+	if(socket_mem < 0){
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		close(socket_mem);
+		terminar_programa(EXIT_SUCCESS);
+	}
+	enviar_handshake(socket_mem);
+
+	int numero_de_memoria = prot_recibir_int(socket_mem);
+
+	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
+	entrada_tabla_memorias->ip = ip;
+	entrada_tabla_memorias->puerto = puerto;
+	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
+	entrada_tabla_memorias->socket = socket_mem;
+
+	list_add(listaMemConectadas, entrada_tabla_memorias);
+
+	socket_primera_memoria = socket_mem;
+
+	describeAll(socket_mem);
+
+	return EXIT_SUCCESS;
+}
+
 
 int conectarse_con_memoria(char* ip, int puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",

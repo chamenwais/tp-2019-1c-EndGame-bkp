@@ -18,6 +18,7 @@
 void inicializarLogKernel();
 int inicializarVariablesGlobales();
 int levantarConfiguracionInicialDelKernel();
+int conectarse_con_primera_memoria(char* ip, int puerto);
 int conectarse_con_memoria(char* ip, int puerto);
 int inicializarListas();
 t_operacion parsear(char * linea);
