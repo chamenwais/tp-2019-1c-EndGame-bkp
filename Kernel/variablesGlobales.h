@@ -20,6 +20,7 @@
 #include <lqvg/utils.h>
 #include <semaphore.h>
 #include <commons/config.h>
+#include <sys/inotify.h>
 
 #define DIRECTORIO_CONFIG_DEFAULT "../"
 #define NOMBRE_ARCH_CONFIG_DEFAULT "kernel.config"
@@ -122,8 +123,15 @@ typedef struct {
 	} parametros;
 } t_operacion;
 
+struct path_archivo_conf {
+	char * directorio;
+	char * nombre_archivo;
+};
+typedef struct path_archivo_conf t_path_archivo_conf;
+
 
 extern t_configuracionDelKernel configKernel;
+extern t_config * k_config;
 extern t_log* LOG_KERNEL;
 extern pthread_t threadConsola;
 extern pthread_t threadPlanif;
@@ -154,6 +162,11 @@ extern pthread_mutex_t mutexVariableQuantum;
 extern pthread_mutex_t mutexVariableRefresh;
 extern pthread_mutex_t mutexVariableRetardo;
 extern pthread_mutex_t mutexVariableGossip;
+extern pthread_mutex_t M_RUTA_ARCHIVO_CONF;
+extern pthread_mutex_t M_CONF_FD;
+extern pthread_mutex_t M_WATCH_DESCRIPTOR;
+extern pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
+
 extern sem_t NEW;
 extern sem_t READY;
 extern int quantum;

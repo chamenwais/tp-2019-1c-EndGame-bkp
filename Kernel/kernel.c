@@ -12,6 +12,7 @@ int main(int argc,char** argv) {
 	inicializarLogKernel();
 	inicializarSemaforos();
 	inicializarListas();
+	iniciar_config(argc,argv);
 	if(levantarConfiguracionInicialDelKernel()==EXIT_SUCCESS){
 	configurar_signals();
 	if(conectarse_con_primera_memoria(configKernel.ipMemoria, configKernel.puertoMemoria)==EXIT_SUCCESS){
@@ -19,10 +20,9 @@ int main(int argc,char** argv) {
 		if(lanzarConsola()==EXIT_SUCCESS){
 			if(lanzarPlanificador()==EXIT_SUCCESS){
 			if(lanzarPCP()==EXIT_SUCCESS){
-			if(lanzarMonitoreadorDeArchivo()){
 			if(esperarAQueTermineLaConsola()==EXIT_FAILURE){
 				terminar_programa(EXIT_FAILURE);
-			}}}}}}}}
+			}}}}}}}
 
 	return EXIT_SUCCESS;
 }
