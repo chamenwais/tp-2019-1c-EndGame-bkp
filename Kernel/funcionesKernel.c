@@ -489,6 +489,11 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 
 		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
 			logger(escribir_loguear, l_error, "No existe la tabla en el FS");
+		}else if(rta_pedido.tipoDeMensaje == NO_HAY_MAS_MARCOS_EN_LA_MEMORIA){
+			logger(escribir_loguear, l_info, "La memoria esta llena, procedo a pedir un Journal");
+			operacion_journal(socket_memoria);
+			logger(escribir_loguear, l_info, "Luego del JOURNAL se vuelve a enviar el SELECT");
+			operacion_select(nombre_tabla, key, pcb, socket_memoria);
 		}
 
 	}else{//termino el script
@@ -520,6 +525,11 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 		if(insercion == REQUEST_SUCCESS){
 			logger(escribir_loguear, l_info, "La memoria realizo el insert correctamente");
+		}else if(insercion == NO_HAY_MAS_MARCOS_EN_LA_MEMORIA){
+			logger(escribir_loguear, l_info, "La memoria esta llena, procedo a pedir un Journal");
+			operacion_journal(socket_memoria);
+			logger(escribir_loguear, l_info, "Luego del JOURNAL se vuelve a enviar el INSERT");
+			operacion_insert(nombre_tabla, key, value, pcb, socket_memoria);
 		}
 	}else{//terminar script
 		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
@@ -611,7 +621,7 @@ void describeAll(int socket_memoria) {
 			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
 			tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
-			if(existeTabla(tabla->nombre_tabla) && (strcmp(((tp_entrada_tabla_creada) nodo)->criterio, tabla->criterio))!=0){
+			if(existeTabla(tabla->nombre_tabla) && (string_equals_ignore_case(((tp_entrada_tabla_creada) nodo)->criterio, tabla->criterio))){
 				int pos = obtener_pos_tabla(tabla->nombre_tabla);
 				pthread_mutex_lock(&mutex_tablas);
 				list_remove(listaTablasCreadas, pos);
@@ -721,7 +731,14 @@ void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria){
 
 }
 
-void operacion_journal(){
+void operacion_journal(int socket){
+	prot_enviar_journal(socket);
+	enum MENSAJES respuesta = prot_recibir_respuesta_journal(socket);
+	if(respuesta == REQUEST_SUCCESS){
+		logger(escribir_loguear, l_info, "La memoria realizo un JOURNAL correctamente");
+	}else{
+		logger(escribir_loguear, l_info, "Error al realizar el JOURNAL en la memoria");
+	}
 
 }
 
@@ -746,7 +763,7 @@ void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int 
 			operacion_drop(resultado_del_parseado.parametros.drop.nombre_tabla,pcb, socket_memoria);
 			break;
 		case JOURNAL:
-			operacion_journal();
+			operacion_journal(socket_memoria);
 			break;
 	}
 }

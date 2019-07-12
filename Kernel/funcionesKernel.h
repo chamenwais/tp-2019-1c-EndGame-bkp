@@ -41,7 +41,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria);
 void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria);
 void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria);
-void operacion_journal();
+void operacion_journal(int socket);
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion);
 int lanzarPCP();
 void* funcionHiloPCP();
