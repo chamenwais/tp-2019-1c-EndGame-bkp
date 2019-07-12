@@ -124,5 +124,7 @@ tp_tabla_gossiping prot_recibir_tabla_gossiping(int, int);
 void prot_free_tp_tabla_gossiping(tp_tabla_gossiping);
 void prot_enviar_pedido_tabla_gossiping(int);
 void prot_enviar_mi_tabla_gossiping_a_kernel(t_tabla_gossiping, int);
+void enviar_sin_esperar_tabla_gossip(t_tabla_gossiping, int, t_paquete*);
+void prot_enviar_y_esperar_tabla_gossiping(t_tabla_gossiping, int);
 
 #endif
