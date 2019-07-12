@@ -8,6 +8,7 @@
 #include "variablesGlobales.h"
 
 t_configuracionDelKernel configKernel;
+t_config * k_config;
 t_log* LOG_KERNEL;
 pthread_t threadConsola;
 pthread_t threadPlanif;
@@ -38,6 +39,10 @@ pthread_mutex_t mutexVariableQuantum;
 pthread_mutex_t mutexVariableRefresh;
 pthread_mutex_t mutexVariableRetardo;
 pthread_mutex_t mutexVariableGossip;
+pthread_mutex_t M_RUTA_ARCHIVO_CONF;
+pthread_mutex_t M_CONF_FD;
+pthread_mutex_t M_WATCH_DESCRIPTOR;
+pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
 
 sem_t NEW;
 sem_t READY;

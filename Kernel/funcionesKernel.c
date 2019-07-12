@@ -15,101 +15,231 @@ void inicializarLogKernel(){
 	return;
 }
 
+char* reconstruir_path_archivo(char* directorio, char* nombre_archivo) {
+	char* path = string_new();
+	string_append(&path, directorio);
+	string_append(&path, nombre_archivo);
+	return path;
+}
+
+
+void separar_path_pasado_por_parametro(char ** nombre_archivo, char ** directorio, char ** parametros){
+	char** path_a_separar = string_n_split(parametros[1], 20, "/");
+
+	int final = 0,cont = 0;
+	while(path_a_separar[final]){
+		final++;
+		if(path_a_separar[final]!=NULL){
+			cont++;
+		}
+	}
+	string_append(nombre_archivo, path_a_separar[cont]);
+	logger(escribir_loguear, l_debug,"El nombre del archivo es %s", *nombre_archivo);
+
+	string_append(directorio,"/");
+
+	int cont2 = 0;
+	while(cont2 <= (cont-1)){
+		string_append_with_format(directorio, "%s/", path_a_separar[cont2]);
+		cont2++;
+	}
+
+	logger(escribir_loguear, l_debug,"EL directorio es %s", *directorio);
+
+	int j = 0;
+	while(path_a_separar[j]){
+		free(path_a_separar[j]);
+		j++;
+	}
+
+	free(path_a_separar);
+}
+
+void iniciar_config(int cantidad_parametros, char ** parametros) {
+	char * directorio=string_new();
+	char * nombre_archivo=string_new();
+	if (cantidad_parametros>1){
+		separar_path_pasado_por_parametro(&nombre_archivo, &directorio, parametros);
+		k_config = config_create(parametros[1]);
+	} else {
+		free(directorio);
+		free(nombre_archivo);
+		directorio=string_duplicate(DIRECTORIO_CONFIG_DEFAULT);
+		nombre_archivo=string_duplicate(NOMBRE_ARCH_CONFIG_DEFAULT);
+		char* path = reconstruir_path_archivo(directorio, nombre_archivo);
+		k_config = config_create(path);
+		free(path);
+	}
+	validar_apertura_archivo_configuracion();
+	iniciar_escucha_cambios_conf(directorio, nombre_archivo);
+}
+
+void validar_apertura_archivo_configuracion() {
+	if (k_config == NULL) {
+		logger(escribir_loguear,l_error, "No encontré el archivo de configuración");
+		log_destroy(LOG_KERNEL);
+		exit(EXIT_FAILURE);
+	}
+}
+
+void iniciar_escucha_cambios_conf(char * directorio, char * nombre_archivo){
+	pthread_t hilo_cambios_conf;
+	t_path_archivo_conf * str_ruta_archivo_conf=malloc(sizeof(t_path_archivo_conf));
+	str_ruta_archivo_conf->directorio=directorio;
+	str_ruta_archivo_conf->nombre_archivo=nombre_archivo;
+	int resultado_de_hacer_el_hilo = pthread_create (&hilo_cambios_conf, NULL
+			, escuchar_cambios_conf, str_ruta_archivo_conf);
+	if(resultado_de_hacer_el_hilo!=0){
+		if(resultado_de_hacer_el_hilo!=0){
+			logger(escribir_loguear,l_error
+					,"Error al crear el hilo de escucha de cambios de conf, levantá la memoria de nuevo");
+			free(str_ruta_archivo_conf);
+			terminar_programa(EXIT_FAILURE);
+		}
+	}
+	pthread_detach(hilo_cambios_conf);
+}
+
+void *escuchar_cambios_conf(void * estructura_path){
+
+	pthread_mutex_lock(&M_RUTA_ARCHIVO_CONF);
+	ruta_archivo_conf=estructura_path;
+	pthread_mutex_unlock(&M_RUTA_ARCHIVO_CONF);
+
+	char buffer[BUF_LEN];
+
+	pthread_mutex_lock(&M_CONF_FD);
+	conf_fd = inotify_init();
+	pthread_mutex_unlock(&M_CONF_FD);
+
+	if (conf_fd < 0) {
+		logger(escribir_loguear,l_error, "No se van a poder escuchar cambios en el archivo de configuración");
+		free(ruta_archivo_conf);
+		return EXIT_SUCCESS;
+	}
+	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
+	watch_descriptor = inotify_add_watch(conf_fd, ruta_archivo_conf->directorio, IN_MODIFY);
+	pthread_mutex_unlock(&M_WATCH_DESCRIPTOR);
+
+	int length = read(conf_fd, buffer, BUF_LEN);
+	if (length < 0) {
+		logger(escribir_loguear,l_error, "No se van a poder escuchar cambios en el archivo de configuración");
+		free(ruta_archivo_conf);
+		return EXIT_SUCCESS;
+	}
+
+	pthread_mutex_lock(&M_PATH_ARCHIVO_CONFIGURACION);
+	path_archivo_configuracion=reconstruir_path_archivo(ruta_archivo_conf->directorio, ruta_archivo_conf->nombre_archivo);
+	pthread_mutex_unlock(&M_PATH_ARCHIVO_CONFIGURACION);
+
+	while (length>0) {
+		struct inotify_event *event = (struct inotify_event *) &buffer[0];
+		if (event->len>0 && (event->mask & IN_MODIFY)
+				&& string_equals_ignore_case(event->name, ruta_archivo_conf->nombre_archivo)) {
+
+			reloadConfig();
+			length = read(conf_fd, buffer, BUF_LEN);
+			if (conf_fd < 0) {
+				logger(escribir_loguear,l_error, "No se van a escuchar más cambios en el archivo de configuración");
+				return EXIT_SUCCESS;
+			}
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
+
 int levantarConfiguracionInicialDelKernel(){
-	char* ubicacionDelArchivoDeConfiguracion;
-	ubicacionDelArchivoDeConfiguracion="Configuracion/kernel.config";
 
-	t_config* configuracion = config_create(ubicacionDelArchivoDeConfiguracion);
-
-	if(configuracion!=NULL){
+	if(k_config!=NULL){
 		logger(escribir_loguear, l_info,"El archivo de configuracion existe");
 	}else{
-		logger(escribir_loguear, l_error,"No existe el archivo de configuracion en: %s",ubicacionDelArchivoDeConfiguracion);
+		logger(escribir_loguear, l_error,"No existe el archivo de configuracion en: %s",path_archivo_configuracion);
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
 	logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
 
 	//Recupero el IP de la Memoria
-	if(!config_has_property(configuracion,"IP_MEMORIA")) {
+	if(!config_has_property(k_config,"IP_MEMORIA")) {
 		logger(escribir_loguear, l_error,"No esta el IP_MEMORIA en el archivo de configuracion");
-		config_destroy(configuracion);
+		config_destroy(k_config);
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	char* ipMemoria = config_get_string_value(configuracion,"IP_MEMORIA");
+	char* ipMemoria = config_get_string_value(k_config,"IP_MEMORIA");
 	configKernel.ipMemoria = malloc(strlen(ipMemoria)+1);
 	strcpy(configKernel.ipMemoria, ipMemoria);
 	logger(escribir_loguear, l_info,"IP_MEMORIA del archivo de configuracion del Kernel recuperado: %s",
 			configKernel.ipMemoria);
 	//Recupero el puerto de la memoria
-	if(!config_has_property(configuracion,"PUERTO_MEMORIA")) {
+	if(!config_has_property(k_config,"PUERTO_MEMORIA")) {
 		logger(escribir_loguear, l_error,"No esta el PUERTO_MEMORIA en el archivo de configuracion");
-		config_destroy(configuracion);
+		config_destroy(k_config);
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	configKernel.puertoMemoria = config_get_int_value(configuracion, "PUERTO_MEMORIA");
+	configKernel.puertoMemoria = config_get_int_value(k_config, "PUERTO_MEMORIA");
 	logger(escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %d",
 		configKernel.puertoMemoria);
 	//Recupero el quantum
-	if(!config_has_property(configuracion,"QUANTUM")) {
+	if(!config_has_property(k_config,"QUANTUM")) {
 		logger(escribir_loguear, l_error,"No esta el QUANTUM en el archivo de configuracion");
-		config_destroy(configuracion);
+		config_destroy(k_config);
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	configKernel.quantum = config_get_int_value(configuracion,"QUANTUM");
+	configKernel.quantum = config_get_int_value(k_config,"QUANTUM");
 	logger(escribir_loguear, l_info,"Quantum del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.quantum);
 	quantum = configKernel.quantum;
 
 	//Recupero el valor de multiprocesamiento
-	if(!config_has_property(configuracion,"MULTIPROCESAMIENTO")) {
+	if(!config_has_property(k_config,"MULTIPROCESAMIENTO")) {
 		logger(escribir_loguear, l_error,"No esta el MULTIPROCESAMIENTO en el archivo de configuracion");
-		config_destroy(configuracion);
+		config_destroy(k_config);
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	configKernel.multiprocesamiento = config_get_int_value(configuracion,"MULTIPROCESAMIENTO");
+	configKernel.multiprocesamiento = config_get_int_value(k_config,"MULTIPROCESAMIENTO");
 	logger(escribir_loguear, l_info,"Multiprocesamiento del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.multiprocesamiento);
 
 	//Recupero el tiempo refresh metadata
-	if(!config_has_property(configuracion,"REFRESH_METADATA")) {
+	if(!config_has_property(k_config,"REFRESH_METADATA")) {
 		logger(escribir_loguear, l_error,"No esta el REFRESH_METADATA en el archivo de configuracion");
-		config_destroy(configuracion);
+		config_destroy(k_config);
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	configKernel.refreshMetadata = config_get_int_value(configuracion,"REFRESH_METADATA");
+	configKernel.refreshMetadata = config_get_int_value(k_config,"REFRESH_METADATA");
 	logger(escribir_loguear, l_info,"refresh metadata del archivo de configuracion del Kernel recuperado: %d",
 			configKernel.refreshMetadata);
 
 	//Recupero el tiempo de retardo del ciclo
-		if(!config_has_property(configuracion,"RETARDO_CICLO")) {
+		if(!config_has_property(k_config,"RETARDO_CICLO")) {
 			logger(escribir_loguear, l_error,"No esta el RETARDO_CICLO en el archivo de configuracion");
-			config_destroy(configuracion);
+			config_destroy(k_config);
 			logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 			return EXIT_FAILURE;
 			}
-		configKernel.retardoCiclo = config_get_int_value(configuracion,"RETARDO_CICLO");
+		configKernel.retardoCiclo = config_get_int_value(k_config,"RETARDO_CICLO");
 		logger(escribir_loguear, l_info,"retardo_ciclo del archivo de configuracion del Kernel recuperado: %d",
 				configKernel.retardoCiclo);
 		retardo = configKernel.retardoCiclo;
 
 	//Recupero el tiempo de gossip
-		if(!config_has_property(configuracion,"GOSSIP_TIME")) {
+		if(!config_has_property(k_config,"GOSSIP_TIME")) {
 			logger(escribir_loguear, l_error,"No esta el GOSSIP_TIME en el archivo de configuracion");
-			config_destroy(configuracion);
+			config_destroy(k_config);
 			logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 			return EXIT_FAILURE;
 			}
-		configKernel.gossip_time = config_get_int_value(configuracion,"GOSSIP_TIME");
+		configKernel.gossip_time = config_get_int_value(k_config,"GOSSIP_TIME");
 		logger(escribir_loguear, l_info,"gossip_time del archivo de configuracion del Kernel recuperado: %d",
 				configKernel.gossip_time);
 
-	config_destroy(configuracion);
+	config_destroy(k_config);
 	logger(escribir_loguear, l_info,"Configuracion del Kernel recuperada exitosamente");
 
 	return EXIT_SUCCESS;
@@ -176,6 +306,10 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&mutexVariableRefresh, NULL);
 	pthread_mutex_init(&mutexVariableRetardo, NULL);
 	pthread_mutex_init(&mutexVariableGossip, NULL);
+	pthread_mutex_init(&M_RUTA_ARCHIVO_CONF, NULL);
+	pthread_mutex_init(&M_CONF_FD, NULL);
+	pthread_mutex_init(&M_WATCH_DESCRIPTOR, NULL);
+	pthread_mutex_init(&M_PATH_ARCHIVO_CONFIGURACION, NULL);
 	return EXIT_SUCCESS;
 }
 

@@ -190,15 +190,13 @@ int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de co
 	 * refresh metadata
 	 * tiempo de gossip
 	 * en tiempo de ejecucion*/
-	char* ubicacionDelArchivoDeConfiguracion;
-		ubicacionDelArchivoDeConfiguracion="/Configuracion/kernel.config";
 
-		t_config* configuracion = config_create(ubicacionDelArchivoDeConfiguracion);
+		t_config* configuracion = config_create(path_archivo_configuracion);
 
 		if(configuracion!=NULL){
 			logger(escribir_loguear, l_info,"El archivo de configuracion existe");
 		}else{
-			log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",ubicacionDelArchivoDeConfiguracion);
+			log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",path_archivo_configuracion);
 			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
 			return EXIT_FAILURE;
 			}

@@ -14,8 +14,17 @@
 #include <commons/config.h>
 #include <commons/string.h>
 
+#define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
+#define BUF_LEN     ( 1024 * EVENT_SIZE )
+
 
 void inicializarLogKernel();
+void iniciar_config(int, char **);
+char* reconstruir_path_archivo(char* directorio, char* nombre_archivo);
+void separar_path_pasado_por_parametro(char ** nombre_archivo, char ** directorio, char ** parametros);
+void validar_apertura_archivo_configuracion();
+void iniciar_escucha_cambios_conf(char * directorio, char * nombre_archivo);
+void *escuchar_cambios_conf(void * estructura_path);
 int inicializarVariablesGlobales();
 int levantarConfiguracionInicialDelKernel();
 int conectarse_con_primera_memoria(char* ip, int puerto);
@@ -58,6 +67,8 @@ int actualizarGossip(int gossip);
 void* pedir_gossip();
 void iniciar_pedido_gossip();
 void conectarse_a_memorias_gossip(t_list* lista_gossip);
-
+t_path_archivo_conf *ruta_archivo_conf;
+int watch_descriptor,conf_fd;
+char * path_archivo_configuracion;
 
 #endif /* FUNCIONESKERNEL_H_ */

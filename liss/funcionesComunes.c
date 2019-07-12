@@ -18,6 +18,8 @@ bool existeLaTabla(char* nombreDeLaTabla){
 	string_append(&directorioDeLaTabla, nombreDeLaTabla);
 	struct stat st = {0};
 
+	log_info(LOGGERFS,"Hay una solicitud de existencia de tabla de %s", nombreDeLaTabla);
+
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -44,6 +46,9 @@ bool existeLaTabla(char* nombreDeLaTabla){
 
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 		int numeroDeParticiones, int tiempoDeCompactacion){
+
+	log_info(LOGGERFS,"Hay una solicitud de create de %s", nombreDeLaTabla);
+
 	if(existeLaTabla(nombreDeLaTabla)==false){
 
 		agregarAListaDeTablasFS(nombreDeLaTabla);
@@ -88,6 +93,8 @@ int drop(char* nombreDeLaTabla){
 	// 1) Verificar que la tabla exista en el file system.
 	// 2) Eliminar directorio y todos los archivos de dicha tabla.
 
+	log_info(LOGGERFS,"Hay una solicitud de drop de %s", nombreDeLaTabla);
+
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -126,6 +133,9 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 	 *	2) Leer el archivo Metadata de dicha tabla.
 	 *	3) Retornar el contenido del archivo.
 	 */
+
+	log_info(LOGGERFS,"Hay una solicitud de describe de %s", nombreDeLaTabla);
+
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -162,6 +172,7 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	 * 5)Insertar en la memoria temporal del punto anterior una nueva entrada que
 	 * contenga los datos enviados en la request.
 	 */
+	log_info(LOGGERFS,"Hay una solicitud insert de la tabla %s", nombreDeLaTabla);
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -216,6 +227,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	 *	5)Encontradas las entradas para dicha Key, se retorna el valor con el Timestamp
 	 *		más grande.
 	 */
+	log_info(LOGGERFS,"Hay una solicitud de select de %s", nombreDeLaTabla);
 	tp_nodoDeLaTabla resultado = NULL;
 	if(existeLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
