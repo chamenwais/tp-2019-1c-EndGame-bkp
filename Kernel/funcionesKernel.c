@@ -621,7 +621,7 @@ void describeAll(int socket_memoria) {
 			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
 			tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
-			if(existeTabla(tabla->nombre_tabla) && (strcmp(((tp_entrada_tabla_creada) nodo)->criterio, tabla->criterio))!=0){
+			if(existeTabla(tabla->nombre_tabla) && (string_equals_ignore_case(((tp_entrada_tabla_creada) nodo)->criterio, tabla->criterio))){
 				int pos = obtener_pos_tabla(tabla->nombre_tabla);
 				pthread_mutex_lock(&mutex_tablas);
 				list_remove(listaTablasCreadas, pos);
