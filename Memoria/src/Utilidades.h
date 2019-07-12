@@ -56,9 +56,12 @@ void recibir_handshakes(int);
 void imprimir_informacion_memoria_ajena(void *);
 void recibir_tabla_de_gossip(int,int);
 void remover_memoria_cerrada_de_tabla_gossip(int);
-void enviar_tabla_gossip(int);
+void enviar_sin_esperar_tabla_gossip(int);
+void enviar_y_esperar_tabla_gossip(int);
 t_memo_del_pool* crear_memo_del_pool(char*, char*);
 void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list *);
+void obtener_y_combinar_tablas_gossip(int, int);
+void recibir_y_enviar_tabla_de_gossip(int, int);
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;

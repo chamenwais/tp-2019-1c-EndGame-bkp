@@ -86,6 +86,7 @@ extern pthread_mutex_t M_JOURNALING;
 
 #define LFS "LFS"
 #define _KERNEL "KERNEL"
+#define _OTRA_MEMORIA "OTRA MEMORIA"
 #define FLAG_NO_MODIFICADO 0
 #define FLAG_MODIFICADO 1
 

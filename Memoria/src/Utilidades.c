@@ -490,11 +490,18 @@ void mandar_handshake_a(char * proceso, int socket, enum PROCESO enumProceso){
 	loguear_handshake_exitoso(socket, proceso);
 }
 
-void enviar_tabla_gossip(int socket) {
+void enviar_sin_esperar_tabla_gossip(int socket) {
 	t_tabla_gossiping descriptores;
 	descriptores.lista = mi_tabla_de_gossip;
 	prot_enviar_mi_tabla_gossiping(descriptores, socket);
 	logger(escribir_loguear, l_info, "Envie mi tabla de gossip por el socket %d",socket);
+}
+
+void enviar_y_esperar_tabla_gossip(int socket) {
+	t_tabla_gossiping descriptores;
+	descriptores.lista = mi_tabla_de_gossip;
+	prot_enviar_y_esperar_tabla_gossiping(descriptores, socket);
+	logger(escribir_loguear, l_info, "Envie mi tabla de gossip por el socket %d y la voy a recibir",socket);
 }
 
 void recibir_handshakes(int socket){
@@ -507,7 +514,7 @@ void recibir_handshakes(int socket){
 		prot_enviar_int(NUMERO_MEMORIA,socket);
 	}
 	if(procesoRecibido == MEMORIA){
-		enviar_tabla_gossip(socket);
+		loguear_handshake_exitoso(socket, _OTRA_MEMORIA);
 	}
 }
 
@@ -537,20 +544,31 @@ void imprimir_informacion_memoria_ajena(void * memoria_ajena){
 	logger(escribir_loguear, l_debug, "El puerto de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).puerto);
 }
 
-void recibir_tabla_de_gossip(int socket, int tamanio){
-	logger(escribir_loguear, l_debug, "Voy a recibir la tabla de gossiping de la memoria en el socket: %d", socket);
-	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio, socket);
+void obtener_y_combinar_tablas_gossip(int socket, int tamanio) {
+	logger(escribir_loguear, l_debug,
+			"Voy a recibir la tabla de gossiping de la memoria en el socket: %d",
+			socket);
+	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio,
+			socket);
 	list_iterate(tabla_ajena->lista, imprimir_informacion_memoria_ajena);
-
 	agregar_memorias_no_existentes_en_mi_tabla_gossip(tabla_ajena->lista);
-
-	//TODO solo para debuggear
-	logger(escribir_loguear, l_debug, "\nImprimo mi tabla de gossiping");
-	list_iterate(mi_tabla_de_gossip, imprimir_informacion_memoria_ajena);
-
 	//Libero la lista
 	prot_free_tp_tabla_gossiping(tabla_ajena);
+}
 
+void recibir_tabla_de_gossip(int socket, int tamanio){
+	obtener_y_combinar_tablas_gossip(socket, tamanio);
+//	//TODO solo para debuggear
+//	logger(escribir_loguear, l_debug, "\nImprimo mi tabla de gossiping");
+//	list_iterate(mi_tabla_de_gossip, imprimir_informacion_memoria_ajena);
+}
+
+void recibir_y_enviar_tabla_de_gossip(int socket, int tamanio){
+	obtener_y_combinar_tablas_gossip(socket, tamanio);
+	enviar_sin_esperar_tabla_gossip(socket);
+//	//TODO solo para debuggear
+//	logger(escribir_loguear, l_debug, "\nImprimo mi tabla de gossiping");
+//	list_iterate(mi_tabla_de_gossip, imprimir_informacion_memoria_ajena);
 }
 
 void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){
@@ -560,7 +578,6 @@ void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){
 					&& string_equals_ignore_case(((t_memo_del_pool*)memoria_ajena)->puerto,((t_memo_del_pool*)memoria)->puerto);
 		}
 		if(!list_any_satisfy(mi_tabla_de_gossip, memoria_existe_en_mi_tabla)){
-			logger(escribir_loguear, l_debug, "Voy a meter la sgte informacion en mi tabla de gossip:");
 			list_add(mi_tabla_de_gossip,
 					crear_memo_del_pool(string_duplicate(((t_memo_del_pool*)memoria_ajena)->ip),
 							string_duplicate(((t_memo_del_pool*)memoria_ajena)->puerto)));

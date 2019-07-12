@@ -92,10 +92,9 @@ t_list * conectarse_a_seeds(){
 				memoria_a_utilizar->socket=memoria_conectada;
 				list_add(tabla_de_gossip, memoria_a_utilizar);
 			}
-		} else {
-			if(memoria_a_utilizar->socket>0){
-				enviar_tabla_gossip(memoria_a_utilizar->socket);
-			}
+		}
+		if(memoria_a_utilizar->socket>0){
+			enviar_y_esperar_tabla_gossip(memoria_a_utilizar->socket);
 		}
 	}
 
@@ -322,7 +321,9 @@ void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensa
 			break;
 		case JOURNAL: atender_journal(socket_cliente);
 			break;
-		case GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
+		case RECIBIR_GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
+			break;
+		case ENVIAR_Y_RECIBIR_GOSSIPING: recibir_y_enviar_tabla_de_gossip(socket_cliente, tamanio);
 			break;
 		case PEDIDO_KERNEL_GOSSIP: atender_gossiping_kernel(socket_cliente);
 			break;

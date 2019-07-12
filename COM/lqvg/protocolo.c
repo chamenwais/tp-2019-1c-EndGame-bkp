@@ -372,30 +372,33 @@ void prot_enviar_pedido_tabla_gossiping(int socket){
 
 void prot_enviar_mi_tabla_gossiping_a_kernel(t_tabla_gossiping tabla_de_gossip, int socket){
 	t_paquete* paquete = crear_paquete(PEDIDO_KERNEL_GOSSIP);
+	enviar_sin_esperar_tabla_gossip(tabla_de_gossip, socket, paquete);
+}
+
+void enviar_sin_esperar_tabla_gossip(t_tabla_gossiping tabla_de_gossip, int socket,
+		t_paquete* paquete) {
 	int cantidad_descripciones = tabla_de_gossip.lista->elements_count;
-	agregar_int_a_paquete(paquete,cantidad_descripciones);
-	for(int i=0;i<cantidad_descripciones;i++){
-		tp_memo_del_pool descriptor = (tp_memo_del_pool)list_get(tabla_de_gossip.lista,i);
-		agregar_string_a_paquete(paquete,descriptor->ip,strlen(descriptor->ip)+1);
-		agregar_string_a_paquete(paquete, descriptor->puerto, strlen(descriptor->puerto)+1);
+	agregar_int_a_paquete(paquete, cantidad_descripciones);
+	for (int i = 0; i < cantidad_descripciones; i++) {
+		tp_memo_del_pool descriptor = (tp_memo_del_pool) list_get(
+				tabla_de_gossip.lista, i);
+		agregar_string_a_paquete(paquete, descriptor->ip,
+				strlen(descriptor->ip) + 1);
+		agregar_string_a_paquete(paquete, descriptor->puerto,
+				strlen(descriptor->puerto) + 1);
 	}
 	enviar_paquete(paquete, socket);
 	eliminar_paquete(paquete);
-
 }
 
 void prot_enviar_mi_tabla_gossiping(t_tabla_gossiping tabla_de_gossip, int socket){
-	t_paquete* paquete = crear_paquete(GOSSIPING);
-	int cantidad_descripciones = tabla_de_gossip.lista->elements_count;
-	agregar_int_a_paquete(paquete,cantidad_descripciones);
-	for(int i=0;i<cantidad_descripciones;i++){
-		tp_memo_del_pool descriptor = (tp_memo_del_pool)list_get(tabla_de_gossip.lista,i);
-		agregar_string_a_paquete(paquete,descriptor->ip,strlen(descriptor->ip)+1);
-		agregar_string_a_paquete(paquete, descriptor->puerto, strlen(descriptor->puerto)+1);
-	}
-	enviar_paquete(paquete, socket);
-	eliminar_paquete(paquete);
+	t_paquete* paquete = crear_paquete(RECIBIR_GOSSIPING);
+	enviar_sin_esperar_tabla_gossip(tabla_de_gossip, socket, paquete);
+}
 
+void prot_enviar_y_esperar_tabla_gossiping(t_tabla_gossiping tabla_de_gossip, int socket){
+	t_paquete* paquete = crear_paquete(ENVIAR_Y_RECIBIR_GOSSIPING);
+	enviar_sin_esperar_tabla_gossip(tabla_de_gossip, socket, paquete);
 }
 
 tp_tabla_gossiping prot_recibir_tabla_gossiping(int tamanio_paq, int socket){
