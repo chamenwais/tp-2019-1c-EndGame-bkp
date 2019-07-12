@@ -4,21 +4,18 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../actualizarConfig.c \
 ../api.c \
 ../funcionesKernel.c \
 ../kernel.c \
 ../variablesGlobales.c 
 
 OBJS += \
-./actualizarConfig.o \
 ./api.o \
 ./funcionesKernel.o \
 ./kernel.o \
 ./variablesGlobales.o 
 
 C_DEPS += \
-./actualizarConfig.d \
 ./api.d \
 ./funcionesKernel.d \
 ./kernel.d \
