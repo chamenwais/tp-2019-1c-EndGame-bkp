@@ -999,4 +999,9 @@ void liberarBloquesDelBitmap(t_list* bloques){
 	pthread_mutex_unlock(&mutexBitmap);
 }
 
-
+int aplicarRetardo(){
+	int retardo = obtenerRetardo();
+	log_info(LOGGERFS,"Aplicando retardo de: %d", retardo);
+	sleep(retardo);
+	return EXIT_SUCCESS;
+}
