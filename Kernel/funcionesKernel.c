@@ -588,7 +588,7 @@ int obtener_pos_tabla(char* tabla){
 	int pos = 0;
 
 	bool coincideTabla(void* nodo){
-			if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
+			if(string_equals_ignore_case(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)){
 				return true;
 			}
 			pos++;
@@ -949,10 +949,7 @@ char* obtenerTabla(t_operacion resultado_del_parseado){
 bool existeTabla(char* tabla){
 
 	bool coincideNombre(void* nodo){
-		if(strcmp(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla)==0){
-			return true;
-		}
-		return false;
+		return (string_equals_ignore_case(((tp_entrada_tabla_creada) nodo)->nombre_tabla, tabla));
 	}
 
 	return list_any_satisfy(listaTablasCreadas, coincideNombre);
