@@ -361,7 +361,9 @@ int conectarse_con_memoria(char* ip, int puerto){
 	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
 
+	pthread_mutex_lock(&mutex_MemConectadas);
 	list_add(listaMemConectadas, entrada_tabla_memorias);
+	pthread_mutex_unlock(&mutex_MemConectadas);
 
 	describeAll(socket_mem);
 
