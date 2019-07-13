@@ -621,14 +621,7 @@ void describeAll(int socket_memoria) {
 			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
 			tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
 			tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
-			if(existeTabla(tabla->nombre_tabla) && (string_equals_ignore_case(((tp_entrada_tabla_creada) nodo)->criterio, tabla->criterio))){
-				int pos = obtener_pos_tabla(tabla->nombre_tabla);
-				pthread_mutex_lock(&mutex_tablas);
-				list_remove(listaTablasCreadas, pos);
-				list_add(listaTablasCreadas, tabla);
-				pthread_mutex_unlock(&mutex_tablas);
-
-			}else if(!existeTabla(tabla->nombre_tabla)){
+			if(!existeTabla(tabla->nombre_tabla)){
 				pthread_mutex_lock(&mutex_tablas);
 				list_add(listaTablasCreadas, tabla);
 				pthread_mutex_unlock(&mutex_tablas);
@@ -1127,7 +1120,7 @@ void* pedir_gossip(){
 			tp_tabla_gossiping tabla_nueva = prot_recibir_tabla_gossiping(rta_pedido.tamanio, socket_primera_memoria);
 
 			//conectarme a las memorias nuevas de la tabla gossip
-			conectarse_a_memorias_gossip(tabla_nueva);
+			conectarse_a_memorias_gossip(tabla_nueva->lista);
 
 			logger(escribir_loguear, l_info, "Esta es la informacion recibida:");
 			//TODO mostrar lista memorias
