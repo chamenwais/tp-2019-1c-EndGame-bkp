@@ -318,7 +318,7 @@ int conectarse_con_primera_memoria(char* ip, int puerto){
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
 		terminar_programa(EXIT_SUCCESS);
 	}
