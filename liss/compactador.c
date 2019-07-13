@@ -131,7 +131,7 @@ int obtenerTiempoCompactacion(char* nombreTabla){
 	string_append(&nombreDelArchivoDeMetaData, nombreTabla);
 	string_append(&nombreDelArchivoDeMetaData, "/Metadata");
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreTabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreTabla);
 	if(mutexTabla==NULL){
 		free(nombreDelArchivoDeMetaData);
 		return -1;
@@ -139,13 +139,13 @@ int obtenerTiempoCompactacion(char* nombreTabla){
 
 	t_config* configuracion = config_create(nombreDelArchivoDeMetaData);
 	if(configuracion==NULL){
-		desbloquearTablaFS(mutexTabla);
+		desbloquearSharedTablaFS(mutexTabla);
 		free(nombreDelArchivoDeMetaData);
 		return -1;
 	}
 	//Recupero COMPACTION_TIME
 	if(!config_has_property(configuracion,"COMPACTION_TIME")) {
-		desbloquearTablaFS(mutexTabla);
+		desbloquearSharedTablaFS(mutexTabla);
 		log_error(LOGGERFS,"[Compactador]No esta COMPACTION_TIME en el archivo de metadata %s",nombreDelArchivoDeMetaData);
 		config_destroy(configuracion);
 		free(nombreDelArchivoDeMetaData);
@@ -153,7 +153,7 @@ int obtenerTiempoCompactacion(char* nombreTabla){
 	}
 	tiempoCompactacion = config_get_int_value(configuracion,"COMPACTION_TIME");
 	config_destroy(configuracion);
-	desbloquearTablaFS(mutexTabla);
+	desbloquearSharedTablaFS(mutexTabla);
 	free(nombreDelArchivoDeMetaData);
 	return tiempoCompactacion;
 }
@@ -178,13 +178,13 @@ t_list* obtenerTmps(char* tabla){
 		}
 		return FTW_CONTINUE;
 	}
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(tabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(tabla);
 	if(mutexTabla==NULL){
 		free(main_directorio);
 		return temps;
 	}
 	nftw(main_directorio,buscarTmp,20,FTW_ACTIONRETVAL|FTW_PHYS);
-	desbloquearTablaFS(mutexTabla);
+	desbloquearSharedTablaFS(mutexTabla);
 	free(main_directorio);
 	return temps;
 }
@@ -209,19 +209,19 @@ t_list* obtenerTmpcs(char* tabla){
 		}
 		return FTW_CONTINUE;
 	}
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(tabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(tabla);
 	if(mutexTabla==NULL){
 		free(main_directorio);
 		return tempcs;
 	}
 	nftw(main_directorio,buscarTmpc,20,FTW_ACTIONRETVAL|FTW_PHYS);
-	desbloquearTablaFS(mutexTabla);
+	desbloquearSharedTablaFS(mutexTabla);
 	free(main_directorio);
 	return tempcs;
 }
 
 void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configuracionDelFS.puntoDeMontaje+/Tables/ si quiero el path completo
-	pthread_mutex_t* mutexTabla;
+	pthread_rwlock_t* mutexTabla;
 	int tiempoCompactacion=0;
 	//t_list* bins= list_create();//se q adentro de los bloques de los bins no hay duplicados
 	//tmb se q estos son los nros originales de bloques de la tabla, no se si me sirve pa algo dsps
@@ -247,7 +247,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				log_info(LOGGERFS,"[Compactador %s]Detectados viejos tmpcs que no se compactaron",tabla);
 
 			//Renombrar a tmpc
-			mutexTabla = bloquearTablaFS(tabla);
+			mutexTabla = bloquearExclusiveTablaFS(tabla);
 			if(mutexTabla==NULL){
 				list_destroy_and_destroy_elements(tmps,free);
 				list_destroy_and_destroy_elements(tmpcsViejos,free);
@@ -261,7 +261,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				string_append(&tmpc,"c");
 				if(rename((char*)list_get(tmps,i),tmpc)){
 					//hubo error
-					desbloquearTablaFS(mutexTabla);
+					desbloquearExclusiveTablaFS(mutexTabla);
 					free(tmpc);
 					list_destroy_and_destroy_elements(tmps,free);
 					list_destroy_and_destroy_elements(tmpcsViejos,free);
@@ -271,7 +271,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				}
 				list_replace_and_destroy_element(tmps,i,tmpc,free);
 			}
-			desbloquearTablaFS(mutexTabla);
+			desbloquearExclusiveTablaFS(mutexTabla);
 
 			//--agrego los tmpc viejos a los recien cambiados de tmp a tmpc(si tuvieran el mismo nombre no lo agrego, deberia hacer una doble compactacion?)
 			int cantidadTmpcsViejos = tmpcsViejos->elements_count;
@@ -330,7 +330,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			//PASOS:
 			//1.bloquear la tabla
 			log_info(LOGGERFS,"[Compactador %s]Voy a bloquear la tabla",tabla);
-			mutexTabla = bloquearTablaFS(tabla);
+			mutexTabla = bloquearExclusiveTablaFS(tabla);
 			if(mutexTabla==NULL){//@@revisar si me falto algun free@@
 				list_destroy_and_destroy_elements(tmps,free);
 				for(int j=0;j<cantidadParticiones;j++){
@@ -357,7 +357,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				t_list* bloques =insertarCadenaEnNuevosBloques(superString[i]);
 				if(bloques==NULL){
 					//no hay mas bloques en el fs :(
-					desbloquearTablaFS(mutexTabla);
+					desbloquearExclusiveTablaFS(mutexTabla);
 					list_iterate(bloquesPorParticion,liberarBloquesDelBitmap);//si ya habia agarrado algun bloque lo libero
 					bajarADiscoBitmap();
 					list_destroy_and_destroy_elements(bloquesPorParticion,list_destroy);
@@ -380,7 +380,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				result=cargarParticionATabla(tabla,i,strlen(superString[i]),list_get(bloquesPorParticion,i));
 				if(result==0){//@@@@@@@@@@@@@@@@@@esto ya no deberia pasar
 					//la tabla ya no existe
-					desbloquearTablaFS(mutexTabla);
+					desbloquearExclusiveTablaFS(mutexTabla);
 					log_info(LOGGERFS,"[Compactador %s]La tabla dejo de existir en medio de su compactacion de nuevos bin, deteniendo compactador para ella",tabla);
 					list_iterate(bloquesPorParticion,liberarBloquesDelBitmap);
 					bajarADiscoBitmap();
@@ -400,7 +400,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			cantidadDeCompactaciones++;
 			if(cantidadDeCompactaciones>10)cantidadDeCompactaciones=0;
 			guardarMilisegundosBloqueada(tabla,msec,!cantidadDeCompactaciones);
-			desbloquearTablaFS(mutexTabla);
+			desbloquearExclusiveTablaFS(mutexTabla);
 			log_info(LOGGERFS,"[Compactador %s]Tabla desbloqueada, guardo el tiempo de bloqueo en su archivo correspondiente",tabla);
 
 			log_info(LOGGERFS,"[Compactador %s]Compactacion realizada correctamente",tabla);
@@ -545,7 +545,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 
 	FILE* archivoTemp=fopen(archivoTempUbicacion,"w");//aca meto todo
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreTabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreTabla);
 	if(mutexTabla==NULL){
 		free(directorioDeTrabajo);
 		fclose(archivoTemp);
@@ -557,7 +557,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 	for(int j=0;j<tmpc->elements_count;j++){
 		t_config* tmpc_conf = config_create((char*)list_get(tmpc,j));
 		if(tmpc_conf==NULL){
-			desbloquearTablaFS(mutexTabla);
+			desbloquearSharedTablaFS(mutexTabla);
 			free(directorioDeTrabajo);
 			fclose(archivoTemp);
 			remove(archivoTempUbicacion);
@@ -565,7 +565,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 			return NULL;
 		}
 		if(!config_has_property(tmpc_conf,"BLOCKS")){
-			desbloquearTablaFS(mutexTabla);
+			desbloquearSharedTablaFS(mutexTabla);
 			free(directorioDeTrabajo);
 			fclose(archivoTemp);
 			remove(archivoTempUbicacion);
@@ -585,7 +585,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 			log_info(LOGGERFS,"[Compactador]Voy a unir las keys de un tmpc del bloque %s",ubicacionDelBloque);//borrar
 			FILE* archivoDeBloque=fopen(ubicacionDelBloque,"r");
 			if(archivoDeBloque==NULL){
-				desbloquearTablaFS(mutexTabla);
+				desbloquearSharedTablaFS(mutexTabla);
 				free(directorioDeTrabajo);
 				fclose(archivoTemp);
 				remove(archivoTempUbicacion);
@@ -603,7 +603,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 			free(arrayDeBloques[i]);
 		}
 	}
-	desbloquearTablaFS(mutexTabla);
+	desbloquearSharedTablaFS(mutexTabla);
 	fclose(archivoTemp);//ya cargue todos los datos del tmpc aca
 	free(directorioDeTrabajo);
 	//free(archivoTempUbicacion);
@@ -617,7 +617,7 @@ t_list* crearTempsParaBins(char* tabla){
 	string_append(&binsMeta, tabla);
 	string_append(&binsMeta,"/Metadata");
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(tabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(tabla);
 	if(mutexTabla==NULL){
 		free(binsMeta);
 		return NULL;
@@ -626,12 +626,12 @@ t_list* crearTempsParaBins(char* tabla){
 	t_config* bins_metadata = config_create(binsMeta);
 	free(binsMeta);
 	if(bins_metadata==NULL){
-		desbloquearTablaFS(mutexTabla);
+		desbloquearSharedTablaFS(mutexTabla);
 		log_info(LOGGERFS,"[Compactador %s]No se encontro el archivo de metadata",tabla);
 		return NULL;
 	}
 	if(!config_has_property(bins_metadata,"PARTITIONS")){
-		desbloquearTablaFS(mutexTabla);
+		desbloquearSharedTablaFS(mutexTabla);
 		log_info(LOGGERFS,"[Compactador %s]No se encontro la clave PARTITIONS dentro de metadata",tabla);
 		config_destroy(bins_metadata);
 		return NULL;
@@ -658,14 +658,14 @@ t_list* crearTempsParaBins(char* tabla){
 		free(str);
 		t_config* bin_conf = config_create(bin);
 		if(bin_conf==NULL){
-			desbloquearTablaFS(mutexTabla);
+			desbloquearSharedTablaFS(mutexTabla);
 			log_info(LOGGERFS,"[Compactador %s]No se encontro el bin= %s",tabla,bin);
 			list_destroy_and_destroy_elements(tempBins,free);
 			free(bin);
 			return NULL;
 		}
 		if(!config_has_property(bin_conf,"BLOCKS")){
-			desbloquearTablaFS(mutexTabla);
+			desbloquearSharedTablaFS(mutexTabla);
 			log_info(LOGGERFS,"[Compactador %s]No se encontro la clave BLOCKS dentro del bin= %s",tabla,bin);
 			list_destroy_and_destroy_elements(tempBins,free);
 			config_destroy(bin_conf);
@@ -695,7 +695,7 @@ t_list* crearTempsParaBins(char* tabla){
 			log_info(LOGGERFS,"[Compactador %s]Voy a unir las keys del bloque %s",tabla,ubicacionDelBloque);//borrar
 			FILE* archivoDeBloque=fopen(ubicacionDelBloque,"r");
 			if(archivoDeBloque==NULL){
-				desbloquearTablaFS(mutexTabla);
+				desbloquearSharedTablaFS(mutexTabla);
 				log_info(LOGGERFS,"[Compactador %s]No se encontro el bloque= %s",tabla,ubicacionDelBloque);
 				list_destroy_and_destroy_elements(tempBins,free);
 				free(ubicacionDelBloque);
@@ -716,7 +716,7 @@ t_list* crearTempsParaBins(char* tabla){
 		list_add(tempBins,(void*)archivoTempUbicacion);
 		fclose(archivoTemp);//ya cargue todos los datos de los bins aca
 	}
-	desbloquearTablaFS(mutexTabla);
+	desbloquearSharedTablaFS(mutexTabla);
 	return tempBins;
 }
 

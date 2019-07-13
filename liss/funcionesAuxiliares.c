@@ -562,12 +562,13 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 
 	//pthread_mutex_lock(&mutexDeDump);
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-	else
-		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
-
+	else{
+		log_error(LOGGERFS,"Tabla %s no bloqueada porque no existe", nombreDeLaTabla);
+		return listadoDeKeys;
+	}
 	t_list* keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
@@ -577,16 +578,14 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
-
-	if(mutexTabla!=NULL){
-		desbloquearTablaFS(mutexTabla);
-		log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-		}
-
 	//pthread_mutex_unlock(&mutexDeDump);
 
 	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
 			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
+
+	desbloquearSharedTablaFS(mutexTabla);
+	log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
@@ -876,9 +875,9 @@ t_list* obtenerTodosLosDescriptores(){
 
 			path_nombre = recortarHastaUltimaBarra(fpath);
 
-			pthread_mutex_t* mutexTabla = bloquearTablaFS(path_nombre);
+			pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(path_nombre);
 			t_metadataDeLaTabla unaMetadata = obtenerMetadataDeLaTabla(path_nombre);
-			if(mutexTabla!=NULL)desbloquearTablaFS(mutexTabla);
+			if(mutexTabla!=NULL)desbloquearSharedTablaFS(mutexTabla);
 
 			if(unaMetadata.consistencia!=NULL){
 				tp_describe_rta metadataEncodeada = malloc(sizeof(t_describe_rta));
@@ -1001,7 +1000,7 @@ void liberarBloquesDelBitmap(t_list* bloques){
 
 int aplicarRetardo(){
 	int retardo = obtenerRetardo();
-	log_info(LOGGERFS,"Aplicando retardo de: %d", retardo);
-	sleep(retardo);
+	log_info(LOGGERFS,"Aplicando retardo de: %d microsegundos", retardo);
+	usleep(retardo);
 	return EXIT_SUCCESS;
 }

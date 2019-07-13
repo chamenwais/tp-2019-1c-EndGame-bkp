@@ -44,9 +44,9 @@ bool esTablaNuevaFS(char* nuevaTabla){
 }
 
 void liberarTablaFS(tp_tablaDeFS tablaALiberar){
-	pthread_mutex_lock(tablaALiberar->mutexTabla);
-	pthread_mutex_unlock(tablaALiberar->mutexTabla);
-	pthread_mutex_destroy(tablaALiberar->mutexTabla);
+	pthread_rwlock_wrlock(tablaALiberar->mutexTabla);
+	pthread_rwlock_unlock(tablaALiberar->mutexTabla);
+	pthread_rwlock_destroy(tablaALiberar->mutexTabla);
 	free(tablaALiberar->mutexTabla);
 	free(tablaALiberar->nombreTabla);
 	free(tablaALiberar);
@@ -61,11 +61,18 @@ void desbloquearListaDeTablasFS(){
 	pthread_mutex_unlock(&mutexListaTablasFS);
 }
 
-void desbloquearTablaFS(pthread_mutex_t* mutexTabla){
-	pthread_mutex_unlock(mutexTabla);
+void desbloquearSharedTablaFS(pthread_rwlock_t* mutexTabla){
+	//printf("voy a desbloquear shared\n");
+	pthread_rwlock_unlock(mutexTabla);
+	//printf("desbloquee shared\n");
+}
+void desbloquearExclusiveTablaFS(pthread_rwlock_t* mutexTabla){
+	//printf("voy a desbloquear exclusive\n");
+	pthread_rwlock_unlock(mutexTabla);
+	//printf("desbloquee exclusive\n");
 }
 
-pthread_mutex_t* bloquearTablaFS(char* nombreTabla){
+pthread_rwlock_t* bloquearSharedTablaFS(char* nombreTabla){
 	bool _stringCompare(void* elem){
 		return !strcmp(((tp_tablaDeFS)elem)->nombreTabla,nombreTabla);
 	}
@@ -73,7 +80,24 @@ pthread_mutex_t* bloquearTablaFS(char* nombreTabla){
 	tp_tablaDeFS tablaPedida = (tp_tablaDeFS)list_find(tablasFS,_stringCompare);
 	pthread_mutex_unlock(&mutexListaTablasFS);//capaz conviene desbloquearlo dsps q bloquee la tabla@@
 	if(tablaPedida!=NULL){
-		pthread_mutex_lock(tablaPedida->mutexTabla);
+		//printf("voy a bloquear shared %s\n",nombreTabla);
+		pthread_rwlock_rdlock(tablaPedida->mutexTabla);
+		//printf("bloquee shared %s\n",nombreTabla);
+		return tablaPedida->mutexTabla;
+	} else return NULL;
+}
+
+pthread_rwlock_t* bloquearExclusiveTablaFS(char* nombreTabla){
+	bool _stringCompare(void* elem){
+		return !strcmp(((tp_tablaDeFS)elem)->nombreTabla,nombreTabla);
+	}
+	pthread_mutex_lock(&mutexListaTablasFS);
+	tp_tablaDeFS tablaPedida = (tp_tablaDeFS)list_find(tablasFS,_stringCompare);
+	pthread_mutex_unlock(&mutexListaTablasFS);//capaz conviene desbloquearlo dsps q bloquee la tabla@@
+	if(tablaPedida!=NULL){
+		//printf("voy a bloquear exclusive %s\n",nombreTabla);
+		pthread_rwlock_wrlock(tablaPedida->mutexTabla);
+		//printf("bloquee exclusive %s\n",nombreTabla);
 		return tablaPedida->mutexTabla;
 	} else return NULL;
 }
@@ -96,8 +120,8 @@ bool agregarAListaDeTablasFS(char* nuevaTabla){//tal vez deberia bloquear la tab
 		tp_tablaDeFS tabla = malloc(sizeof(t_tablaDeFS));
 		tabla->nombreTabla = string_new();
 		string_append(&(tabla->nombreTabla),nuevaTabla);
-		tabla->mutexTabla = malloc(sizeof(pthread_mutex_t));
-		if(pthread_mutex_init(tabla->mutexTabla, NULL) != 0) {
+		tabla->mutexTabla = malloc(sizeof(pthread_rwlock_t));
+		if(pthread_rwlock_init(tabla->mutexTabla, NULL) != 0) {
 			log_error(LOGGERFS,"CUIDADO: No se pudo inicializar un semaforo para una tabla del FS");
 			free(tabla->nombreTabla);
 			free(tabla->mutexTabla);
