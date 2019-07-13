@@ -102,14 +102,20 @@ t_list * conectarse_a_seeds(){
 }
 
 void *realizar_gossiping(){
+	pthread_mutex_lock(&M_TABLA_GOSSIP);
 	mi_tabla_de_gossip = list_create();
+	pthread_mutex_unlock(&M_TABLA_GOSSIP);
 	t_memo_del_pool* memoria_a_utilizar = crear_memo_del_pool(conocer_ip_propia(),PUERTO_ESCUCHA);
+	pthread_mutex_lock(&M_TABLA_GOSSIP);
 	list_add(mi_tabla_de_gossip, memoria_a_utilizar);
+	pthread_mutex_unlock(&M_TABLA_GOSSIP);
 	while(1){
 		usleep(TIEMPO_GOSSIPING*1000);
 		logger(escribir_loguear, l_trace, "\nProcedo a realizar el gossiping...\n");
 		t_list* nuevas_memorias_conectadas = conectarse_a_seeds();
+		pthread_mutex_lock(&M_TABLA_GOSSIP);
 		list_add_all(mi_tabla_de_gossip, nuevas_memorias_conectadas);
+		pthread_mutex_unlock(&M_TABLA_GOSSIP);
 		list_destroy(nuevas_memorias_conectadas);
 	}
 	return EXIT_SUCCESS;
