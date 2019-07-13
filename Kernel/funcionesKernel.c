@@ -347,7 +347,7 @@ int conectarse_con_memoria(char* ip, int puerto){
 			ip, puerto);
 	int socket_mem = conectarseA(ip, puerto);
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
 		terminar_programa(EXIT_SUCCESS);
 	}
@@ -376,7 +376,7 @@ int conectar_con_memoria(char* ip, int puerto){
 	int sock = 0;
 	int socket_mem = conectarseA(ip, puerto);
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
 	}
 	enviar_handshake(socket_mem);
@@ -1167,8 +1167,8 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 
 	void verificar_si_memoria_existe_en_mi_tabla_para_agregarla(void * memoria_gossip){
 			bool memoria_existe_en_mi_lista(void * memoria){
-				return string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_gossip)->ip,((tp_memo_del_pool_kernel)memoria)->ip)
-						&& string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_gossip)->puerto,((tp_memo_del_pool_kernel)memoria)->puerto);
+				return string_equals_ignore_case(((tp_memo_del_pool)memoria_gossip)->ip,((tp_memo_del_pool_kernel)memoria)->ip)
+						&& string_equals_ignore_case(((tp_memo_del_pool)memoria_gossip)->puerto,((tp_memo_del_pool_kernel)memoria)->puerto);
 			}
 			if(!list_any_satisfy(listaMemConectadas, memoria_existe_en_mi_lista)){
 				logger(escribir_loguear, l_debug, "Voy a conectarme a la memoria");
@@ -1176,7 +1176,7 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 								string_duplicate(((t_memo_del_pool*)memoria_gossip)->puerto));
 			}
 		}
-		list_iterate(listaMemConectadas, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
+		list_iterate(lista_gossip, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
 
 }
 

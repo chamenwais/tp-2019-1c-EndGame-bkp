@@ -48,7 +48,7 @@ typedef struct definicionConfiguracionDelKernel {
 
 typedef struct memo_del_pool_kernel {
 	char * ip;
-	int puerto;
+	char* puerto;
 	int numero_memoria;
 	int socket;
 }t_memo_del_pool_kernel;
