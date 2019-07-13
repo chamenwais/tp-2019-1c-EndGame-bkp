@@ -24,6 +24,7 @@
 #include <math.h>
 #include <dirent.h>
 #include <errno.h>
+#include <unistd.h>
 
 int crearDirectorioParaLaTabla(char* nombreDeLaTabla);
 int crearMetadataParaLaTabla(char* nombreDeLaTabla, char* tipoDeConsistencia,
