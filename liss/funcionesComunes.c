@@ -49,6 +49,8 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 
 	log_info(LOGGERFS,"Hay una solicitud de create de %s", nombreDeLaTabla);
 
+	aplicarRetardo();
+
 	if(existeLaTabla(nombreDeLaTabla)==false){
 
 		agregarAListaDeTablasFS(nombreDeLaTabla);
@@ -95,6 +97,8 @@ int drop(char* nombreDeLaTabla){
 
 	log_info(LOGGERFS,"Hay una solicitud de drop de %s", nombreDeLaTabla);
 
+	aplicarRetardo();
+
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -136,6 +140,8 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 
 	log_info(LOGGERFS,"Hay una solicitud de describe de %s", nombreDeLaTabla);
 
+	aplicarRetardo();
+
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -154,6 +160,7 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 
 t_describeAll_rta describeAll(){
 	t_describeAll_rta descriptores;
+	aplicarRetardo();
 	descriptores.lista = obtenerTodosLosDescriptores();
 	return descriptores;
 }
@@ -173,6 +180,9 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 	 * contenga los datos enviados en la request.
 	 */
 	log_info(LOGGERFS,"Hay una solicitud insert de la tabla %s", nombreDeLaTabla);
+
+	aplicarRetardo();
+
 	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
@@ -228,6 +238,9 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	 *		más grande.
 	 */
 	log_info(LOGGERFS,"Hay una solicitud de select de %s", nombreDeLaTabla);
+
+	aplicarRetardo();
+
 	tp_nodoDeLaTabla resultado = NULL;
 	if(existeLaTabla(nombreDeLaTabla)==false){
 		log_error(LOGGERFS,"Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
