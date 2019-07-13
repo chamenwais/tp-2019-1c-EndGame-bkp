@@ -373,7 +373,9 @@ void terminar_programa(int codigo_finalizacion){
 			free(((t_memo_del_pool*) memo_del_pool)->ip);
 			free((t_memo_del_pool *) memo_del_pool);
 		}
+		pthread_mutex_lock(&M_TABLA_GOSSIP);
 		list_remove_and_destroy_by_condition(mi_tabla_de_gossip, es_memoria_propia, destructor_memoria_propia);
+		pthread_mutex_unlock(&M_TABLA_GOSSIP);
 
 		bool no_es_una_seed(void* memoria){
 			if(list_is_empty(seeds)){
@@ -385,9 +387,13 @@ void terminar_programa(int codigo_finalizacion){
 			return !list_any_satisfy(seeds, es_memoria_seed);
 		}
 		if(!list_is_empty(mi_tabla_de_gossip)){
+			pthread_mutex_lock(&M_TABLA_GOSSIP);
 			list_remove_and_destroy_by_condition(mi_tabla_de_gossip, no_es_una_seed, destructor_memoria_del_pool);
+			pthread_mutex_unlock(&M_TABLA_GOSSIP);
 		}
+		pthread_mutex_lock(&M_TABLA_GOSSIP);
 		list_destroy(mi_tabla_de_gossip);
+		pthread_mutex_unlock(&M_TABLA_GOSSIP);
 		free(ip_address);
 	}
 
@@ -518,7 +524,6 @@ void recibir_handshakes(int socket){
 	}
 }
 
-
 void inicializar_semaforos(){
 	pthread_mutex_init(&M_RETARDO_ACCESO_MEMORIA, NULL);
 	pthread_mutex_init(&M_RETARDO_ACCESO_FILESYSTEM, NULL);
@@ -527,6 +532,7 @@ void inicializar_semaforos(){
 	pthread_mutex_init(&M_PATH_ARCHIVO_CONFIGURACION, NULL);
 	pthread_mutex_init(&M_RUTA_ARCHIVO_CONF, NULL);
 	pthread_mutex_init(&M_JOURNALING, NULL);
+	pthread_mutex_init(&M_TABLA_GOSSIP, NULL);
 }
 
 void apagar_semaforos(){
@@ -537,6 +543,7 @@ void apagar_semaforos(){
 	pthread_mutex_destroy(&M_PATH_ARCHIVO_CONFIGURACION);
 	pthread_mutex_destroy(&M_RUTA_ARCHIVO_CONF);
 	pthread_mutex_destroy(&M_JOURNALING);
+	pthread_mutex_destroy(&M_TABLA_GOSSIP);
 }
 
 void imprimir_informacion_memoria_ajena(void * memoria_ajena){
@@ -578,9 +585,11 @@ void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){
 					&& string_equals_ignore_case(((t_memo_del_pool*)memoria_ajena)->puerto,((t_memo_del_pool*)memoria)->puerto);
 		}
 		if(!list_any_satisfy(mi_tabla_de_gossip, memoria_existe_en_mi_tabla)){
+			pthread_mutex_lock(&M_TABLA_GOSSIP);
 			list_add(mi_tabla_de_gossip,
 					crear_memo_del_pool(string_duplicate(((t_memo_del_pool*)memoria_ajena)->ip),
 							string_duplicate(((t_memo_del_pool*)memoria_ajena)->puerto)));
+			pthread_mutex_unlock(&M_TABLA_GOSSIP);
 		}
 	}
 	list_iterate(memorias, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
@@ -614,7 +623,9 @@ void remover_memoria_cerrada_de_tabla_gossip(int un_socket){
 		logger(escribir_loguear, l_trace, "Removí la memoria %s, %s de mi tabla de gossip",
 				((t_memo_del_pool*) memoria)->ip, ((t_memo_del_pool*) memoria)->puerto);
 	}
+	pthread_mutex_lock(&M_TABLA_GOSSIP);
 	list_remove_and_destroy_by_condition(mi_tabla_de_gossip, es_socket_de_memoria, reiniciar_socket_memoria);
+	pthread_mutex_unlock(&M_TABLA_GOSSIP);
 }
 
 t_memo_del_pool* crear_memo_del_pool(char* ip, char* puerto) {
