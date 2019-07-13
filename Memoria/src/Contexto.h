@@ -83,6 +83,7 @@ extern pthread_mutex_t M_CONF_FD;
 extern pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
 extern pthread_mutex_t M_RUTA_ARCHIVO_CONF;
 extern pthread_mutex_t M_JOURNALING;
+extern pthread_mutex_t M_TABLA_GOSSIP;
 
 #define LFS "LFS"
 #define _KERNEL "KERNEL"

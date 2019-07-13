@@ -10,38 +10,35 @@
 bool existeLaTabla(char* nombreDeLaTabla){
 	// Verificar que la tabla no exista en el file system.
 	// Por convención, una tabla existe si ya hay otra con el mismo nombre.
-	// Para dichos nombres de las tablas siempre tomaremos sus valores en UPPERCASE (mayúsculas).
-	bool resultado;
-	char* directorioDeLaTabla=string_new();
-	string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioDeLaTabla, "/Tables/");
-	string_append(&directorioDeLaTabla, nombreDeLaTabla);
-	struct stat st = {0};
+	//@@?? Para dichos nombres de las tablas siempre tomaremos sus valores en UPPERCASE (mayúsculas).
+	//bool resultado;
+	//char* directorioDeLaTabla=string_new();
+	//string_append(&directorioDeLaTabla, configuracionDelFS.puntoDeMontaje);
+	//string_append(&directorioDeLaTabla, "/Tables/");
+	//string_append(&directorioDeLaTabla, nombreDeLaTabla);
+	//struct stat st = {0};
 
-	log_info(LOGGERFS,"Hay una solicitud de existencia de tabla de %s", nombreDeLaTabla);
+	log_info(LOGGERFS,"Hay una solicitud de existencia de la tabla %s", nombreDeLaTabla);
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
-	if(mutexTabla!=NULL)
-		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-	else
-		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
+	if(!esTablaNuevaFS(nombreDeLaTabla)){
+		log_info(LOGGERFS,"Tabla %s existe", nombreDeLaTabla);
+		return true;
+	}
+	else{
+		log_info(LOGGERFS,"Tabla %s no existe", nombreDeLaTabla);
+		return false;
+	}
 
-	if(stat(directorioDeLaTabla, &st) == -1){
+	/*if(stat(directorioDeLaTabla, &st) == -1){
 		log_info(LOGGERFS,"La tabla %s no existe", directorioDeLaTabla);
 		resultado=false;
 	}else{
 		log_info(LOGGERFS,"La tabla %s ya existe", directorioDeLaTabla);
 		resultado=true;
 		}
+	*/
 
-	if(mutexTabla!=NULL){
-		desbloquearTablaFS(mutexTabla);
-		log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-		}
-
-	free(directorioDeLaTabla);
-
-	return resultado;
+	//free(directorioDeLaTabla);
 }
 
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
@@ -51,14 +48,17 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 
 	aplicarRetardo();
 
-	if(existeLaTabla(nombreDeLaTabla)==false){
+	//if(existeLaTabla(nombreDeLaTabla)==false){
 
-		agregarAListaDeTablasFS(nombreDeLaTabla);
-		pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	if(agregarAListaDeTablasFS(nombreDeLaTabla)){
+
+		pthread_rwlock_t* mutexTabla = bloquearExclusiveTablaFS(nombreDeLaTabla);
 		if(mutexTabla!=NULL)
-			log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-		else
-			log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
+			log_info(LOGGERFS,"Nueva tabla %s bloqueada(escritura), procedo a crear sus archivos", nombreDeLaTabla);
+		else{
+			log_error(LOGGERFS,"Nueva tabla %s no bloqueada(escritura), no se pudieron crear sus archivos!", nombreDeLaTabla);
+			return EXIT_FAILURE;
+		}
 
 		crearDirectorioParaLaTabla(nombreDeLaTabla);
 		crearMetadataParaLaTabla(nombreDeLaTabla,tipoDeConsistencia,
@@ -69,16 +69,16 @@ int create(char* nombreDeLaTabla, char* tipoDeConsistencia,
 			log_error(LOGGERFS,"No se pudo crear la tabla %s", nombreDeLaTabla);
 			//@@@@@@eliminar el directorio y la metadata!!!
 			if(mutexTabla!=NULL){
-				desbloquearTablaFS(mutexTabla);
-				log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+				desbloquearExclusiveTablaFS(mutexTabla);
+				log_info(LOGGERFS,"Tabla %s desbloqueada(escritura)", nombreDeLaTabla);
 				}
 			eliminarDeListaDeTablasFS(nombreDeLaTabla);
 			return EXIT_FAILURE;
 			}
 
 		if(mutexTabla!=NULL){
-			desbloquearTablaFS(mutexTabla);
-			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+			desbloquearExclusiveTablaFS(mutexTabla);
+			log_info(LOGGERFS,"Tabla %s desbloqueada(escritura)", nombreDeLaTabla);
 			}
 
 		return TABLA_CREADA;
@@ -99,36 +99,16 @@ int drop(char* nombreDeLaTabla){
 
 	aplicarRetardo();
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
-	if(mutexTabla!=NULL)
-		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-	else
-		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
-
-	//pthread_mutex_lock(&mutexDeDump);
-	if(existeLaTabla(nombreDeLaTabla)==false){
-		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe %s", nombreDeLaTabla);
-		printf("Se esta intentando borrar una tabla que no existe %s\n", nombreDeLaTabla);
-		//pthread_mutex_unlock(&mutexDeDump);
-		if(mutexTabla!=NULL){
-			desbloquearTablaFS(mutexTabla);
-			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-			}
-		return TABLA_NO_EXISTIA;
-	}else{
-
+	if(eliminarDeListaDeTablasFS(nombreDeLaTabla)){
+		log_info(LOGGERFS,"Voy a borrar la tabla %s", nombreDeLaTabla);
 		eliminarDirectorioYArchivosDeLaTabla(nombreDeLaTabla);
-
-		if(mutexTabla!=NULL){
-			desbloquearTablaFS(mutexTabla);
-			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-			}
-		eliminarDeListaDeTablasFS(nombreDeLaTabla);
 		log_info(LOGGERFS,"Se borro la tabla %s", nombreDeLaTabla);
-		//pthread_mutex_unlock(&mutexDeDump);
 		return TABLA_BORRADA;
-		}
-
+	}
+	else{
+		log_error(LOGGERFS,"Se esta intentando borrar una tabla que no existe: %s", nombreDeLaTabla);
+		return TABLA_NO_EXISTIA;
+	}
 }
 
 t_metadataDeLaTabla describe(char* nombreDeLaTabla){
@@ -142,17 +122,17 @@ t_metadataDeLaTabla describe(char* nombreDeLaTabla){
 
 	aplicarRetardo();
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
-		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
+		log_info(LOGGERFS,"Tabla %s bloqueada(lectura)", nombreDeLaTabla);
 	else
-		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
+		log_error(LOGGERFS,"Tabla %s no existe", nombreDeLaTabla);
 
 	t_metadataDeLaTabla metadata=obtenerMetadataDeLaTabla(nombreDeLaTabla);
-
+	//obtener la metadata no deberia correr xq ya se q la tabla no existe@@!!
 	if(mutexTabla!=NULL){
-		desbloquearTablaFS(mutexTabla);
-		log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+		desbloquearSharedTablaFS(mutexTabla);
+		log_info(LOGGERFS,"Tabla %s desbloqueada(lectura)", nombreDeLaTabla);
 		}
 
 	return metadata;
@@ -183,38 +163,27 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
 
 	aplicarRetardo();
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
-	if(mutexTabla!=NULL)
-		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
-	else
-		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
-
-	if(existeLaTabla(nombreDeLaTabla)==false){
-		log_error(LOGGERFS,"Se esta intentando hace un insert de una tabla que no existe %s", nombreDeLaTabla);
-		printf("Se esta intentando insertar una tabla que no existe %s\n", nombreDeLaTabla);
-		if(mutexTabla!=NULL){
-			desbloquearTablaFS(mutexTabla);
-			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-			}
-		return TABLA_NO_EXISTIA;
-	}else{
-		//t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
-		//pthread_mutex_lock(&mutexDeDump);
-
+	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
+	printf("hizo el bloqueo para insert\n\n\n\n");
+	if(mutexTabla!=NULL){
+		log_info(LOGGERFS,"Tabla %s bloqueada(lectura)", nombreDeLaTabla);
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
 			//lanzarHiloParaLaTablaDeDumpeo(nombreDeLaTabla);
-			}
+		}
 		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
 
-		if(mutexTabla!=NULL){
-			desbloquearTablaFS(mutexTabla);
-			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-			}
+		desbloquearSharedTablaFS(mutexTabla);
+		log_info(LOGGERFS,"Tabla %s desbloqueada(lectura)", nombreDeLaTabla);
 
 		//pthread_mutex_unlock(&mutexDeDump);
 		return resultadoDelInsert;
-		}
+	}
+	else{
+		log_error(LOGGERFS,"Se esta intentando hace un insert de una tabla que no existe %s", nombreDeLaTabla);
+		printf("Se esta intentando insertar una tabla que no existe %s\n", nombreDeLaTabla);
+		return TABLA_NO_EXISTIA;
+	}
 }
 
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){

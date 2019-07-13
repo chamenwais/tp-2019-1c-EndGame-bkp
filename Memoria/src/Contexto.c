@@ -34,6 +34,7 @@ pthread_mutex_t M_CONF_FD;
 pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
 pthread_mutex_t M_RUTA_ARCHIVO_CONF;
 pthread_mutex_t M_JOURNALING;
+pthread_mutex_t M_TABLA_GOSSIP;
 
 t_conexion_cliente conexiones_cliente[MAX_CLIENTES];
 t_log* g_logger;

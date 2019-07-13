@@ -70,7 +70,8 @@ typedef struct definicionHiloDeDumpeo {
 typedef t_hiloDeDumpeo* tp_hiloDeDumpeo;
 
 typedef struct tablaDeFS {//Para la lista de tablas del fs
-	pthread_mutex_t* mutexTabla;
+	//pthread_mutex_t* mutexTabla;
+	pthread_rwlock_t* mutexTabla;
 	char* nombreTabla;
 } t_tablaDeFS;
 typedef t_tablaDeFS* tp_tablaDeFS;
@@ -100,14 +101,18 @@ void liberarRecursos();
 int vaciarMemTable();
 int vaciarDumpTable();
 //-+-Para operaciones sobre la lista que contiene todas las tablas del fs
-pthread_mutex_t* bloquearTablaFS(char* nombreTabla);//bloquea el mutex correspondiente y te lo devuelve para que cuando termines lo desbloquees,
+pthread_rwlock_t* bloquearSharedTablaFS(char* nombreTabla);//"bloquea" para lectura y te lo devuelve para que cuando termines lo desbloquees,
 													//si la tabla no existe devuelve NULL
-void desbloquearTablaFS(pthread_mutex_t* mutexTabla);
+void desbloquearSharedTablaFS(pthread_rwlock_t* mutexTabla);
+pthread_rwlock_t* bloquearExclusiveTablaFS(char* nombreTabla);//bloquea para escritura y te lo devuelve para que lo desbloquees cuando termines, devuelve NULL si la tabla no existe
+void desbloquearExclusiveTablaFS(pthread_rwlock_t* mutexTabla);
 bool agregarAListaDeTablasFS(char* nuevaTabla);//devuelve true si agrego la tabla o false si ya existe
 bool eliminarDeListaDeTablasFS(char* tablaABorrar);//devuelve true si la elimino o false si no existe
 
 t_list* bloquearListaDeTablasFS();//te devuelve la tabla "maestra" por si queres x ej ver todas sus tablas, SOLO PARA LECTURA, el formato de cada elemento es tp_tablaDeFS
 void desbloquearListaDeTablasFS();//desbloquear la tabla en cuanto termines tu busqueda, estas bloqueando todo el fs
+
+bool esTablaNuevaFS(char* nuevaTabla);//para chequear si ya existe una tabla, sin tener que pasar por el proceso de bloqueo
 
 void buscarTablasYaCreadasFS();//solo se usa al inicio del programa
 //-+-
