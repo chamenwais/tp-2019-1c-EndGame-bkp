@@ -1001,6 +1001,6 @@ void liberarBloquesDelBitmap(t_list* bloques){
 int aplicarRetardo(){
 	int retardo = obtenerRetardo();
 	log_info(LOGGERFS,"Aplicando retardo de: %d microsegundos", retardo);
-	usleep(retardo);
+	sleep(retardo);
 	return EXIT_SUCCESS;
 }
