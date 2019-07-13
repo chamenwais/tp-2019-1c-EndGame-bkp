@@ -67,6 +67,8 @@ int actualizarGossip(int gossip);
 void* pedir_gossip();
 void iniciar_pedido_gossip();
 void conectarse_a_memorias_gossip(t_list* lista_gossip);
+bool tablaFueBorrada(char* tabla, t_list* lista);
+
 t_path_archivo_conf *ruta_archivo_conf;
 int watch_descriptor,conf_fd;
 char * path_archivo_configuracion;

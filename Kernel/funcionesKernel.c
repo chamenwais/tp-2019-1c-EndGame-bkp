@@ -618,10 +618,10 @@ void describeAll(int socket_memoria) {
 
 
 		void actualizarTabla(void* nodo) {
-			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
-			tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
-			tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
-			if(!existeTabla(tabla->nombre_tabla)){
+			if(!existeTabla(((tp_describe_rta) nodo)->nombre)){
+				tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
+				tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
+				tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
 				pthread_mutex_lock(&mutex_tablas);
 				list_add(listaTablasCreadas, tabla);
 				pthread_mutex_unlock(&mutex_tablas);
@@ -629,6 +629,18 @@ void describeAll(int socket_memoria) {
 		}
 
 		list_iterate(info_de_las_tablas->lista, actualizarTabla);
+
+		void removerTabla(void*nodo){
+			if(tablaFueBorrada(((tp_entrada_tabla_creada) nodo)->nombre_tabla, info_de_las_tablas->lista)){
+				int pos = obtener_pos_tabla(((tp_entrada_tabla_creada) nodo)->nombre_tabla);
+				pthread_mutex_lock(&mutex_tablas);
+				list_remove(listaTablasCreadas, pos);
+				pthread_mutex_unlock(&mutex_tablas);
+			}
+
+		list_iterate(listaTablasCreadas, removerTabla);
+
+		}
 		//Libero la lista
 		logger(escribir_loguear, l_error, "LLEGO A HACER EL DESCRIBE ALL");
 		prot_free_tp_describeAll_rta(info_de_las_tablas);
@@ -946,6 +958,15 @@ bool existeTabla(char* tabla){
 	}
 
 	return list_any_satisfy(listaTablasCreadas, coincideNombre);
+}
+
+bool tablaFueBorrada(char* tabla, t_list* lista){
+
+	bool mismoNombre(void*nodo){
+		return (string_equals_ignore_case(((tp_describe_rta)nodo)->nombre, tabla));
+	}
+
+	return list_any_satisfy(lista, mismoNombre);
 }
 
 bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
