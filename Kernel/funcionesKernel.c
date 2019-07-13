@@ -1144,8 +1144,13 @@ void* pedir_gossip(){
 			conectarse_a_memorias_gossip(tabla_nueva->lista);
 
 			logger(escribir_loguear, l_info, "Esta es la informacion recibida:");
-			//TODO mostrar lista memorias
 
+			void imprimir_informacion_memoria_ajena(void * memoria_ajena){
+				logger(escribir_loguear, l_debug, "El ip de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).ip);
+				logger(escribir_loguear, l_debug, "El puerto de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).puerto);
+			}
+
+			list_iterate(tabla_nueva->lista, imprimir_informacion_memoria_ajena);
 
 			//Libero la estructura que recibi
 			free(tabla_nueva);
