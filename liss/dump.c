@@ -91,7 +91,7 @@ int dump(char* nombreDeLaTabla){
 		return EXIT_SUCCESS;
 		}
 
-	pthread_mutex_t* mutexTabla = bloquearTablaFS(nombreDeLaTabla);
+	pthread_rwlock_t* mutexTabla = bloquearExclusiveTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
 	else
@@ -101,6 +101,10 @@ int dump(char* nombreDeLaTabla){
 	tp_nodoDeLaMemTable nodoDeLaMem = list_find(memTable,esMiNodo);
 	if(nodoDeLaMem==NULL){
 		log_info(LOGGERFS,"No hay nada para dumpear en %s", nombreDeLaTabla);
+		if(mutexTabla!=NULL){
+			desbloquearExclusiveTablaFS(mutexTabla);
+			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
+			}
 		return DUMP_CORRECTO;
 		}
 	bloques = string_new(); //va a tener el formato: [2,3,7,10]
@@ -126,7 +130,7 @@ int dump(char* nombreDeLaTabla){
 	pthread_mutex_unlock(&mutexDeLaMemtable);
 
 	if(mutexTabla!=NULL){
-		desbloquearTablaFS(mutexTabla);
+		desbloquearExclusiveTablaFS(mutexTabla);
 		log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
 		}
 
@@ -146,7 +150,7 @@ int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
 }
 
 int lanzarDumps(){
-	log_info(LOGGERFS,"Iniciando hilo de consola");
+	log_info(LOGGERFS,"Iniciando hilo de dump");
 	int resultadoDeCrearHilo = pthread_create( &threadDumps, NULL,
 			funcionHiloDump, "Hilo dump");
 	if(resultadoDeCrearHilo){
