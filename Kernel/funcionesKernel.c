@@ -891,7 +891,7 @@ void* funcionHiloRequest(void* pcb){
 
 				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
-				//usleep(retardo);
+				usleep(retardo * 1000);
 
 				int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto);
 
