@@ -179,8 +179,10 @@ int levantarConfiguracionInicialDelKernel(){
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	configKernel.puertoMemoria = config_get_int_value(k_config, "PUERTO_MEMORIA");
-	logger(escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %d",
+	char * puertoMemoria = config_get_string_value(k_config, "PUERTO_MEMORIA");
+	configKernel.puertoMemoria = malloc(strlen(puertoMemoria)+1);
+	strcpy(configKernel.puertoMemoria, puertoMemoria);
+	logger(escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %s",
 		configKernel.puertoMemoria);
 	//Recupero el quantum
 	if(!config_has_property(k_config,"QUANTUM")) {
@@ -313,12 +315,12 @@ int inicializarSemaforos(){
 	return EXIT_SUCCESS;
 }
 
-int conectarse_con_primera_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
+int conectarse_con_primera_memoria(char* ip, char * puerto){
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = conectarseA(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s y puerto %s", ip, puerto);
 		close(socket_mem);
 		terminar_programa(EXIT_SUCCESS);
 	}
@@ -342,10 +344,10 @@ int conectarse_con_primera_memoria(char* ip, int puerto){
 }
 
 
-int conectarse_con_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
+int conectarse_con_memoria(char* ip, char * puerto){
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = conectarseA(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
 		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
@@ -354,6 +356,8 @@ int conectarse_con_memoria(char* ip, int puerto){
 	enviar_handshake(socket_mem);
 
 	int numero_de_memoria = prot_recibir_int(socket_mem);
+	logger(escribir_loguear, l_info, "Me conecte a la memoria numero %d", numero_de_memoria);
+
 
 	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
 	entrada_tabla_memorias->ip = ip;
@@ -370,11 +374,11 @@ int conectarse_con_memoria(char* ip, int puerto){
 	return EXIT_SUCCESS;
 }
 
-int conectar_con_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectando request a la memoria en ip %s y puerto %i",
+int conectar_con_memoria(char* ip, char * puerto){
+	logger(escribir_loguear, l_info, "Conectando request a la memoria en ip %s y puerto %s",
 			ip, puerto);
 	int sock = 0;
-	int socket_mem = conectarseA(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
 		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
@@ -433,11 +437,15 @@ t_operacion parsear(char * linea){
 	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
 		resultado_de_parsear.tipo_de_operacion = _DESCRIBE;
 		char * tabla=split[1];
-		size_t tamanio_nombre_tabla = strlen(tabla);
-		tabla = realloc(tabla, tamanio_nombre_tabla + 1);
-		char barra_cero='\0';
-		memcpy(tabla+ tamanio_nombre_tabla, &barra_cero,1);
-		resultado_de_parsear.parametros.describe.nombre_tabla = tabla;
+		if(tabla!=NULL){
+			size_t tamanio_nombre_tabla = strlen(tabla);
+			tabla = realloc(tabla, tamanio_nombre_tabla + 1);
+			char barra_cero='\0';
+			memcpy(tabla+ tamanio_nombre_tabla, &barra_cero,1);
+			resultado_de_parsear.parametros.describe.nombre_tabla = tabla;
+		}else{
+			resultado_de_parsear.parametros.describe.nombre_tabla = NULL;
+		}
 	} else if(string_equals_ignore_case(tipo_de_operacion, "drop")){
 		resultado_de_parsear.tipo_de_operacion = _DROP;
 		//Le agrego un \0 al final porque parece que no lo pone en el describe
@@ -644,7 +652,6 @@ void describeAll(int socket_memoria) {
 
 		}
 		//Libero la lista
-		logger(escribir_loguear, l_error, "LLEGO A HACER EL DESCRIBE ALL");
 		prot_free_tp_describeAll_rta(info_de_las_tablas);
 
 	}
@@ -944,7 +951,11 @@ char* obtenerTabla(t_operacion resultado_del_parseado){
 			tabla = string_duplicate(resultado_del_parseado.parametros.create.nombre_tabla);
 			break;
 		case _DESCRIBE:
-			tabla = string_duplicate(resultado_del_parseado.parametros.describe.nombre_tabla);
+			if(resultado_del_parseado.parametros.describe.nombre_tabla != NULL){
+				tabla = string_duplicate(resultado_del_parseado.parametros.describe.nombre_tabla);
+			}else{
+				tabla = NULL;
+			}
 			break;
 		case _DROP:
 			tabla = string_duplicate(resultado_del_parseado.parametros.drop.nombre_tabla);
@@ -994,14 +1005,17 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	if(operacion.tipo_de_operacion == _CREATE){
 		criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
 
-	}else{
+	}else if(tabla == NULL){
+		memoria = list_get(listaMemConectadas, 0);
+
+		}else{
 	//buscar tabla en listaTablasCreadas y obtener el criterio
 
 	entrada = buscarTablaEnMetadata(tabla);
 
 
 	criterio = string_duplicate(entrada->criterio);
-	}
+
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	//buscar las memorias que tengan ese criterio asignado y elegir
 	if((operacion.tipo_de_operacion == _CREATE) || (entrada != NULL)){
@@ -1055,6 +1069,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	memoria = NULL;
 	//free(criterio);
 	//free(entrada);
+	}
 	return memoria;
 }
 
