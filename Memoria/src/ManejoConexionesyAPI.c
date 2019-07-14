@@ -354,9 +354,10 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 		rta_select_a_kernel = pedir_value_a_liss(nombre_tabla, (uint16_t)key);
 
 		if(rta_select_a_kernel->value!=NULL){
-			logger(escribir_loguear, l_info, "Recibi el valor '%s'",rta_select_a_kernel->value);
 			int resultado_colocacion=colocar_value_en_MP(nombre_tabla
 					, rta_select_a_kernel->timestamp,(uint16_t)key,rta_select_a_kernel->value);
+			logger(escribir_loguear, l_info, "\nRecibi el value '%s', para la key %d, con timestamp %ld\n"
+					,rta_select_a_kernel->value, rta_select_a_kernel->key, rta_select_a_kernel->timestamp);
 			if(resultado_colocacion<0){
 				rta_select_a_kernel->respuesta=NO_HAY_MAS_MARCOS_EN_LA_MEMORIA;
 			}
