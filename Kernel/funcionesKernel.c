@@ -179,8 +179,10 @@ int levantarConfiguracionInicialDelKernel(){
 		logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 		return EXIT_FAILURE;
 		}
-	configKernel.puertoMemoria = config_get_int_value(k_config, "PUERTO_MEMORIA");
-	logger(escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %d",
+	char * puertoMemoria = config_get_string_value(k_config, "PUERTO_MEMORIA");
+	configKernel.puertoMemoria = malloc(strlen(puertoMemoria)+1);
+	strcpy(configKernel.puertoMemoria, puertoMemoria);
+	logger(escribir_loguear, l_info,"PUERTO_MEMORIA del archivo de configuracion del Kernel recuperado: %s",
 		configKernel.puertoMemoria);
 	//Recupero el quantum
 	if(!config_has_property(k_config,"QUANTUM")) {
@@ -313,12 +315,12 @@ int inicializarSemaforos(){
 	return EXIT_SUCCESS;
 }
 
-int conectarse_con_primera_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
+int conectarse_con_primera_memoria(char* ip, char * puerto){
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = conectarseA(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s y puerto %s", ip, puerto);
 		close(socket_mem);
 		terminar_programa(EXIT_SUCCESS);
 	}
@@ -342,18 +344,20 @@ int conectarse_con_primera_memoria(char* ip, int puerto){
 }
 
 
-int conectarse_con_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %i",
+int conectarse_con_memoria(char* ip, char * puerto){
+	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = conectarseA(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
 		terminar_programa(EXIT_SUCCESS);
 	}
 	enviar_handshake(socket_mem);
 
 	int numero_de_memoria = prot_recibir_int(socket_mem);
+	logger(escribir_loguear, l_info, "Me conecte a la memoria numero %d", numero_de_memoria);
+
 
 	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
 	entrada_tabla_memorias->ip = ip;
@@ -361,20 +365,22 @@ int conectarse_con_memoria(char* ip, int puerto){
 	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
 
+	pthread_mutex_lock(&mutex_MemConectadas);
 	list_add(listaMemConectadas, entrada_tabla_memorias);
+	pthread_mutex_unlock(&mutex_MemConectadas);
 
 	describeAll(socket_mem);
 
 	return EXIT_SUCCESS;
 }
 
-int conectar_con_memoria(char* ip, int puerto){
-	logger(escribir_loguear, l_info, "Conectando request a la memoria en ip %s y puerto %i",
+int conectar_con_memoria(char* ip, char * puerto){
+	logger(escribir_loguear, l_info, "Conectando request a la memoria en ip %s y puerto %s",
 			ip, puerto);
 	int sock = 0;
-	int socket_mem = conectarseA(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %i", ip);
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
 		close(socket_mem);
 	}
 	enviar_handshake(socket_mem);
@@ -431,11 +437,15 @@ t_operacion parsear(char * linea){
 	} else if(string_equals_ignore_case(tipo_de_operacion, "describe")){
 		resultado_de_parsear.tipo_de_operacion = _DESCRIBE;
 		char * tabla=split[1];
-		size_t tamanio_nombre_tabla = strlen(tabla);
-		tabla = realloc(tabla, tamanio_nombre_tabla + 1);
-		char barra_cero='\0';
-		memcpy(tabla+ tamanio_nombre_tabla, &barra_cero,1);
-		resultado_de_parsear.parametros.describe.nombre_tabla = tabla;
+		if(tabla!=NULL){
+			size_t tamanio_nombre_tabla = strlen(tabla);
+			tabla = realloc(tabla, tamanio_nombre_tabla + 1);
+			char barra_cero='\0';
+			memcpy(tabla+ tamanio_nombre_tabla, &barra_cero,1);
+			resultado_de_parsear.parametros.describe.nombre_tabla = tabla;
+		}else{
+			resultado_de_parsear.parametros.describe.nombre_tabla = NULL;
+		}
 	} else if(string_equals_ignore_case(tipo_de_operacion, "drop")){
 		resultado_de_parsear.tipo_de_operacion = _DROP;
 		//Le agrego un \0 al final porque parece que no lo pone en el describe
@@ -618,17 +628,10 @@ void describeAll(int socket_memoria) {
 
 
 		void actualizarTabla(void* nodo) {
-			tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
-			tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
-			tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
-			if(existeTabla(tabla->nombre_tabla) && (string_equals_ignore_case(((tp_entrada_tabla_creada) nodo)->criterio, tabla->criterio))){
-				int pos = obtener_pos_tabla(tabla->nombre_tabla);
-				pthread_mutex_lock(&mutex_tablas);
-				list_remove(listaTablasCreadas, pos);
-				list_add(listaTablasCreadas, tabla);
-				pthread_mutex_unlock(&mutex_tablas);
-
-			}else if(!existeTabla(tabla->nombre_tabla)){
+			if(!existeTabla(((tp_describe_rta) nodo)->nombre)){
+				tp_entrada_tabla_creada tabla = calloc(1, sizeof(t_entrada_tabla_creada));
+				tabla->nombre_tabla = string_duplicate(((tp_describe_rta) nodo)->nombre);
+				tabla->criterio = string_duplicate(((tp_describe_rta) nodo)->consistencia);
 				pthread_mutex_lock(&mutex_tablas);
 				list_add(listaTablasCreadas, tabla);
 				pthread_mutex_unlock(&mutex_tablas);
@@ -636,8 +639,19 @@ void describeAll(int socket_memoria) {
 		}
 
 		list_iterate(info_de_las_tablas->lista, actualizarTabla);
+
+		void removerTabla(void*nodo){
+			if(tablaFueBorrada(((tp_entrada_tabla_creada) nodo)->nombre_tabla, info_de_las_tablas->lista)){
+				int pos = obtener_pos_tabla(((tp_entrada_tabla_creada) nodo)->nombre_tabla);
+				pthread_mutex_lock(&mutex_tablas);
+				list_remove(listaTablasCreadas, pos);
+				pthread_mutex_unlock(&mutex_tablas);
+			}
+
+		list_iterate(listaTablasCreadas, removerTabla);
+
+		}
 		//Libero la lista
-		logger(escribir_loguear, l_error, "LLEGO A HACER EL DESCRIBE ALL");
 		prot_free_tp_describeAll_rta(info_de_las_tablas);
 
 	}
@@ -886,7 +900,7 @@ void* funcionHiloRequest(void* pcb){
 
 				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
-				//usleep(retardo);
+				usleep(retardo * 1000);
 
 				int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto);
 
@@ -937,7 +951,11 @@ char* obtenerTabla(t_operacion resultado_del_parseado){
 			tabla = string_duplicate(resultado_del_parseado.parametros.create.nombre_tabla);
 			break;
 		case _DESCRIBE:
-			tabla = string_duplicate(resultado_del_parseado.parametros.describe.nombre_tabla);
+			if(resultado_del_parseado.parametros.describe.nombre_tabla != NULL){
+				tabla = string_duplicate(resultado_del_parseado.parametros.describe.nombre_tabla);
+			}else{
+				tabla = NULL;
+			}
 			break;
 		case _DROP:
 			tabla = string_duplicate(resultado_del_parseado.parametros.drop.nombre_tabla);
@@ -953,6 +971,15 @@ bool existeTabla(char* tabla){
 	}
 
 	return list_any_satisfy(listaTablasCreadas, coincideNombre);
+}
+
+bool tablaFueBorrada(char* tabla, t_list* lista){
+
+	bool mismoNombre(void*nodo){
+		return (string_equals_ignore_case(((tp_describe_rta)nodo)->nombre, tabla));
+	}
+
+	return list_any_satisfy(lista, mismoNombre);
 }
 
 bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
@@ -978,14 +1005,17 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	if(operacion.tipo_de_operacion == _CREATE){
 		criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
 
-	}else{
+	}else if(tabla == NULL){
+		memoria = list_get(listaMemConectadas, 0);
+
+		}else{
 	//buscar tabla en listaTablasCreadas y obtener el criterio
 
 	entrada = buscarTablaEnMetadata(tabla);
 
 
 	criterio = string_duplicate(entrada->criterio);
-	}
+
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	//buscar las memorias que tengan ese criterio asignado y elegir
 	if((operacion.tipo_de_operacion == _CREATE) || (entrada != NULL)){
@@ -1039,6 +1069,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	memoria = NULL;
 	//free(criterio);
 	//free(entrada);
+	}
 	return memoria;
 }
 
@@ -1127,11 +1158,16 @@ void* pedir_gossip(){
 			tp_tabla_gossiping tabla_nueva = prot_recibir_tabla_gossiping(rta_pedido.tamanio, socket_primera_memoria);
 
 			//conectarme a las memorias nuevas de la tabla gossip
-			conectarse_a_memorias_gossip(tabla_nueva);
+			conectarse_a_memorias_gossip(tabla_nueva->lista);
 
 			logger(escribir_loguear, l_info, "Esta es la informacion recibida:");
-			//TODO mostrar lista memorias
 
+			void imprimir_informacion_memoria_ajena(void * memoria_ajena){
+				logger(escribir_loguear, l_debug, "El ip de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).ip);
+				logger(escribir_loguear, l_debug, "El puerto de la memoria es: %s", (*(t_memo_del_pool*)memoria_ajena).puerto);
+			}
+
+			list_iterate(tabla_nueva->lista, imprimir_informacion_memoria_ajena);
 
 			//Libero la estructura que recibi
 			free(tabla_nueva);
@@ -1146,8 +1182,8 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 
 	void verificar_si_memoria_existe_en_mi_tabla_para_agregarla(void * memoria_gossip){
 			bool memoria_existe_en_mi_lista(void * memoria){
-				return string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_gossip)->ip,((tp_memo_del_pool_kernel)memoria)->ip)
-						&& string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_gossip)->puerto,((tp_memo_del_pool_kernel)memoria)->puerto);
+				return string_equals_ignore_case(((tp_memo_del_pool)memoria_gossip)->ip,((tp_memo_del_pool_kernel)memoria)->ip)
+						&& string_equals_ignore_case(((tp_memo_del_pool)memoria_gossip)->puerto,((tp_memo_del_pool_kernel)memoria)->puerto);
 			}
 			if(!list_any_satisfy(listaMemConectadas, memoria_existe_en_mi_lista)){
 				logger(escribir_loguear, l_debug, "Voy a conectarme a la memoria");
@@ -1155,7 +1191,7 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 								string_duplicate(((t_memo_del_pool*)memoria_gossip)->puerto));
 			}
 		}
-		list_iterate(listaMemConectadas, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
+		list_iterate(lista_gossip, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
 
 }
 

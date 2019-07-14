@@ -37,8 +37,8 @@ enum tipo_logueo {
 };
 
 typedef struct definicionConfiguracionDelKernel {
-	char* ipMemoria; //de la primera memoria q se conecta
-	int puertoMemoria;
+	char * ipMemoria; //de la primera memoria q se conecta
+	char * puertoMemoria;
 	int quantum;
 	int multiprocesamiento; //cantidad de scripts corriendo a la vez
 	int refreshMetadata;
@@ -48,7 +48,7 @@ typedef struct definicionConfiguracionDelKernel {
 
 typedef struct memo_del_pool_kernel {
 	char * ip;
-	int puerto;
+	char * puerto;
 	int numero_memoria;
 	int socket;
 }t_memo_del_pool_kernel;
