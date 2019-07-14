@@ -1002,20 +1002,23 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 
 	char* tabla = obtenerTabla(operacion);
 
+
+	if(tabla == NULL){
+		memoria = list_get(listaMemConectadas, 0);
+		return memoria;
+
+	}
 	if(operacion.tipo_de_operacion == _CREATE){
 		criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
 
-	}else if(tabla == NULL){
-		memoria = list_get(listaMemConectadas, 0);
-
-		}else{
+	}else{
 	//buscar tabla en listaTablasCreadas y obtener el criterio
 
-	entrada = buscarTablaEnMetadata(tabla);
+		entrada = buscarTablaEnMetadata(tabla);
 
 
-	criterio = string_duplicate(entrada->criterio);
-
+		criterio = string_duplicate(entrada->criterio);
+	}
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	//buscar las memorias que tengan ese criterio asignado y elegir
 	if((operacion.tipo_de_operacion == _CREATE) || (entrada != NULL)){
@@ -1069,7 +1072,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	memoria = NULL;
 	//free(criterio);
 	//free(entrada);
-	}
+
 	return memoria;
 }
 
