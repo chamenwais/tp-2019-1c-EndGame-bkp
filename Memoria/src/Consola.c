@@ -267,26 +267,26 @@ int consola_obtener_key_comando(char * buf_comando,char** comandos, int LFS_fs)
 	if(string_equals_ignore_case(comando, "select")){
 		consola_select(comandos);
 		return 0;
-	}
-	if(string_equals_ignore_case(comando, "insert")){
+	} else if(string_equals_ignore_case(comando, "insert")){
 		consola_insert(buf_comando, comandos);
 		return 0;
-	}
-	if(string_equals_ignore_case(comando, "create")){
+	} else if(string_equals_ignore_case(comando, "create")){
 		consola_create(comandos);
 		return 0;
-	}
-	if(string_equals_ignore_case(comando, "describe")){
+	} else if(string_equals_ignore_case(comando, "describe")){
 		consola_describe(comandos);
 		return 0;
-	}
-	if(string_equals_ignore_case(comando, "drop")){
+	} else if(string_equals_ignore_case(comando, "drop")){
 		consola_drop(comandos);
 		return 0;
-	}
-	if(string_equals_ignore_case(comando, "journal")){
+	} else if(string_equals_ignore_case(comando, "journal")){
+		free(comando);
+		free(comandos);
 		consola_journal(LFS_fs);
 		return 0;
+	} else {
+		free(comando);
+		free(comandos);
 	}
 
 	return key;
