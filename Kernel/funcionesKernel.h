@@ -68,6 +68,7 @@ void* pedir_gossip();
 void iniciar_pedido_gossip();
 void conectarse_a_memorias_gossip(t_list* lista_gossip);
 bool tablaFueBorrada(char* tabla, t_list* lista);
+int abrir_socket_memoria(char*, char*);
 
 t_path_archivo_conf *ruta_archivo_conf;
 int watch_descriptor,conf_fd;

@@ -318,14 +318,7 @@ int inicializarSemaforos(){
 int conectarse_con_primera_memoria(char* ip, char * puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = conectarseA(ip, atoi(puerto));
-	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s y puerto %s", ip, puerto);
-		close(socket_mem);
-		terminar_programa(EXIT_SUCCESS);
-	}
-	enviar_handshake(socket_mem);
-
+	int socket_mem = abrir_socket_memoria(ip, puerto);
 	int numero_de_memoria = prot_recibir_int(socket_mem);
 
 	tp_memo_del_pool_kernel entrada_tabla_memorias = calloc(1, sizeof(t_memo_del_pool_kernel));
@@ -343,18 +336,20 @@ int conectarse_con_primera_memoria(char* ip, char * puerto){
 	return EXIT_SUCCESS;
 }
 
+int abrir_socket_memoria(char* ip, char* puerto) {
+	int socket_mem = conectarseA(ip, atoi(puerto));
+	if (socket_mem < 0) {
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s y puerto %s", ip, puerto);
+		terminar_programa(EXIT_SUCCESS);
+	}
+	enviar_handshake(socket_mem);
+	return socket_mem;
+}
 
 int conectarse_con_memoria(char* ip, char * puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = conectarseA(ip, atoi(puerto));
-	if(socket_mem < 0){
-		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
-		close(socket_mem);
-		terminar_programa(EXIT_SUCCESS);
-	}
-	enviar_handshake(socket_mem);
-
+	int socket_mem = abrir_socket_memoria(ip, puerto);
 	int numero_de_memoria = prot_recibir_int(socket_mem);
 	logger(escribir_loguear, l_info, "Me conecte a la memoria numero %d", numero_de_memoria);
 
@@ -381,7 +376,6 @@ int conectar_con_memoria(char* ip, char * puerto){
 	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
 		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
-		close(socket_mem);
 	}
 	enviar_handshake(socket_mem);
 
@@ -1123,15 +1117,14 @@ void iniciar_proceso_describe_all(){
 void* hacer_describe(){
 	while(1){
 		usleep(configKernel.refreshMetadata*1000);
-		int max = list_size(listaMemConectadas);
-		int i;
-		for (i = 0; i < max; ++i) {
-			tp_memo_del_pool_kernel memo = list_get(listaMemConectadas, i);
-			logger(escribir_loguear, l_debug, "Se le solicita a la memoria %i un describe all", memo->numero_memoria);
-			describeAll(memo->socket);
-
-
+		if(list_is_empty(listaMemConectadas)){
+			continue;
 		}
+		logger(escribir_loguear, l_debug, "Se le solicita la memoria de conf un describe all");
+		int socket_mem = abrir_socket_memoria(configKernel.ipMemoria, configKernel.puertoMemoria);
+		prot_recibir_int(socket_mem);
+		describeAll(socket_mem);
+		close(socket_mem);
 	}
 	return EXIT_SUCCESS;
 }
@@ -1151,14 +1144,16 @@ void* pedir_gossip(){
 	while(1){
 		usleep(configKernel.gossip_time*1000);
 		logger(escribir_loguear, l_info, "Voy a pedir la tabla de gossip");
-		prot_enviar_pedido_tabla_gossiping(socket_primera_memoria);
+		int socket_mem = abrir_socket_memoria(configKernel.ipMemoria, configKernel.puertoMemoria);
+		prot_recibir_int(socket_mem);
+		prot_enviar_pedido_tabla_gossiping(socket_mem);
 
 		logger(escribir_loguear, l_info, "Espero la rta de memoria...");
-		t_cabecera rta_pedido = recibirCabecera(socket_primera_memoria);
+		t_cabecera rta_pedido = recibirCabecera(socket_mem);
 
 		if(rta_pedido.tipoDeMensaje == PEDIDO_KERNEL_GOSSIP){
 			logger(escribir_loguear, l_info, "La memoria envio la tabla de gossip correctamente");
-			tp_tabla_gossiping tabla_nueva = prot_recibir_tabla_gossiping(rta_pedido.tamanio, socket_primera_memoria);
+			tp_tabla_gossiping tabla_nueva = prot_recibir_tabla_gossiping(rta_pedido.tamanio, socket_mem);
 
 			//conectarme a las memorias nuevas de la tabla gossip
 			conectarse_a_memorias_gossip(tabla_nueva->lista);
@@ -1176,6 +1171,7 @@ void* pedir_gossip(){
 			free(tabla_nueva);
 
 		}
+		close(socket_mem);
 
 	}
 
