@@ -426,7 +426,9 @@ void terminar_programa(int codigo_finalizacion){
 		liberar_bitmap_marcos();
 	}
 
-	close(SOCKET_LISS);
+	if(SOCKET_LISS>0){
+		close(SOCKET_LISS);
+	}
 	close(SERVER_MEMORIA);
 
 	apagar_semaforos();
@@ -473,7 +475,6 @@ void validar_comunicacion(int socket, char* proceso){
 }
 
 void cerrar_socket_y_terminar(int socket){
-	close(socket);
 	terminar_programa(EXIT_FAILURE);
 }
 
@@ -565,17 +566,11 @@ void obtener_y_combinar_tablas_gossip(int socket, int tamanio) {
 
 void recibir_tabla_de_gossip(int socket, int tamanio){
 	obtener_y_combinar_tablas_gossip(socket, tamanio);
-//	//TODO solo para debuggear
-//	logger(escribir_loguear, l_debug, "\nImprimo mi tabla de gossiping");
-//	list_iterate(mi_tabla_de_gossip, imprimir_informacion_memoria_ajena);
 }
 
 void recibir_y_enviar_tabla_de_gossip(int socket, int tamanio){
 	obtener_y_combinar_tablas_gossip(socket, tamanio);
 	enviar_sin_esperar_tabla_gossip(socket);
-//	//TODO solo para debuggear
-//	logger(escribir_loguear, l_debug, "\nImprimo mi tabla de gossiping");
-//	list_iterate(mi_tabla_de_gossip, imprimir_informacion_memoria_ajena);
 }
 
 void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){

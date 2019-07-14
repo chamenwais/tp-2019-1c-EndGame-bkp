@@ -216,6 +216,7 @@ void recopilar_paginas_de_segmento_por_criterio(t_list *paginas_recopiladas, boo
 }
 
 int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
+	logger(escribir_loguear, l_trace, "Voy a aplicar el algoritmo Last Recently Used");
 	t_list * paginas_no_modificadas=list_create();
 	bool es_pagina_no_modificada(void * pagina){
 		return ((t_entrada_tabla_paginas *)pagina)->flag==FLAG_NO_MODIFICADO;
