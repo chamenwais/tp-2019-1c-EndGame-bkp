@@ -76,7 +76,7 @@ int dropConsola(char* linea){
 }
 
 
-void journalConsola(char* linea){
+void journalConsola(){
 	int max = list_size(listaMemConectadas);
 	int i;
 	for (i = 0; i < max; ++i) {
@@ -127,7 +127,8 @@ int addConsola(int memnum, char* criterio){
 			list_add(listaHC, memoria);
 			pthread_mutex_unlock(&mutex_HC);
 			printf("Se agrego la memoria %i al criterio HC\n", memnum);
-			//TODO hacer un journal para cada memoria de la lista
+			printf("Se va a realizar un journal en todas las memorias del criterio HC");
+			journalConsola();
 		}else{
 			printf("Pifiaste el criterio amigue");
 		}
@@ -339,7 +340,7 @@ void *funcionHiloConsola(void *arg){
 				}else{
 					if((strcmp(instruccion[0],"journal")==0) || (strcmp(instruccion[0], "JOURNAL")==0)){
 						printf("Voy a enviar journal a todas las memorias");
-						journalConsola(linea);
+						journalConsola();
 				}else{
 					if(strcmp(instruccion[0],"man")==0){
 						man();
