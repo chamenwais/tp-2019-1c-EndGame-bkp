@@ -179,12 +179,10 @@ t_list* obtenerTmps(char* tabla){
 		return FTW_CONTINUE;
 	}
 	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(tabla);
-	if(mutexTabla==NULL){
-		free(main_directorio);
-		return temps;
+	if(mutexTabla!=NULL){
+		nftw(main_directorio,buscarTmp,20,FTW_ACTIONRETVAL|FTW_PHYS);
+		desbloquearSharedTablaFS(mutexTabla);
 	}
-	nftw(main_directorio,buscarTmp,20,FTW_ACTIONRETVAL|FTW_PHYS);
-	desbloquearSharedTablaFS(mutexTabla);
 	free(main_directorio);
 	return temps;
 }
@@ -210,12 +208,10 @@ t_list* obtenerTmpcs(char* tabla){
 		return FTW_CONTINUE;
 	}
 	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(tabla);
-	if(mutexTabla==NULL){
-		free(main_directorio);
-		return tempcs;
+	if(mutexTabla!=NULL){
+		nftw(main_directorio,buscarTmpc,20,FTW_ACTIONRETVAL|FTW_PHYS);
+		desbloquearSharedTablaFS(mutexTabla);
 	}
-	nftw(main_directorio,buscarTmpc,20,FTW_ACTIONRETVAL|FTW_PHYS);
-	desbloquearSharedTablaFS(mutexTabla);
 	free(main_directorio);
 	return tempcs;
 }
@@ -239,40 +235,42 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 
 		tmps=obtenerTmps(tabla);
 		tmpcsViejos = obtenerTmpcs(tabla);
-		if(tmps->elements_count!=0){
+		if(tmps->elements_count!=0 || tmpcsViejos->elements_count!=0){
 			//hay archivos para compactar
 			//le saco sus blocks y el size total
-			log_info(LOGGERFS,"[Compactador %s]Detectados nuevos tmps",tabla);
+			if(tmps->elements_count!=0)
+				log_info(LOGGERFS,"[Compactador %s]Detectados nuevos tmps",tabla);
 			if(tmpcsViejos->elements_count!=0)
 				log_info(LOGGERFS,"[Compactador %s]Detectados viejos tmpcs que no se compactaron",tabla);
 
 			//Renombrar a tmpc
-			mutexTabla = bloquearExclusiveTablaFS(tabla);
-			if(mutexTabla==NULL){
-				list_destroy_and_destroy_elements(tmps,free);
-				list_destroy_and_destroy_elements(tmpcsViejos,free);
-				log_info(LOGGERFS,"[Compactador %s]La tabla dejo de existir antes de poder renombrar tmps a tmpc, finalizando compactador",tabla);
-				eliminarDeTablas(tabla);
-				pthread_exit(0);
-			}
-			for(int i=0;i<tmps->elements_count;i++){//@@INFO: si llegara a fallar los archivos quedan renombrados a tmpc, arreglar?
-				char* tmpc = string_new();
-				string_append(&tmpc,(char*)list_get(tmps,i));
-				string_append(&tmpc,"c");
-				if(rename((char*)list_get(tmps,i),tmpc)){
-					//hubo error
-					desbloquearExclusiveTablaFS(mutexTabla);
-					free(tmpc);
+			if(tmps->elements_count!=0){
+				mutexTabla = bloquearExclusiveTablaFS(tabla);
+				if(mutexTabla==NULL){
 					list_destroy_and_destroy_elements(tmps,free);
 					list_destroy_and_destroy_elements(tmpcsViejos,free);
-					log_error(LOGGERFS,"[Compactador %s]No se pudo renombrar el archivo [%s] a [%s], finalizando compactador",tabla,(char*)list_get(tmps,i),tmpc);
+					log_info(LOGGERFS,"[Compactador %s]La tabla dejo de existir antes de poder renombrar tmps a tmpc, finalizando compactador",tabla);
 					eliminarDeTablas(tabla);
 					pthread_exit(0);
 				}
-				list_replace_and_destroy_element(tmps,i,tmpc,free);
+				for(int i=0;i<tmps->elements_count;i++){
+					char* tmpc = string_new();
+					string_append(&tmpc,(char*)list_get(tmps,i));
+					string_append(&tmpc,"c");
+					if(rename((char*)list_get(tmps,i),tmpc)){
+						//hubo error
+						desbloquearExclusiveTablaFS(mutexTabla);
+						free(tmpc);
+						list_destroy_and_destroy_elements(tmps,free);
+						list_destroy_and_destroy_elements(tmpcsViejos,free);
+						log_error(LOGGERFS,"[Compactador %s]No se pudo renombrar el archivo [%s] a [%s], finalizando compactador",tabla,(char*)list_get(tmps,i),tmpc);
+						eliminarDeTablas(tabla);
+						pthread_exit(0);
+					}
+					list_replace_and_destroy_element(tmps,i,tmpc,free);
+				}
+				desbloquearExclusiveTablaFS(mutexTabla);
 			}
-			desbloquearExclusiveTablaFS(mutexTabla);
-
 			//--agrego los tmpc viejos a los recien cambiados de tmp a tmpc(si tuvieran el mismo nombre no lo agrego, deberia hacer una doble compactacion?)
 			int cantidadTmpcsViejos = tmpcsViejos->elements_count;
 			char* tmpc_old;
@@ -430,12 +428,11 @@ void guardarMilisegundosBloqueada(char* nombreTabla,int milisegundos,bool resetF
 	FILE* archivo;
 	if(resetFile) archivo = fopen(archivoMSBloqueada,"w");
 	else archivo = fopen(archivoMSBloqueada,"a");
-	if(archivo==NULL){
-		free(archivoMSBloqueada);
-		return;
+	if(archivo!=NULL){
+		fprintf(archivo,"MILLISECONDS=%d\n",milisegundos);
+		fclose (archivo);
 	}
-	fprintf(archivo,"MILLISECONDS=%d\n",milisegundos);
-	fclose (archivo);
+	free(archivoMSBloqueada);
 }
 
 char* convertirTKVsAString(t_list* particion){
@@ -507,25 +504,30 @@ t_list* cargarTimeStampKeyValue(char* path){//ya se q este path existe xq lo cre
 	FILE* archivo = fopen(path,"r");
 	if(archivo==NULL){
 		log_error(LOGGERFS,"[Compactador]El archivo %s que deberia haber creado antes ya no existe",path);
+		return listaResultante;
 	}
+	char** tempLinea;
 	char** lineaParseada;
-	char *linea = NULL;
 	char *aux = NULL;
 	size_t linea_buf_size = 0;
 	ssize_t linea_size;
-
 	linea_size = getline(&aux, &linea_buf_size, archivo);
 	while (linea_size >= 0){
-		linea=(string_split(aux,"\n"))[0]; //hago esto para sacarle el \n
-		lineaParseada = string_split(linea, ";");
+		tempLinea = string_split(aux,"\n");//(formato = "algo" , "/n" , NULL) o "algo" , NULL si no habia /n
+
+		lineaParseada = string_split(tempLinea[0], ";");
 		nuevoNodo=malloc(sizeof(t_tkv));
 		nuevoNodo->timeStamp=atoi(lineaParseada[0]);
 		nuevoNodo->key=atoi(lineaParseada[1]);
 		nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
 		strcpy(nuevoNodo->value,lineaParseada[2]);
 		list_add(listaResultante,nuevoNodo);
+		for(int z=0;tempLinea[z]!=NULL;z++) free(tempLinea[z]);
+		free(tempLinea);
 		for(int j=0;lineaParseada[j]!=NULL;j++) free(lineaParseada[j]);
 		free(lineaParseada);
+		free(aux);
+		linea_buf_size=0;
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 	}
 	fclose(archivo);
@@ -593,6 +595,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 				free(ubicacionDelBloque);
 				for(int j=i;arrayDeBloques[j]!=NULL;j++)
 					free(arrayDeBloques[j]);
+				free(arrayDeBloques);
 				return NULL;
 			}
 
@@ -602,6 +605,7 @@ char* crearTempParaTmpcs(t_list* tmpc,char* nombreTabla){
 			free(ubicacionDelBloque);
 			free(arrayDeBloques[i]);
 		}
+		free(arrayDeBloques);
 	}
 	desbloquearSharedTablaFS(mutexTabla);
 	fclose(archivoTemp);//ya cargue todos los datos del tmpc aca
@@ -701,6 +705,7 @@ t_list* crearTempsParaBins(char* tabla){
 				free(ubicacionDelBloque);
 				for(int j=i;arrayDeBloques[j]!=NULL;j++)
 					free(arrayDeBloques[j]);
+				free(arrayDeBloques);
 				fclose(archivoTemp);
 				remove(archivoTempUbicacion);
 				free(archivoTempUbicacion);
@@ -712,6 +717,7 @@ t_list* crearTempsParaBins(char* tabla){
 			free(ubicacionDelBloque);
 			free(arrayDeBloques[i]);
 		}
+		free(arrayDeBloques);
 		//free(archivoTempUbicacion);
 		list_add(tempBins,(void*)archivoTempUbicacion);
 		fclose(archivoTemp);//ya cargue todos los datos de los bins aca
