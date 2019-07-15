@@ -609,7 +609,18 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	if(!list_is_empty(memTable)){
 		log_info(LOGGERFS,"La memtable no esta vacia");
 		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
-		listaResultante = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
+		if(tabla!=NULL){
+			listaResultante = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
+			if(listaResultante==NULL){
+				log_info(LOGGERFS,"La key %d no esta en la  tabla %s de la memtable",
+						key, nombreDeLaTabla);
+				listaResultante = list_create();
+				}
+		}else{
+			//Esta vacia
+			log_info(LOGGERFS,"La tabla %s no esta en la memtable",nombreDeLaTabla);
+			listaResultante = list_create();
+			}
 	}else{
 		log_info(LOGGERFS,"Memtable vacia");
 		listaResultante = list_create();

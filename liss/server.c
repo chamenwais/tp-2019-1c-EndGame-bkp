@@ -236,20 +236,23 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 
 	tp_nodoDeLaTabla sel_fs = selectf(seleccion->nom_tabla, seleccion->key);//pido el value al fs
 
-	if(sel_fs->resultado==KEY_OBTENIDA){
-		log_info(LOGGERFS,"[LissServer] Proceso Select(cliente %d): tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",cliente,seleccion->nom_tabla,seleccion->key,sel_fs->value);
-		prot_enviar_respuesta_select(sel_fs->value,sel_fs->key,sel_fs->timeStamp,cliente);
-		free(sel_fs->value);
-	}
-	else if(sel_fs->resultado==KEY_NO_EXISTE){
-
-		log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] con key= [%hu] no existe",cliente,seleccion->nom_tabla,seleccion->key);
-		prot_enviar_error(KEY_NO_EXISTE,cliente);
-	}
-	else{
-		log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] no existe",cliente,seleccion->nom_tabla);
-		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-	}
+	if(sel_fs!=NULL){
+		if(sel_fs->resultado==KEY_OBTENIDA){
+			log_info(LOGGERFS,"[LissServer] Proceso Select(cliente %d): tabla= [%s] con key= [%hu] devuelve value a enviar= [%s]",cliente,seleccion->nom_tabla,seleccion->key,sel_fs->value);
+			prot_enviar_respuesta_select(sel_fs->value,sel_fs->key,sel_fs->timeStamp,cliente);
+			free(sel_fs->value);
+		}
+		else if(sel_fs->resultado==KEY_NO_EXISTE){
+			log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] con key= [%hu] no existe",cliente,seleccion->nom_tabla,seleccion->key);
+			prot_enviar_error(KEY_NO_EXISTE,cliente);
+		}
+		else{
+			log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] no existe",cliente,seleccion->nom_tabla);
+			prot_enviar_error(TABLA_NO_EXISTIA,cliente);
+			}
+	}else{
+		log_error(LOGGERFS,"[LissServer] sel_fs==NULL");
+		}
 	free(seleccion->nom_tabla);
 	free(seleccion);
 	free(sel_fs);

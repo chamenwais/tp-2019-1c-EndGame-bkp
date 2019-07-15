@@ -364,14 +364,14 @@ int bajarADiscoBitmap(){
 	if(0==resultadoDelSync){
 		log_info(LOGGERFS,"Sincronizacion del bitmap exitosa");
 	}else{
-		log_error(LOGGERFS,"Error en la sincronizacion del bitmap, numero de error: %d, size del bitmap: %d",
+		/*log_error(LOGGERFS,"Error en la sincronizacion del bitmap, numero de error: %d, size del bitmap: %d",
 				errno, sizeDelBitmap);
 		if(errno==EBUSY)
 			log_error(LOGGERFS,"Error = EBUSY");
 		if(errno==EINVAL)
 			log_error(LOGGERFS,"Error = EINVAL");
 		if(errno==ENOMEM)
-			log_error(LOGGERFS,"Error = ENOMEM");
+			log_error(LOGGERFS,"Error = ENOMEM");*/
 		}
 	pthread_mutex_unlock(&mutexBitmap);
 	return EXIT_SUCCESS;
