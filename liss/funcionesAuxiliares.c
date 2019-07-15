@@ -876,7 +876,6 @@ t_list* obtenerTodosLosDescriptores(){
 
 	t_list* metadata_todos_los_descriptores = list_create();
 
-	//deberia ser static pero gcc no estaba feliz, veo si funca igualmente
 	int guardar_metadata_descriptores(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
 
 		char* path_nombre;
@@ -922,7 +921,7 @@ t_list* obtenerTodosLosDescriptores(){
 
 
 void free_tp_describe_rta(void* d){
-	tp_describe_rta unDescriptor = d;
+	tp_describe_rta unDescriptor = (tp_describe_rta)d;
 	free(unDescriptor->nombre);
 	free(unDescriptor->consistencia);
 	free(unDescriptor);

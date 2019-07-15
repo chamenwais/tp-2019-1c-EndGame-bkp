@@ -255,13 +255,13 @@ int consolaDescribeDeTabla(char* nombreDeLaTabla){
 	if((metadataDeLaTabla.particiones!=-1)&&
 			(metadataDeLaTabla.tiempoDeCompactacion!=-1)&&
 			(metadataDeLaTabla.consistencia!=NULL)){
-		log_info(LOGGERFS,"Info de la tabla recuperada");
+		log_info(LOGGERFS,"Info de la tabla %s recuperada",nombreDeLaTabla);
 		printf("Info de la tabla: %s\n",nombreDeLaTabla);
 		printf("Numero de particiones: %d\n",metadataDeLaTabla.particiones);
 		printf("Tipo de consistencia: %s\n",metadataDeLaTabla.consistencia);
 		printf("Tiempo de compactacion: %d\n",metadataDeLaTabla.tiempoDeCompactacion);
-		}
-	free(metadataDeLaTabla.consistencia);
+		free(metadataDeLaTabla.consistencia);
+	}
 	return EXIT_SUCCESS;
 }
 

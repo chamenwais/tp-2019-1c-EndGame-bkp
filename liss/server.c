@@ -34,8 +34,8 @@ int lanzarServer(){//@@crear una funcion que lance hilos de estos especiales ser
 int list_mayor_int(t_list *lista){
 	int size=list_size(lista),mayor=-1;
 	for (int i=0;i<size;i++){
-		int *elemento = (int*)list_get(lista,i);
-		if(*elemento>mayor)mayor=*elemento;
+		int elemento = (int)list_get(lista,i);
+		if(elemento>mayor)mayor=elemento;
 	}
 	return mayor;
 }
@@ -52,12 +52,12 @@ void* crearServerLissandra(){
 	fd_conocidos.lista = list_create();//lista de file descriptors
 	log_info(LOGGERFS,"Iniciando server de lissandra");
 
-	int *escuchador = malloc(sizeof(int));//INFO: tengo que alocar espacio en memoria xq list_add no se crea el suyo propio
-	*escuchador = escucharEn(configuracionDelFS.puertoEscucha);//creo puerto de escucha
+	int escuchador;
+	escuchador = escucharEn(configuracionDelFS.puertoEscucha);//creo puerto de escucha
 	log_info(LOGGERFS,"[LissServer] Escuchando en el puerto: %d",configuracionDelFS.puertoEscucha);
 
 	FD_ZERO(&maestro);//inicio el fd ppal
-	FD_SET(*escuchador,&maestro);
+	FD_SET(escuchador,&maestro);
 
 	list_add(fd_conocidos.lista,(void*)escuchador);//agrego el fd escuchador, que es el que va a escuchar nuevas solicitudes de conexion
 
@@ -88,26 +88,25 @@ void* crearServerLissandra(){
 			//log_info(LOGGERFS,"[LissServer] Timeout del select");
 			//@timeout
 		}
-		else if(FD_ISSET(*escuchador,&copia_maestro)){//aceptar nueva conexion
+		else if(FD_ISSET(escuchador,&copia_maestro)){//aceptar nueva conexion
 
-			int *cliente_nuevo = malloc(sizeof(int));
-			*cliente_nuevo = aceptarConexion(*escuchador);//@checkear si hubo error, chequeo si ya hay conexion ahi?
+			int cliente_nuevo;
+			cliente_nuevo = aceptarConexion(escuchador);//@checkear si hubo error, chequeo si ya hay conexion ahi?
 
-			log_info(LOGGERFS,"[LissServer] Recibida request de conexion desde %d",*cliente_nuevo);
+			log_info(LOGGERFS,"[LissServer] Recibida request de conexion desde %d",cliente_nuevo);
 
-			if(recibirHandshake(LISSANDRA,MEMORIA,*cliente_nuevo)==0){
+			if(recibirHandshake(LISSANDRA,MEMORIA,cliente_nuevo)==0){
 				//handshake incorrecto
-				free(cliente_nuevo);
-				log_error(LOGGERFS,"[LissServer] No se pudo hacer handshake con %d",*cliente_nuevo);
+				log_error(LOGGERFS,"[LissServer] No se pudo hacer handshake con %d",cliente_nuevo);
 			}
 			else{//handshake, @de momento lo pongo aca
-				log_info(LOGGERFS,"[LissServer] Handshake con %d realizado, enviando VALUE",*cliente_nuevo);
+				log_info(LOGGERFS,"[LissServer] Handshake con %d realizado, enviando VALUE",cliente_nuevo);
 
-				prot_enviar_int(configuracionDelFS.sizeValue,*cliente_nuevo);
+				prot_enviar_int(configuracionDelFS.sizeValue,cliente_nuevo);
 
 				list_add(fd_conocidos.lista,(void*)cliente_nuevo);
 				pthread_mutex_lock(&fd_mutex);
-				FD_SET(*cliente_nuevo,&maestro);//agrego el nuevo cliente a los fd que conoce el maestro
+				FD_SET(cliente_nuevo,&maestro);//agrego el nuevo cliente a los fd que conoce el maestro
 				pthread_mutex_unlock(&fd_mutex);
 			}
 		}
@@ -116,25 +115,25 @@ void* crearServerLissandra(){
 
 			for(int i =1; i < list_size(fd_conocidos.lista);i++){//arranca de 1 xq en 0 siempre esta el escuchador
 
-				int *cliente = (int*)list_get(fd_conocidos.lista,i);//no hacer free, es el valor en la tabla
+				int cliente = (int)list_get(fd_conocidos.lista,i);//no hacer free, es el valor en la tabla
 
-				bool _fdID(void * elem){//inner function para remover el fd que cierro
-					return (*((int*)elem)) == *cliente;
+				bool _fdID(void* elem){//inner function para remover el fd que cierro
+					return ((int)elem) == cliente;
 				}
 
-				if(FD_ISSET(*cliente,&copia_maestro)){//mensaje del cliente
+				if(FD_ISSET(cliente,&copia_maestro)){//mensaje del cliente
 
-					t_cabecera cabecera=recibirCabecera(*cliente);//@necesito hacer free a cabecera?
+					t_cabecera cabecera=recibirCabecera(cliente);//@necesito hacer free a cabecera?
 
 					if(cabecera.tamanio == -1 )/*==5*/{//remover este cliente si se desconecta
-						log_info(LOGGERFS,"[LissServer] El cliente %d se ha desconectado, cerrando conexion",*cliente);
-						cerrarConexion(*cliente);
+						log_info(LOGGERFS,"[LissServer] El cliente %d se ha desconectado, cerrando conexion",cliente);
+						cerrarConexion(cliente);
 
 						pthread_mutex_lock(&fd_mutex);
-						FD_CLR(*cliente,&maestro);
+						FD_CLR(cliente,&maestro);
 						pthread_mutex_unlock(&fd_mutex);
 
-						list_remove_and_destroy_by_condition(fd_conocidos.lista,_fdID,free);
+						list_remove_by_condition(fd_conocidos.lista,_fdID);
 
 					}
 					else{ //procesar msg
@@ -142,10 +141,10 @@ void* crearServerLissandra(){
 						datos_iniciales* p = (datos_iniciales*)malloc(sizeof(datos_iniciales));
 						p->cabecera.tamanio=cabecera.tamanio;
 						p->cabecera.tipoDeMensaje = cabecera.tipoDeMensaje;
-						p->cliente = *cliente;
+						p->cliente = cliente;
 
 						pthread_mutex_lock(&fd_mutex);
-						FD_CLR(*cliente,&maestro);	//elimino el cliente pa q el thread pueda operar sin que
+						FD_CLR(cliente,&maestro);	//elimino el cliente pa q el thread pueda operar sin que
 													//el loop ppal de while lo moleste en ese socket
 						pthread_mutex_unlock(&fd_mutex);
 
@@ -156,12 +155,6 @@ void* crearServerLissandra(){
 						free(thread_procesar);
 						if(resultadoDeCrearHilo)
 							log_error(LOGGERFS,"Error al crear hilo de procesarMensaje, return code: %d",resultadoDeCrearHilo);
-
-						//en vez de tener que modificar todo para que el server no se ponga a recibir lo que no debe
-						//podria sacar de la lista y del fd maestro ese cliente, y que despues el thread se encargue de volver
-						//a agregarlo, esto requeriria una lista "global" y crear funciones atomicas
-
-
 
 					}
 
@@ -176,8 +169,8 @@ void* crearServerLissandra(){
 	pthread_mutex_lock(&fd_mutex);
 	pthread_mutex_unlock(&fd_mutex);
 	pthread_mutex_destroy(&fd_mutex);
-	cerrarConexion(*escuchador);
-	list_destroy_and_destroy_elements(fd_conocidos.lista,free);
+	cerrarConexion(escuchador);
+	list_destroy(fd_conocidos.lista);
 	log_info(LOGGERFS,"[LissServer] Server Finalizado");
 	pthread_exit(0);
 }
@@ -249,14 +242,14 @@ void procesarSelect(int cliente, t_cabecera cabecera){
 		else{
 			log_info(LOGGERFS,"[LissServer] Error Select(cliente %d): tabla= [%s] no existe",cliente,seleccion->nom_tabla);
 			prot_enviar_error(TABLA_NO_EXISTIA,cliente);
-			}
-	}else{
-		log_error(LOGGERFS,"[LissServer] sel_fs==NULL");
 		}
+		free(sel_fs);
+	}
+	else{
+		log_error(LOGGERFS,"[LissServer] sel_fs==NULL");
+	}
 	free(seleccion->nom_tabla);
 	free(seleccion);
-	free(sel_fs);
-	//free(value); //@necesita free el value q manda selectf???
 }
 
 void procesarInsert(int cliente, t_cabecera cabecera){
@@ -268,7 +261,7 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 
 	if (result == EXIT_SUCCESS){
 		prot_enviar_respuesta_insert(cliente);
-		log_info(LOGGERFS,"[LissServer] Insert(cliente %d): tabla= [%s] , value= [%s]",cliente,insercion->nom_tabla,insercion->value);
+		log_info(LOGGERFS,"[LissServer] Insert(cliente %d): tabla= [%s] , value= [%s] , timestamp = [%u]",cliente,insercion->nom_tabla,insercion->value,insercion->timestamp);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
 		log_info(LOGGERFS,"[LissServer] Error Insert(cliente %d): tabla= %s no existe",cliente,insercion->nom_tabla);
@@ -288,9 +281,12 @@ void procesarCreate(int cliente, t_cabecera cabecera){
 	if(result == TABLA_CREADA){
 		prot_enviar_respuesta_create(cliente);
 		log_info(LOGGERFS,"[LissServer] Create(cliente %d): tabla= %s",cliente,creacion->nom_tabla);
-	} else {
+	} else if(result==TABLA_YA_EXISTIA) {
 		prot_enviar_error(TABLA_YA_EXISTIA,cliente);
 		log_info(LOGGERFS,"[LissServer] Error Create(cliente %d): tabla= %s ya existe",cliente,creacion->nom_tabla);
+	} else if(result==EXIT_FAILURE){
+		prot_enviar_error(NO_HAY_MAS_BLOQUES_EN_EL_FS,cliente);
+		log_error(LOGGERFS,"[LissServer] CUIDADO hubo un error en el create, probablemente no quedan bloques en el fs, envio mensaje");
 	}
 	free(creacion->nom_tabla);
 	free(creacion->tipo_consistencia);
@@ -301,9 +297,10 @@ void procesarDescribe(int cliente, t_cabecera cabecera){
 	tp_describe descripcion = prot_recibir_describe(cabecera.tamanio,cliente);
 
 	t_metadataDeLaTabla metadata = describe(descripcion->nom_tabla);
-	if(metadata.consistencia!=NULL){
+	if((metadata.particiones!=-1)&&(metadata.tiempoDeCompactacion!=-1)&&(metadata.consistencia!=NULL)){
 		prot_enviar_respuesta_describe(descripcion->nom_tabla,metadata.particiones,metadata.consistencia,metadata.tiempoDeCompactacion,cliente);
 		log_info(LOGGERFS,"[LissServer] Describe(cliente %d): tabla= %s",cliente,descripcion->nom_tabla);
+		free(metadata.consistencia);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
 		log_info(LOGGERFS,"[LissServer] Error Describe(cliente %d): tabla= %s no existe",cliente,descripcion->nom_tabla);

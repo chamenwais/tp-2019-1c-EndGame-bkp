@@ -63,7 +63,7 @@ void prot_enviar_respuesta_create(int socket){
 }
 
 enum MENSAJES prot_recibir_respuesta_create(int socket){
-	//posibles MENSAJES a recibir del fs: REQUEST_SUCCESS, TABLA_YA_EXISTIA
+	//posibles MENSAJES a recibir del fs: REQUEST_SUCCESS, TABLA_YA_EXISTIA, NO_HAY_MAS_BLOQUES_EN_EL_FS
 	t_cabecera cabecera = recibirCabecera(socket);
 	return cabecera.tipoDeMensaje;
 }
