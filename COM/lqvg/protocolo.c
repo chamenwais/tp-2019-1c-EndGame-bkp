@@ -95,11 +95,11 @@ tp_select prot_recibir_select(int tamanio_paq, int socket){
 	return param_select;
 }
 
-void prot_enviar_respuesta_select(char * value,uint16_t key,unsigned int timestamp, int socket){
+void prot_enviar_respuesta_select(char * value,uint16_t key,double timestamp, int socket){
 	t_paquete* paquete = crear_paquete(REQUEST_SUCCESS);
 	agregar_string_a_paquete(paquete, value, strlen(value)+1);
 	agregar_uint16_t_a_paquete(paquete,key);
-	agregar_unsigned_int_a_paquete(paquete,timestamp);
+	agregar_double_a_paquete(paquete,timestamp);
 	enviar_paquete(paquete, socket);
 	eliminar_paquete(paquete);
 }
@@ -110,7 +110,7 @@ tp_select_rta prot_recibir_respuesta_select(int tamanio_paq,int socket){
 	recibir(socket, buffer, tamanio_paq);
 	int tamanio_value;
 	uint16_t key;
-	unsigned int timestamp;
+	double timestamp;
 	int desplazamiento = 0;
 	memcpy(&tamanio_value, buffer+desplazamiento, sizeof(int));
 	desplazamiento+=sizeof(int);
@@ -119,7 +119,7 @@ tp_select_rta prot_recibir_respuesta_select(int tamanio_paq,int socket){
 	desplazamiento+=tamanio_value;
 	memcpy(&key, buffer+desplazamiento, sizeof(uint16_t));
 	desplazamiento+=sizeof(uint16_t);
-	memcpy(&timestamp, buffer+desplazamiento, sizeof(unsigned int));
+	memcpy(&timestamp, buffer+desplazamiento, sizeof(double));
 	tp_select_rta param_select_rta =malloc(sizeof(t_select_rta));
 	param_select_rta->value=value;
 	param_select_rta->key = key;
@@ -139,12 +139,12 @@ enum MENSAJES prot_recibir_respuesta_insert(int socket){
 	return cabecera.tipoDeMensaje;
 }
 
-void prot_enviar_insert(char *nom_tabla, uint16_t key, char * value, unsigned int timestamp, int socket){
+void prot_enviar_insert(char *nom_tabla, uint16_t key, char * value, double timestamp, int socket){
 	t_paquete* paquete = crear_paquete(INSERT);
 	agregar_string_a_paquete(paquete, nom_tabla, strlen(nom_tabla)+1);
 	agregar_uint16_t_a_paquete(paquete, key);
 	agregar_string_a_paquete(paquete, value, strlen(value)+1);
-	agregar_unsigned_int_a_paquete(paquete, timestamp);
+	agregar_double_a_paquete(paquete, timestamp);
 	enviar_paquete(paquete, socket);
 	eliminar_paquete(paquete);
 }
@@ -154,7 +154,7 @@ tp_insert prot_recibir_insert(int tamanio_paq, int socket){
 	recibir(socket, buffer, tamanio_paq);
 	int tamanio_nom_tabla, tamanio_value;
 	uint16_t key;
-	unsigned int timestamp;
+	double timestamp;
 	int desplazamiento = 0;
 	memcpy(&tamanio_nom_tabla, buffer + desplazamiento, sizeof(int));
 	desplazamiento+=sizeof(int);
@@ -168,7 +168,7 @@ tp_insert prot_recibir_insert(int tamanio_paq, int socket){
 	char* value=malloc(tamanio_value);
 	memcpy(value, buffer+desplazamiento, tamanio_value);
 	desplazamiento+=tamanio_value;
-	memcpy(&timestamp, buffer+desplazamiento, sizeof(unsigned int));
+	memcpy(&timestamp, buffer+desplazamiento, sizeof(double));
 	tp_insert param_insert=malloc(sizeof(t_insert));
 	param_insert->nom_tabla=nom_tabla;
 	param_insert->key=key;

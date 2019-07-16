@@ -10,6 +10,10 @@
 int correr_tests(){
 	CU_initialize_registry();
 
+	CU_pSuite tests_timestamp =
+				CU_add_suite("Suite para probar obención de timestamp", setup_timestamp, clean_timestamp);
+		CU_add_test(tests_timestamp, "test_timestamp", test_timestamp);
+
 	CU_pSuite tests_gestion_seg_pag =
 			CU_add_suite("Suite para probar gestión de la seg paginada", setup_gestion_seg_pag, clean_gestion_seg_pag);
 	CU_add_test(tests_gestion_seg_pag, "test_calcular_cantidad_marcos_MP", test_calcular_cantidad_marcos_MP);
@@ -40,6 +44,28 @@ int correr_tests(){
 	return CU_get_error();
 }
 
+int setup_timestamp(){
+	return 0;
+}
+
+int clean_timestamp(){
+	return 0;
+}
+
+double obtenerTimestampLocal(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
+	double a = result;
+	return a;
+}
+
+void test_timestamp(){
+	printf("\nEl timestamp de COM es %.0f\n", obtenerTimestamp());
+	usleep(1000);
+	printf("El timestamp local es %.0f\n", obtenerTimestampLocal());
+}
+
 int setup_gestion_seg_pag(){
 	TAMANIO_MEMORIA=256;
 	TAMANIO_VALUE=7;
@@ -68,12 +94,12 @@ void test_calcular_cantidad_marcos_MP(){
 	setup_gestion_seg_pag();
 	int tamanio_marco = obtener_tamanio_marco();
 	CU_ASSERT_EQUAL(obtener_cantidad_marcos_en_MP(tamanio_marco), (int) TAMANIO_MEMORIA /
-			(sizeof(long) + sizeof(uint16_t) + TAMANIO_VALUE + 1));
+			(sizeof(double) + sizeof(uint16_t) + TAMANIO_VALUE + 1));
 }
 
 void test_colocar_value_en_MP(){
 	setup_gestion_seg_pag();
-	long timestamp = (unsigned) time(NULL);
+	double timestamp = obtenerTimestamp();
 	char* value = "Ahi va";
 	uint16_t key = (uint16_t) 1;
 	colocar_value_en_MP("tabla1", timestamp, key, value);
@@ -86,7 +112,7 @@ void test_colocar_value_en_MP(){
 
 void test_modificar_key_en_MP(){
 	setup_gestion_seg_pag();
-	long timestamp = (unsigned) time(NULL);
+	double timestamp = obtenerTimestamp();
 	char* value = "Ahi va";
 	uint16_t key = (uint16_t) 1;
 	insertar_value_modificado_en_MP("tabla1", timestamp, key, value);
@@ -122,6 +148,7 @@ void test_tomar_value_insert_sin_comillas(){
 }
 
 int setup_lru(){
+	g_logger= log_create("/home/utnso/TestsMemoria.log", "TestsMemoria", true, LOG_LEVEL_DEBUG);
 	inicializar_bitmap_marcos();
 	inicializar_tabla_segmentos();
 	t_entrada_tabla_segmentos * un_segmento=crear_segmento_a_tabla("tablaFalsa");

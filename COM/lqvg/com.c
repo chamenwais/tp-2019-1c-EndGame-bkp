@@ -163,20 +163,12 @@ void agregar_int_a_paquete(t_paquete* paquete, int valor_int){
 	paquete->cabecera.tamanio += sizeof(int);
 }
 
-void agregar_unsigned_int_a_paquete(t_paquete* paquete, unsigned int valor_unsigned_int){
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->cabecera.tamanio + sizeof(unsigned int));
+void agregar_double_a_paquete(t_paquete* paquete, double valor_double){
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->cabecera.tamanio + sizeof(double));
 
-	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio, &valor_unsigned_int, sizeof(unsigned int));
+	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio, &valor_double, sizeof(double));
 
-	paquete->cabecera.tamanio += sizeof(unsigned int);
-}
-
-void agregar_long_a_paquete(t_paquete* paquete, long valor_long){
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->cabecera.tamanio + sizeof(long));
-
-	memcpy(paquete->buffer->stream + paquete->cabecera.tamanio, &valor_long, sizeof(long));
-
-	paquete->cabecera.tamanio += sizeof(long);
+	paquete->cabecera.tamanio += sizeof(double);
 }
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente)

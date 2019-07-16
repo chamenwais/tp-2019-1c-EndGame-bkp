@@ -8,7 +8,7 @@
 #include "GestionSegPaginada.h"
 
 int obtener_tamanio_marco() {
-	int tamanio_marco = sizeof(long) + sizeof(uint16_t) + TAMANIO_VALUE
+	int tamanio_marco = sizeof(double) + sizeof(uint16_t) + TAMANIO_VALUE
 			+ 1;
 	return tamanio_marco;
 }
@@ -67,22 +67,22 @@ void liberar_tabla_segmentos(){
 
 uint16_t* obtener_key_desde_marco_en_MP(int marco) {
 	int desplazamiento = obtener_1er_byte_marco_en_MP(marco);
-	desplazamiento += sizeof(long);
+	desplazamiento += sizeof(double);
 	uint16_t* bytes_key_en_MP = malloc(sizeof(uint16_t));
 	memcpy(bytes_key_en_MP, MEMORIA_PRINCIPAL + desplazamiento, sizeof(uint16_t));
 	return bytes_key_en_MP;
 }
 
-long * obtener_timestamp_desde_marco_en_MP(int marco){
+double * obtener_timestamp_desde_marco_en_MP(int marco){
 	int desplazamiento = obtener_1er_byte_marco_en_MP(marco);
-	long *bytes_timestamp_en_MP = malloc(sizeof(long));
-	memcpy(bytes_timestamp_en_MP, MEMORIA_PRINCIPAL + desplazamiento, sizeof(long));
+	double *bytes_timestamp_en_MP = malloc(sizeof(double));
+	memcpy(bytes_timestamp_en_MP, MEMORIA_PRINCIPAL + desplazamiento, sizeof(double));
 	return bytes_timestamp_en_MP;
 }
 
 char * obtener_value_desde_marco_en_MP(int marco){
 	int desplazamiento = obtener_1er_byte_marco_en_MP(marco);
-	desplazamiento += sizeof(long);
+	desplazamiento += sizeof(double);
 	desplazamiento += sizeof(uint16_t);
 	char * bytes_value_en_MP = malloc(TAMANIO_VALUE+1);
 	memcpy(bytes_value_en_MP, MEMORIA_PRINCIPAL + desplazamiento, TAMANIO_VALUE+1);
@@ -103,7 +103,7 @@ tp_select_rta verificar_existencia_en_MP(char * nombre_tabla, uint16_t key){
 		return NULL;
 	}
 	tp_select_rta valor_marco = malloc(sizeof(t_select_rta));
-	long* p_timestamp = obtener_timestamp_desde_marco_en_MP(pagina_con_key->marco);
+	double* p_timestamp = obtener_timestamp_desde_marco_en_MP(pagina_con_key->marco);
 	valor_marco->timestamp = *p_timestamp;
 	free(p_timestamp);
 	uint16_t* p_key = obtener_key_desde_marco_en_MP(pagina_con_key->marco);
@@ -146,7 +146,7 @@ int obtener_marco_libre() {
 	return marco_asignado;
 }
 
-int almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
+int almacenar_valor(char* nom_tabla, double timestamp, uint16_t key, char* value,
 		int flag) {
 	t_entrada_tabla_segmentos* segmento = obtener_segmento_de_tabla(nom_tabla);
 	int marco_asignado = obtener_marco_libre();
@@ -159,15 +159,15 @@ int almacenar_valor(char* nom_tabla, long timestamp, uint16_t key, char* value,
 	return 1;
 }
 
-int colocar_value_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+int colocar_value_en_MP(char *nom_tabla, double timestamp, uint16_t key, char *value){
 	return almacenar_valor(nom_tabla, timestamp, key, value, FLAG_NO_MODIFICADO);
 }
 
-int insertar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+int insertar_value_modificado_en_MP(char *nom_tabla, double timestamp, uint16_t key, char *value){
 	return almacenar_valor(nom_tabla, timestamp, key, value, FLAG_MODIFICADO);
 }
 
-void actualizar_value_modificado_en_MP(char *nom_tabla, long timestamp, uint16_t key, char *value){
+void actualizar_value_modificado_en_MP(char *nom_tabla, double timestamp, uint16_t key, char *value){
 	t_entrada_tabla_segmentos* segmento = buscar_segmento_de_tabla(nom_tabla);
 	t_entrada_tabla_paginas * pagina_con_key=buscar_pagina_de_key_en_MP(segmento->base, key);
 	usleep(RETARDO_ACCESO_MEMORIA*1000);
@@ -247,11 +247,11 @@ int ejecutar_algoritmo_reemplazo_y_obtener_marco(){
 	return marco_de_la_pag_mas_antigua;
 }
 
-void insertar_registro_en_marco(long timestamp, uint16_t key, char *value, int marco){
+void insertar_registro_en_marco(double timestamp, uint16_t key, char *value, int marco){
 	int desplazamiento=obtener_1er_byte_marco_en_MP(marco);
 	logger(escribir_loguear, l_debug, "El marco %d tiene como primer byte %d",marco,desplazamiento);
-	memcpy(MEMORIA_PRINCIPAL+desplazamiento,&timestamp,sizeof(long));
-	desplazamiento+=sizeof(long);
+	memcpy(MEMORIA_PRINCIPAL+desplazamiento,&timestamp,sizeof(double));
+	desplazamiento+=sizeof(double);
 	memcpy(MEMORIA_PRINCIPAL+desplazamiento,&key,sizeof(uint16_t));
 	desplazamiento+=sizeof(uint16_t);
 	int tamanio_real_value=strlen(value);
@@ -304,7 +304,7 @@ void insertar_cada_registro_modificado_en_LFS(enum MENSAJES* resultado_anterior,
 	//Si algún insert falló, devuelve el error al Kernel e informa en consola
 	void enviar_registro_a_liss(void * pagina){
 		usleep(RETARDO_ACCESO_MEMORIA*1000);
-		long* p_timestamp = obtener_timestamp_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
+		double* p_timestamp = obtener_timestamp_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
 		uint16_t* p_key = obtener_key_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
 		char * p_value = obtener_value_desde_marco_en_MP(((t_entrada_tabla_paginas *)pagina)->marco);
 
