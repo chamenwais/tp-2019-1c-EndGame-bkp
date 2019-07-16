@@ -23,7 +23,13 @@ int dump(char* nombreDeLaTabla){
 
 	void agregarALaCadenaFinal(void* nodo){
 		char* cadenaAInsertar = string_new();
-		char* auxitoa = string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp);
+
+		//char* auxitoa = string_itoa(((tp_nodoDeLaTabla)nodo)->timeStamp);
+
+		int length= snprintf( NULL, 0, "%.0f", ((tp_nodoDeLaTabla)nodo)->timeStamp);
+		char* auxitoa = malloc( length + 1 );
+		snprintf( auxitoa, length + 1, "%.0f", ((tp_nodoDeLaTabla)nodo)->timeStamp);
+
 		string_append(&cadenaAInsertar, auxitoa);
 		free(auxitoa);
 		string_append(&cadenaAInsertar, ";");

@@ -202,7 +202,7 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 				//free(nodo);
 			} else if (nodo->resultado==TABLA_NO_EXISTIA){
 				log_info(LOGGERFS,"La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
-				printf("La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
+				printf("La tabla %s pedida en el select con key %d no existe\n",nombreDeLaTabla,key);
 				free(nodo);
 			}
 			else{

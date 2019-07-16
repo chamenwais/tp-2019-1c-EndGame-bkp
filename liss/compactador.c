@@ -453,9 +453,17 @@ void guardarMilisegundosBloqueada(char* nombreTabla,int milisegundos,bool resetF
 
 char* convertirTKVsAString(t_list* particion){
 	char* super=string_new();
+	int length;
 	for(int i=0;i<particion->elements_count;i++){
 		tp_tkv nodo =(tp_tkv)list_get(particion,i);
-		char* auxitoa = string_itoa(nodo->timeStamp);
+
+		//
+		length= snprintf( NULL, 0, "%.0f", nodo->timeStamp );
+		char* auxitoa = malloc( length + 1 );
+		snprintf( auxitoa, length + 1, "%.0f", nodo->timeStamp );
+		//
+
+		//char* auxitoa = string_itoa(nodo->timeStamp);
 		string_append(&super, auxitoa);
 		free(auxitoa);
 		string_append(&super, ";");
@@ -533,7 +541,7 @@ t_list* cargarTimeStampKeyValue(char* path){//ya se q este path existe xq lo cre
 
 		lineaParseada = string_split(tempLinea[0], ";");
 		nuevoNodo=malloc(sizeof(t_tkv));
-		nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+		nuevoNodo->timeStamp=atof(lineaParseada[0]);//@@@RETORNA CON .0000 pero creo q no hay problema xq dsps los saco cuando tengo q guardarlos
 		nuevoNodo->key=atoi(lineaParseada[1]);
 		nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
 		strcpy(nuevoNodo->value,lineaParseada[2]);
