@@ -341,6 +341,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				list_destroy_and_destroy_elements(tmps,free);
 				for(int j=0;j<cantidadParticiones;j++){
 					free(superString[j]);//@por ahora tiro toda la info de la tabla
+					free(superString);
 				}
 				eliminarDeTablas(tabla);
 				log_info(LOGGERFS,"[Compactador %s]La tabla dejo de existir antes de que se pudieran cargar sus nuevos valores compactados, finalizando compactacion",tabla);
@@ -373,6 +374,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 						log_info(LOGGERFS,"[Compactador %s]Particion= %d , Datos perdidos= %s",tabla,j,superString[j]);
 						free(superString[j]);//@por ahora tiro toda la info de la tabla
 					}
+					free(superString);
 					eliminarDeTablas(tabla);
 					pthread_exit(0);
 				}
@@ -400,6 +402,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			list_destroy_and_destroy_elements(bloquesPorParticion,list_destroy);
 			for(int j=0;j<cantidadParticiones;j++)
 				free(superString[j]);
+			free(superString);
 			//6.desbloquear tabla y dejar registro tiempo q la tabla tuvo bloqueada
 			clock_t tiempoBloqueada = clock() - inicio;
 			int msec = tiempoBloqueada * 1000 / CLOCKS_PER_SEC;
@@ -690,7 +693,7 @@ t_list* crearTempsParaBins(char* tabla){
 			free(bin);
 			return NULL;
 		}
-
+		free(bin);
 		char** arrayDeBloques = config_get_array_value(bin_conf,"BLOCKS");
 		config_destroy(bin_conf);
 
