@@ -24,7 +24,8 @@ int drop(char* nombreDeLaTabla);
 t_metadataDeLaTabla describe(char* nombreDeLaTabla);
 t_describeAll_rta describeAll();//en funciones auxiliares esta la func
 								//liberarYDestruirTablaDeMetadata para liberar la lista q tiene dentro t_describeAll_rta
-int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp);
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp);
+double obtenerTimestamp();
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value);
 tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key);
 

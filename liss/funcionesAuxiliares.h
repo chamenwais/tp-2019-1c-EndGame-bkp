@@ -44,7 +44,7 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla);
 bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla);
 int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla);
 tp_nodoDeLaMemTable obtenerNodoDeLaMemtable(char* nodeName);
-int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value, unsigned timeStamp);
+int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp);
 tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas);
 t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroDeParticionQueContieneLaKey);
 t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla);

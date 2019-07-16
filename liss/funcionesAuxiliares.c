@@ -533,8 +533,8 @@ tp_nodoDeLaMemTable obtenerNodoDeLaMemtable(char* nombreDeLaTabla){
 	return nodo;
 }
 
-int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value,
-		unsigned timeStamp){
+int hacerElInsertEn	LaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* value,
+		double timeStamp){
 	log_info(LOGGERFS,"Voy a hacer el insert de los datos en la tabla %s de la memtable",
 			nombreDeLaTabla);
 	pthread_mutex_lock(&mutexDeLaMemtable);
