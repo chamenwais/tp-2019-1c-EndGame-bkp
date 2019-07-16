@@ -474,7 +474,8 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 	char* consistencia = config_get_string_value(configuracion,"CONSISTENCY");
 	metadataDeLaTabla.consistencia = malloc(strlen(consistencia)+1);
 	strcpy(metadataDeLaTabla.consistencia,consistencia);
-	free(consistencia);
+	//memcpy(metadataDeLaTabla.consistencia,consistencia,strlen(consistencia)+1);
+	//free(consistencia); xq carajo hacer free a esto rompe todo?
 	log_info(LOGGERFS,"Info de la tabla %s recuperada, particiones %d, consistencia %s, tiempo de compactacion %d",
 			nombreDeLaTabla, metadataDeLaTabla.particiones,
 			metadataDeLaTabla.consistencia, metadataDeLaTabla.tiempoDeCompactacion);
@@ -929,7 +930,7 @@ t_list* obtenerTodosLosDescriptores(){
 
 			if(unaMetadata.consistencia!=NULL){
 				tp_describe_rta metadataEncodeada = malloc(sizeof(t_describe_rta));
-				metadataEncodeada->nombre = malloc (strlen(path_nombre)+1);
+				metadataEncodeada->nombre = malloc(strlen(path_nombre)+1);
 				memcpy(metadataEncodeada->nombre,path_nombre,strlen(path_nombre)+1);
 				metadataEncodeada->consistencia= malloc(strlen(unaMetadata.consistencia)+1);
 				memcpy(metadataEncodeada->consistencia,unaMetadata.consistencia,strlen(unaMetadata.consistencia)+1);
@@ -938,17 +939,16 @@ t_list* obtenerTodosLosDescriptores(){
 				list_add(metadata_todos_los_descriptores,(void*)metadataEncodeada);
 				free(unaMetadata.consistencia);
 			}
+
 			free(path_nombre);
 			return FTW_SKIP_SUBTREE;
 			//return FTW_SKIP_SUBTREE;//salta a la proxima carpeta sin mirar los contenidos
 		}
 		return FTW_CONTINUE;
 	}
-
 	nftw(main_directorio,guardar_metadata_descriptores,20,FTW_ACTIONRETVAL|FTW_PHYS);//deberia retornar FTW_STOP
 	//@@hacer if con result, ver primero que devuelve
 	//@@revisar si devuelve el nombre de la carpeta o todo el path
-
 	free(main_directorio);
 
 	if(metadata_todos_los_descriptores->elements_count==0) {
