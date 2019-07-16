@@ -218,7 +218,6 @@ void* procesarMensaje(void* args){
 	FD_SET(p->cliente,&maestro);//vuelvo a agregar el cliente pa q el loop ppal de while
 								//siga operando con el
 	pthread_mutex_unlock(&fd_mutex);
-
 	free(p);//@@@solo libero p??
 	pthread_exit(0);
 }
