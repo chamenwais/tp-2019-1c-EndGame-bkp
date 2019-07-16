@@ -100,6 +100,5 @@ double obtenerTimestamp(){
 	gettimeofday(&tv, NULL);
 	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
 	double a = result;
-	log_info(LOGGERFS,"Timestamo obtenido: %lf", a);
 	return a;
 }
