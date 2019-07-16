@@ -239,7 +239,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		resultado->resultado=resultadoOriginal->resultado;
 		resultado->timeStamp=resultadoOriginal->timeStamp;
 		resultado->value=string_duplicate(resultadoOriginal->value);
-		list_destroy(keysObtenidas);
+		//list_destroy(keysObtenidas);
 		vaciarListaDeKeys(keysObtenidas);
 	}
 	else{

@@ -410,7 +410,8 @@ void liberarBloquesTmpc(char* pathCompletoTmpc){
 	for(int i=0;arrayDeBloques[i]!=NULL;i++){
 		liberarBloque(arrayDeBloques[i]);
 		free(arrayDeBloques[i]);
-	}
+		}
+	free(arrayDeBloques);
 }
 
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
@@ -478,7 +479,7 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 			nombreDeLaTabla, metadataDeLaTabla.particiones,
 			metadataDeLaTabla.consistencia, metadataDeLaTabla.tiempoDeCompactacion);
 
-	config_destroy(configuracion);
+	config_	destroy(configuracion);
 	free(nombreDelArchivoDeMetaData);
 	return metadataDeLaTabla;
 }
@@ -891,8 +892,10 @@ int vaciarListaDeKeys(t_list* keysObtenidas){
 		free((tp_nodoDeLaTabla)nodo);
 		return;
 	}
-	list_clean_and_destroy_elements(keysObtenidas,vaciarNodo);
-	list_destroy(keysObtenidas);
+	if(keysObtenidas!=NULL){
+		list_clean_and_destroy_elements(keysObtenidas,vaciarNodo);
+		list_destroy(keysObtenidas);
+		}
 	return EXIT_SUCCESS;
 }
 
