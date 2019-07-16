@@ -29,7 +29,7 @@ void *funcionHiloConsola(void *arg){
 	char** instruccion;
 	log_info(LOGGERFS,"Consola lista");
 	printf("Si necesita saber las funciones que hay disponibles llame a la funcion \"man\"\n");
-	while(1){
+	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		linea = readline("$ ");
 		if(strlen(linea)>0){
 			add_history(linea);
