@@ -475,7 +475,7 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 	metadataDeLaTabla.consistencia = malloc(strlen(consistencia)+1);
 	strcpy(metadataDeLaTabla.consistencia,consistencia);
 	//memcpy(metadataDeLaTabla.consistencia,consistencia,strlen(consistencia)+1);
-	//free(consistencia); xq carajo hacer free a esto rompe todo?
+	//free(consistencia); xq carajo hacer free a esto rompe todo?@@@@@@@@@@@@@@@@@@@@@@@
 	log_info(LOGGERFS,"Info de la tabla %s recuperada, particiones %d, consistencia %s, tiempo de compactacion %d",
 			nombreDeLaTabla, metadataDeLaTabla.particiones,
 			metadataDeLaTabla.consistencia, metadataDeLaTabla.tiempoDeCompactacion);

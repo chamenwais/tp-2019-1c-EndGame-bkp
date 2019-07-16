@@ -55,6 +55,34 @@ void eliminarDeTablas(char* tablaABorrar){
 	pthread_mutex_unlock(&tablas_mutex);
 }
 
+void removerAtmp(){
+
+	t_list* atmps=list_create();
+	char* main_directorio=string_new();
+	string_append(&main_directorio, configuracionDelFS.puntoDeMontaje);
+	string_append(&main_directorio, "/Blocks/");
+
+	int buscarAtmp(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
+		int length=strlen(fpath);
+		if(length<5)return FTW_CONTINUE;
+		length--;
+		if(fpath[length-4]=='.' && fpath[length-3]=='a' && fpath[length-2]=='t' && fpath[length-1]=='m' && fpath[length]=='p'){
+			char* temp=string_new();
+			string_append(&temp,fpath);
+			list_add(atmps,temp);
+			return FTW_CONTINUE;
+		}
+		return FTW_CONTINUE;
+	}
+
+	nftw(main_directorio,buscarAtmp,20,FTW_ACTIONRETVAL|FTW_PHYS);
+
+	free(main_directorio);
+
+	list_iterate(atmps,remove);
+	list_destroy_and_destroy_elements(atmps,free);
+}
+
 void* crearCompactadorLissandra(){
 	log_info(LOGGERFS,"Iniciando compactador de lissandra");
 
@@ -71,6 +99,8 @@ void* crearCompactadorLissandra(){
 		log_error(LOGGERFS,"[Compactador]No se pudo inicializar el semaforo nextTmp");
 		pthread_exit(0);
 	}
+
+	removerAtmp();
 
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		sleep(5);//puedo chequear por cambios en la carpeta para arrancar pero no me convence
@@ -91,6 +121,7 @@ void* crearCompactadorLissandra(){
 	pthread_mutex_unlock(&nextTmp);
 	pthread_mutex_destroy(&nextTmp);
 	list_destroy(tablas);
+	removerAtmp();
 	log_info(LOGGERFS,"[Compactador]Finalizado");
 	pthread_exit(0);
 }
