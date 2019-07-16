@@ -71,9 +71,9 @@ void *funcionHiloConsola(void *arg){
 				 * */
 				if((instrucionLocal[1]!=NULL)&&(instrucionLocal[2]!=NULL)&&(instruccionesAux[1]!=NULL)
 						&&(instruccionesAux[2]!=NULL)){
-					printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y el timestamp %d\n",
-							instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1],atoi(instruccionesAux[2]));
-					consolaInsert(instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1],atoi(instruccionesAux[2]));
+					printf("Voy a hacer un insert por consola de la tabla %s, con la key %d, el value %s, y el timestamp %.0f\n",
+							instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1],atof(instruccionesAux[2]));
+					consolaInsert(instrucionLocal[1],atoi(instrucionLocal[2]),instruccionesAux[1],atof(instruccionesAux[2]));
 				}else{
 					if((instrucionLocal[1]!=NULL)&&(instrucionLocal[2]!=NULL)&&
 							(instruccionesAux[1]!=NULL)&&(instruccionesAux[2]==NULL)){
@@ -194,12 +194,12 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 				key, nombreDeLaTabla);
 		}else{
 			if(nodo->resultado==KEY_OBTENIDA){
-				log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s",
+				log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %.0f, para la key %d, de la tabla %s",
 					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-				printf("Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s\n",
+				printf("Resultado del select, Value: %s, Timpestamp: %.0f, para la key %d, de la tabla %s\n",
 					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-				free(nodo->value);
-				free(nodo);
+				//free(nodo->value);
+				//free(nodo);
 			} else if (nodo->resultado==TABLA_NO_EXISTIA){
 				log_info(LOGGERFS,"La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
 				printf("La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
@@ -218,7 +218,7 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 	return EXIT_SUCCESS;
 }
 
-int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp){
+int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,double timestamp){
 	insert(nombreDeLaTabla,key,valor,timestamp);
 	return EXIT_SUCCESS;
 }
@@ -378,7 +378,7 @@ int imprimirMemtableEnPantalla(){
 
 	void imprimirTabla(void* nodoDeLaMemtable){
 		void imprimirValores(void* nodoDeUnaTabla){
-			printf("Key: %d / Timestamp: %d / Value: %s\n",
+			printf("Key: %d / Timestamp: %.0f / Value: %s\n",
 					((tp_nodoDeLaTabla)nodoDeUnaTabla)->key,
 					((tp_nodoDeLaTabla)nodoDeUnaTabla)->timeStamp,
 					((tp_nodoDeLaTabla)nodoDeUnaTabla)->value);

@@ -7,6 +7,7 @@
 
 #include "funcionesAuxiliares.h"
 
+
 int crearDirectorioParaLaTabla(char* nombreDeLaTabla){
 	// Crear el directorio para dicha tabla.
 	char* directorioDeLaTabla=string_new();
@@ -409,7 +410,8 @@ void liberarBloquesTmpc(char* pathCompletoTmpc){
 	for(int i=0;arrayDeBloques[i]!=NULL;i++){
 		liberarBloque(arrayDeBloques[i]);
 		free(arrayDeBloques[i]);
-	}
+		}
+	free(arrayDeBloques);
 }
 
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
@@ -477,7 +479,7 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 			nombreDeLaTabla, metadataDeLaTabla.particiones,
 			metadataDeLaTabla.consistencia, metadataDeLaTabla.tiempoDeCompactacion);
 
-	config_destroy(configuracion);
+	config_	destroy(configuracion);
 	free(nombreDelArchivoDeMetaData);
 	return metadataDeLaTabla;
 }
@@ -488,7 +490,6 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
 	bool resultado;
-	pthread_mutex_lock(&mutexDeLaMemtable);
 	if(!list_is_empty(memTable)){
 		resultado = list_any_satisfy(memTable, esMiNodo);
 	}else{
@@ -499,7 +500,6 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 	}else{
 		log_info(LOGGERFS,"La tabla %s si estaba en la memtable", nombreDeLaTabla);
 		}
-	pthread_mutex_unlock(&mutexDeLaMemtable);
 	return resultado;
 }
 
@@ -513,9 +513,7 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 	nodo->nombreDeLaTabla=malloc(strlen(nombreDeLaTabla)+1);
 	strcpy(nodo->nombreDeLaTabla,nombreDeLaTabla);
 	nodo->listaDeDatosDeLaTabla=list_create();
-	pthread_mutex_lock(&mutexDeLaMemtable);
 	list_add(memTable,nodo);
-	pthread_mutex_unlock(&mutexDeLaMemtable);
 	log_info(LOGGERFS,"Memoria alocada");
 	return EXIT_SUCCESS;
 }
@@ -533,7 +531,6 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 		double timeStamp){
 	log_info(LOGGERFS,"Voy a hacer el insert de los datos en la tabla %s de la memtable",
 			nombreDeLaTabla);
-	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
 	if(nodoDeLaMemtable!=NULL){
 		tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
@@ -542,12 +539,9 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 		nuevoNodo->value=malloc(strlen(value)+1);
 		strcpy(nuevoNodo->value,value);
 		list_add(nodoDeLaMemtable->listaDeDatosDeLaTabla,nuevoNodo);
-
-		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_info(LOGGERFS,"Datos insertados");
 		return EXIT_SUCCESS;
 	}else{
-		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_error(LOGGERFS,"Error al insertar los datos, algo se corrompio, no se encontro la tabla en la memtable");
 		return EXIT_FAILURE;
 	}
@@ -569,25 +563,30 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 		log_error(LOGGERFS,"Tabla %s no bloqueada porque no existe", nombreDeLaTabla);
 		return listadoDeKeys;
 	}
-	t_list* keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
+	t_list* keysTemporales;
+
+	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
+				numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
+	keysTemporales = escanearPorLaKeyDeseadaArchivosTemporalesC(key, nombreDeLaTabla);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
 
 	keysTemporales = escanearPorLaKeyDeseadaArchivosTemporales(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
-	//pthread_mutex_unlock(&mutexDeDump);
 
-	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
-			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
+	keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
+
+	//pthread_mutex_unlock(&mutexDeDump);
 
 	desbloquearSharedTablaFS(mutexTabla);
 	log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-
-	list_add_all(listadoDeKeys,keysTemporales);
-	list_destroy(keysTemporales);
 
 	int sizeDeLaLista = list_size(listadoDeKeys);
 	log_info(LOGGERFS,"Keys obtenidas en total, son %d",sizeDeLaLista);
@@ -597,6 +596,7 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 
 t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	t_list* listaResultante;
+	t_list* listaAux;
 
 	bool esMiKey(void* nodo) {
 		return (((tp_nodoDeLaTabla) nodo)->key==key);
@@ -605,17 +605,33 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	bool esMiTabla(void* nodo){
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
+
+	void duplicarEnLaNuevaLista(void* nodo){
+		tp_nodoDeLaTabla nuevoNodo;
+		nuevoNodo = malloc(sizeof(t_nodoDeLaTabla));
+		nuevoNodo->key=((tp_nodoDeLaTabla) nodo)->key;
+		nuevoNodo->resultado=((tp_nodoDeLaTabla) nodo)->resultado;
+		nuevoNodo->timeStamp=((tp_nodoDeLaTabla) nodo)->timeStamp;
+		nuevoNodo->value=string_duplicate(((tp_nodoDeLaTabla) nodo)->value);
+		list_add(listaResultante,nuevoNodo);
+		return;
+		}
+
 	log_info(LOGGERFS,"Escaneando memtable");
 	if(!list_is_empty(memTable)){
 		log_info(LOGGERFS,"La memtable no esta vacia");
 		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
 		if(tabla!=NULL){
-			listaResultante = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
-			if(listaResultante==NULL){
+			listaAux = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
+			if(listaAux==NULL){
 				log_info(LOGGERFS,"La key %d no esta en la  tabla %s de la memtable",
 						key, nombreDeLaTabla);
 				listaResultante = list_create();
-				}
+			}else{
+				//la tengo q duplicar toda para despues poder borrar todo tranqui
+				listaResultante = list_create();
+				list_iterate(listaAux,duplicarEnLaNuevaLista);
+			}
 		}else{
 			//Esta vacia
 			log_info(LOGGERFS,"La tabla %s no esta en la memtable",nombreDeLaTabla);
@@ -744,9 +760,8 @@ bool existeElArchivo(char* nombreDelArchivo){
 	}
 }
 
-t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
+t_list* escanearPorLaKeyDeseadaArchivosTem(uint16_t key, char* nombreDeLaTabla, char* terminacion){
 	t_list* listaResultante = list_create();
-	log_info(LOGGERFS,"Escaneando archivos temporales");
 	char* directorioDeLasTablas= string_new();
 	string_append(&directorioDeLasTablas,configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeLasTablas,"/Tables/");
@@ -762,7 +777,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		auxatoi=string_itoa(i);
 		string_append(&ubicacionDelTemp,auxatoi);
 		free(auxatoi);
-		string_append(&ubicacionDelTemp,".tmp");
+		string_append(&ubicacionDelTemp,terminacion);
 		if(existeElArchivo(ubicacionDelTemp)){
 			log_info(LOGGERFS,"Checkeando en el archivo temporal %s",ubicacionDelTemp);
 			t_list* listaAux=obtenerListaDeDatosDeArchivo(ubicacionDelTemp, nombreDeLaTabla, key);
@@ -775,8 +790,27 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		}
 	free(directorioDeLasTablas);
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de los temporales: %d",list_size(listaResultante));
-	log_info(LOGGERFS,"Archivos temporales escaneados");
 	return listaResultante;
+}
+
+t_list* escanearPorLaKeyDeseadaArchivosTemporalesC(uint16_t key, char* nombreDeLaTabla){
+	char* terminacion = string_new();
+	string_append(&terminacion,".tmpc");
+	log_info(LOGGERFS,"Escaneando archivos temporales .tmpc");
+	t_list* lista = escanearPorLaKeyDeseadaArchivosTem(key,nombreDeLaTabla,terminacion);
+	free(terminacion);
+	log_info(LOGGERFS,"Archivos temporales .tmpc escaneados");
+	return lista;
+}
+
+t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
+	char* terminacion = string_new();
+	string_append(&terminacion,".tmp");
+	log_info(LOGGERFS,"Escaneando archivos temporales .tmp");
+	t_list* lista = escanearPorLaKeyDeseadaArchivosTem(key,nombreDeLaTabla,terminacion);
+	free(terminacion);
+	log_info(LOGGERFS,"Archivos temporales .tmp escaneados");
+	return lista;
 }
 
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
@@ -808,7 +842,7 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 
 tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 	tp_nodoDeLaTabla keyObtenida = NULL;
-	unsigned tiempo;
+	double tiempo;
 
 	bool esLaMayor(void* nodo){
 		bool sonTodosMenores(void* nodo2){
@@ -831,7 +865,7 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 		keyObtenida = list_find(keysObtenidas,esLaMayor);
 		list_remove_by_condition(keysObtenidas,esMiNodoMayor);
 		if(keyObtenida!=NULL){
-			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %d, con un value de: %s",
+			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %.0f, con un value de: %s",
 				keyObtenida->key, keyObtenida->timeStamp, keyObtenida->value);
 			keyObtenida->resultado=KEY_OBTENIDA;
 		}else{
@@ -850,7 +884,7 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 
 int vaciarListaDeKeys(t_list* keysObtenidas){
 	void vaciarNodo(void* nodo){
-		log_info(LOGGERFS,"Liberando memoria de value: %s, key: %d, timestamp: %d",
+		log_info(LOGGERFS,"Liberando memoria de value: %s, key: %d, timestamp: %.0f",
 				((tp_nodoDeLaTabla)nodo)->value,
 				((tp_nodoDeLaTabla)nodo)->key,
 				((tp_nodoDeLaTabla)nodo)->timeStamp);
@@ -858,8 +892,10 @@ int vaciarListaDeKeys(t_list* keysObtenidas){
 		free((tp_nodoDeLaTabla)nodo);
 		return;
 	}
-	list_clean_and_destroy_elements(keysObtenidas,vaciarNodo);
-	list_destroy(keysObtenidas);
+	if(keysObtenidas!=NULL){
+		list_clean_and_destroy_elements(keysObtenidas,vaciarNodo);
+		list_destroy(keysObtenidas);
+		}
 	return EXIT_SUCCESS;
 }
 
@@ -1014,4 +1050,12 @@ int aplicarRetardo(){
 	log_info(LOGGERFS,"Aplicando retardo de: %d milisegundos", retardo);
 	usleep(retardo*1000);
 	return EXIT_SUCCESS;
+}
+
+double obtenerTimestampLocal(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
+	double a = result;
+	return a;
 }

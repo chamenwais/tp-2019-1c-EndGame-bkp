@@ -173,13 +173,13 @@ void funcionHiloDump(void *arg){
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		tiempoDeSleep=obtenerTiempoDump();
 		usleep(tiempoDeSleep*1000);
-		log_trace(LOGGERFS,"Iniciando un dumpeo");
+		log_info(LOGGERFS,"Iniciando un dumpeo");
 		pthread_mutex_lock(&mutexDeDump);
 		list_iterate(memTable, dumpearAEseNodo);
 		vaciarMemTable();
 		memTable=list_create();
 		pthread_mutex_unlock(&mutexDeDump);
-		log_trace(LOGGERFS,"Dumpeo finalizado");
+		log_info(LOGGERFS,"Dumpeo finalizado");
 		}
 	log_info(LOGGERFS,"Finalizando hilo de dumpeo");
 	return;
@@ -242,6 +242,7 @@ char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla){
 		encontrado=existeElArchivo(pathDelTemp);
 		if(encontrado==true){
 			log_error(LOGGERFS,"El nombre %s ya esta usado en otro dump", pathDelTemp);
+			free(pathDelTemp);
 		}else{
 			log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
 			}

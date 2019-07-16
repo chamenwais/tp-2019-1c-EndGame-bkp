@@ -518,8 +518,8 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 	if(existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
 
-		long timestamp;
-		timestamp=(unsigned)time(NULL);
+		double timestamp;
+		timestamp=obtenerTimestamp();
 		logger(escribir_loguear, l_info,"El timestamp fue '%d'",timestamp);
 
 		prot_enviar_insert(nombre_tabla, key, value, timestamp, socket_memoria);
@@ -924,10 +924,14 @@ void* funcionHiloRequest(void* pcb){
 	}
 
 	logger(escribir_loguear, l_warning, "HASTA ACA LLEGA EL LQL");
+	pthread_mutex_lock(&mutex_Exec);
+	remover_pcb_de_lista(listaExec, pcb);
+	pthread_mutex_unlock(&mutex_Exec);
 	pthread_mutex_lock(&mutex_Exit);
 	list_add(listaExit, pcb);
 	pthread_mutex_unlock(&mutex_Exit);
 	logger(escribir_loguear, l_warning, "El LQL %s pasa a Exit\n", ((tp_lql_pcb) pcb)->path);
+	//sem_post(&NEW);
 	pthread_exit(ret);
 	return EXIT_SUCCESS;
 }

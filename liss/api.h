@@ -22,7 +22,7 @@ void *funcionHiloConsola(void *arg);
 int esperarPorHilos();
 char** parser_instruccion(char* linea);
 int consolaSelect(char* nombreDeLaTabla,uint16_t key);
-int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,long timestamp);
+int consolaInsert(char* nombreDeLaTabla,uint16_t key,char* valor,double timestamp);
 int consolaInsertSinTime(char* nombreDeLaTabla,uint16_t key,char* valor);
 int consolaCreate(char* nombreDeLaTabla,char* tipoDeConsistencia,int numeroDeParticiones,int tiempoDeCompactacion);
 int consolaDescribe();

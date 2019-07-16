@@ -51,6 +51,8 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla);
 t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTabla, uint16_t key);
 t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key);
 bool existeElArchivo(char* nombreDelArchivo);
+t_list* escanearPorLaKeyDeseadaArchivosTem(uint16_t key, char* nombreDeLaTabla, char* terminacion);
+t_list* escanearPorLaKeyDeseadaArchivosTemporalesC(uint16_t key, char* nombreDeLaTabla);
 t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla);
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 		int numeroDeParticionQueContieneLaKey, char* nombreDeLaTabla);
