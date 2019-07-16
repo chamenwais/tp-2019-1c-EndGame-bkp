@@ -10,7 +10,6 @@
 int dump(char* nombreDeLaTabla){
 	char* nombreDelArchivoTemp;
 	int sizeDelTemporal = 0;
-	int punteroDelBloque=0;
 	int bloqueActual=-1;
 	bool hayBloquesLibres=true;
 	char* cadenaFinal;

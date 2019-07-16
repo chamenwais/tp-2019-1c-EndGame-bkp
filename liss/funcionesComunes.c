@@ -145,7 +145,7 @@ t_describeAll_rta describeAll(){
 	return descriptores;
 }
 
-int insert(char* nombreDeLaTabla, uint16_t key, char* value, long timeStamp){
+int insert(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp){
 	/* Ejemplo: INSERT TABLA1 3 “Mi nombre es Lissandra” 1548421507
 	 * Pasos:
 	 * 1) Verificar que la tabla exista en el file system. En caso que no exista,
@@ -193,16 +193,18 @@ double getCurrentTime() {
 	return (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
 }
 
-
+double obtenerTimestamp(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
+	double a = result;
+	log_info(LOGGERFS,"Timestamo obtenido: %lf", a);
+	return a;
+}
 
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){
-	double timeStamp = getCurrentTime();//obtenerTimestamp();
-	printf("\n\nTimeStamp obtenido: %f\n\n\n", timeStamp);
-	//log_info(LOGGERFS,"TimeStamp obtenido: %f", timeStamp);
-	//log_info(LOGGERFS,"TimeStamp obtenido: %f", ()timeStamp);
-
-	//long timeStamp=(unsigned)time(NULL);
-
+	double timeStamp = obtenerTimestamp();
+	//printf("\n\nTimeStamp obtenido: %lf\n\n\n", obtenerTimestamp());
 	insert(nombreDeLaTabla, key, value, timeStamp);
 	return EXIT_SUCCESS;
 }

@@ -56,7 +56,7 @@ typedef t_nodoDeLaMemTable* tp_nodoDeLaMemTable;
 typedef struct definicionNodoDeLaTabla {
 	uint16_t key;
 	char* value;
-	unsigned timeStamp;
+	double timeStamp;
 	enum MENSAJES resultado;
 } t_nodoDeLaTabla;
 typedef t_nodoDeLaTabla* tp_nodoDeLaTabla;
