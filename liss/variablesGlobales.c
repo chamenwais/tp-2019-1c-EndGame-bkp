@@ -273,6 +273,7 @@ int vaciarMemTable(){
 			free((tp_nodoDeLaMemTable)nodoDeLaMemtable);
 			}
 		}
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	log_info(LOGGERFS,"Liberando memtable");
 	if(memTable!=NULL){
 		if(!list_is_empty(memTable)){
@@ -285,7 +286,7 @@ int vaciarMemTable(){
 	}else{
 		log_error(LOGGERFS,"La memtable esta NULL");
 		}
-
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 	log_info(LOGGERFS,"Memtable liberada");
 	return EXIT_SUCCESS;
 }

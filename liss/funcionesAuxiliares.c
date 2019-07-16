@@ -7,6 +7,7 @@
 
 #include "funcionesAuxiliares.h"
 
+
 int crearDirectorioParaLaTabla(char* nombreDeLaTabla){
 	// Crear el directorio para dicha tabla.
 	char* directorioDeLaTabla=string_new();
@@ -488,7 +489,6 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
 	bool resultado;
-	pthread_mutex_lock(&mutexDeLaMemtable);
 	if(!list_is_empty(memTable)){
 		resultado = list_any_satisfy(memTable, esMiNodo);
 	}else{
@@ -499,7 +499,6 @@ bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla){
 	}else{
 		log_info(LOGGERFS,"La tabla %s si estaba en la memtable", nombreDeLaTabla);
 		}
-	pthread_mutex_unlock(&mutexDeLaMemtable);
 	return resultado;
 }
 
@@ -513,9 +512,7 @@ int aLocarMemoriaParaLaTabla(char* nombreDeLaTabla){
 	nodo->nombreDeLaTabla=malloc(strlen(nombreDeLaTabla)+1);
 	strcpy(nodo->nombreDeLaTabla,nombreDeLaTabla);
 	nodo->listaDeDatosDeLaTabla=list_create();
-	pthread_mutex_lock(&mutexDeLaMemtable);
 	list_add(memTable,nodo);
-	pthread_mutex_unlock(&mutexDeLaMemtable);
 	log_info(LOGGERFS,"Memoria alocada");
 	return EXIT_SUCCESS;
 }
@@ -533,7 +530,6 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 		double timeStamp){
 	log_info(LOGGERFS,"Voy a hacer el insert de los datos en la tabla %s de la memtable",
 			nombreDeLaTabla);
-	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMemtable = obtenerNodoDeLaMemtable(nombreDeLaTabla);
 	if(nodoDeLaMemtable!=NULL){
 		tp_nodoDeLaTabla nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
@@ -542,12 +538,9 @@ int hacerElInsertEnLaMemoriaTemporal(char* nombreDeLaTabla, uint16_t key, char* 
 		nuevoNodo->value=malloc(strlen(value)+1);
 		strcpy(nuevoNodo->value,value);
 		list_add(nodoDeLaMemtable->listaDeDatosDeLaTabla,nuevoNodo);
-
-		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_info(LOGGERFS,"Datos insertados");
 		return EXIT_SUCCESS;
 	}else{
-		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_error(LOGGERFS,"Error al insertar los datos, algo se corrompio, no se encontro la tabla en la memtable");
 		return EXIT_FAILURE;
 	}
@@ -602,6 +595,7 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 
 t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	t_list* listaResultante;
+	t_list* listaAux;
 
 	bool esMiKey(void* nodo) {
 		return (((tp_nodoDeLaTabla) nodo)->key==key);
@@ -610,17 +604,33 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	bool esMiTabla(void* nodo){
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla,nombreDeLaTabla);
 		}
+
+	void duplicarEnLaNuevaLista(void* nodo){
+		tp_nodoDeLaTabla nuevoNodo;
+		nuevoNodo = malloc(sizeof(t_nodoDeLaTabla));
+		nuevoNodo->key=((tp_nodoDeLaTabla) nodo)->key;
+		nuevoNodo->resultado=((tp_nodoDeLaTabla) nodo)->resultado;
+		nuevoNodo->timeStamp=((tp_nodoDeLaTabla) nodo)->timeStamp;
+		nuevoNodo->value=string_duplicate(((tp_nodoDeLaTabla) nodo)->value);
+		list_add(listaResultante,nuevoNodo);
+		return;
+		}
+
 	log_info(LOGGERFS,"Escaneando memtable");
 	if(!list_is_empty(memTable)){
 		log_info(LOGGERFS,"La memtable no esta vacia");
 		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
 		if(tabla!=NULL){
-			listaResultante = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
-			if(listaResultante==NULL){
+			listaAux = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
+			if(listaAux==NULL){
 				log_info(LOGGERFS,"La key %d no esta en la  tabla %s de la memtable",
 						key, nombreDeLaTabla);
 				listaResultante = list_create();
-				}
+			}else{
+				//la tengo q duplicar toda para despues poder borrar todo tranqui
+				listaResultante = list_create();
+				list_iterate(listaAux,duplicarEnLaNuevaLista);
+			}
 		}else{
 			//Esta vacia
 			log_info(LOGGERFS,"La tabla %s no esta en la memtable",nombreDeLaTabla);

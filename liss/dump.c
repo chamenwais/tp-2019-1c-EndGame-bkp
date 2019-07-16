@@ -242,6 +242,7 @@ char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla){
 		encontrado=existeElArchivo(pathDelTemp);
 		if(encontrado==true){
 			log_error(LOGGERFS,"El nombre %s ya esta usado en otro dump", pathDelTemp);
+			free(pathDelTemp);
 		}else{
 			log_info(LOGGERFS,"Encontrado el nombre del proximo archivo temp: %s para el dump", pathDelTemp);
 			}

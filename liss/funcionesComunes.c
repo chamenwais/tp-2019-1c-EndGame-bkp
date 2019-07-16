@@ -173,12 +173,13 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp){
 
 	if(mutexTabla!=NULL){
 		log_info(LOGGERFS,"[Insert]Tabla %s bloqueada(lectura)", nombreDeLaTabla);
+		pthread_mutex_lock(&mutexDeLaMemtable);
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
 			//lanzarHiloParaLaTablaDeDumpeo(nombreDeLaTabla);
 		}
 		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
-
+		pthread_mutex_unlock(&mutexDeLaMemtable);
 		desbloquearSharedTablaFS(mutexTabla);
 		log_info(LOGGERFS,"[Insert]Tabla %s desbloqueada(lectura)", nombreDeLaTabla);
 
@@ -239,8 +240,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		resultado->timeStamp=resultadoOriginal->timeStamp;
 		resultado->value=string_duplicate(resultadoOriginal->value);
 		list_destroy(keysObtenidas);
-		//vaciarListaDeKeys(keysObtenidas);
-		free(metadataDeLaTabla.consistencia);
+		vaciarListaDeKeys(keysObtenidas);
 	}
 	else{
 		log_error(LOGGERFS,"[Select]Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
