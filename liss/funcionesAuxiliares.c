@@ -298,39 +298,37 @@ int eliminarTemporales(char* nombreDeLaTabla){
 		if(encontrado==true){
 
 			////////////////////
-				t_config* configuracion = config_create(pathDelTemp);
-				char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
-				config_destroy(configuracion);
-				pthread_mutex_lock(&mutexBitmap);
-				char* ubicacionDelBloque;
-				for(int i=0;arrayDeBloques[i]!=NULL;i++){
-					ubicacionDelBloque=string_new();
-					log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
-					liberarBloqueDelBitmap(atoi(arrayDeBloques[i]));
-					string_append(&ubicacionDelBloque,directorioDeBloques);
-					string_append(&ubicacionDelBloque,arrayDeBloques[i]);
-					string_append(&ubicacionDelBloque,".bin");
-					log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
-					remove(ubicacionDelBloque);
-					free(ubicacionDelBloque);
-					free(arrayDeBloques[i]);
-					}
-				free(arrayDeBloques);
-				pthread_mutex_unlock(&mutexBitmap);
-				log_info(LOGGERFS,"Borrando el archivo %s", pathDelTemp);
-				remove(pathDelTemp);
-				free(pathDelTemp);
+			t_config* configuracion = config_create(pathDelTemp);
+			char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
+			config_destroy(configuracion);
+			pthread_mutex_lock(&mutexBitmap);
+			char* ubicacionDelBloque;
+			for(int i=0;arrayDeBloques[i]!=NULL;i++){
+				ubicacionDelBloque=string_new();
+				log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
+				liberarBloqueDelBitmap(atoi(arrayDeBloques[i]));
+				string_append(&ubicacionDelBloque,directorioDeBloques);
+				string_append(&ubicacionDelBloque,arrayDeBloques[i]);
+				string_append(&ubicacionDelBloque,".bin");
+				log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
+				remove(ubicacionDelBloque);
+				free(ubicacionDelBloque);
+				free(arrayDeBloques[i]);
+				}
+			free(arrayDeBloques);
+			pthread_mutex_unlock(&mutexBitmap);
+			log_info(LOGGERFS,"Borrando el archivo %s", pathDelTemp);
+			remove(pathDelTemp);
+			free(pathDelTemp);
 
 			///////////////////
-
-			log_info(LOGGERFS,"Voy a borrar el archivo %s", pathDelTemp);
-			remove(pathDelTemp);
-
 		}else{
 			log_info(LOGGERFS,"No hay mas archivos temporales para borrar");
-			}
+			free(pathDelTemp);
 		}
+	}
 	free(aux);
+	free(directorioDeBloques);
 	return EXIT_SUCCESS;
 }
 
@@ -476,6 +474,7 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 	char* consistencia = config_get_string_value(configuracion,"CONSISTENCY");
 	metadataDeLaTabla.consistencia = malloc(strlen(consistencia)+1);
 	strcpy(metadataDeLaTabla.consistencia,consistencia);
+	free(consistencia);
 	log_info(LOGGERFS,"Info de la tabla %s recuperada, particiones %d, consistencia %s, tiempo de compactacion %d",
 			nombreDeLaTabla, metadataDeLaTabla.particiones,
 			metadataDeLaTabla.consistencia, metadataDeLaTabla.tiempoDeCompactacion);
@@ -624,6 +623,7 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
 		if(tabla!=NULL){
 			listaAux = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ liberar listaAux @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			if(listaAux==NULL){
 				log_info(LOGGERFS,"La key %d no esta en la  tabla %s de la memtable",
 						key, nombreDeLaTabla);

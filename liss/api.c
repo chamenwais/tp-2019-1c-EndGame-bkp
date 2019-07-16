@@ -189,30 +189,29 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 		if(nodo->resultado==KEY_NO_EXISTE ){
 			free(nodo);
 			log_info(LOGGERFS,"No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)",
-				key, nombreDeLaTabla);
+					key, nombreDeLaTabla);
 			printf("No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)\n",
-				key, nombreDeLaTabla);
-		}else{
-			if(nodo->resultado==KEY_OBTENIDA){
-				log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %.0f, para la key %d, de la tabla %s",
-					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-				printf("Resultado del select, Value: %s, Timpestamp: %.0f, para la key %d, de la tabla %s\n",
-					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-				//free(nodo->value);
-				//free(nodo);
-			} else if (nodo->resultado==TABLA_NO_EXISTIA){
-				log_info(LOGGERFS,"La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
-				printf("La tabla %s pedida en el select con key %d no existe\n",nombreDeLaTabla,key);
-				free(nodo);
-			}
-			else{
-				free(nodo);
-				log_error(LOGGERFS,"Resultado inesperado, alerta!!!");
-			}
+					key, nombreDeLaTabla);
 		}
-		//free(nodo->value);
-		//free(nodo);
-	}else{
+		else if(nodo->resultado==KEY_OBTENIDA){
+			log_info(LOGGERFS,"Resultado del select, Value: %s, Timpestamp: %.0f, para la key %d, de la tabla %s",
+				nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
+			printf("Resultado del select, Value: %s, Timpestamp: %.0f, para la key %d, de la tabla %s\n",
+				nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
+			free(nodo->value);
+			free(nodo);
+		}
+		else if (nodo->resultado==TABLA_NO_EXISTIA){
+			log_info(LOGGERFS,"La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
+			printf("La tabla %s pedida en el select con key %d no existe\n",nombreDeLaTabla,key);
+			free(nodo);
+		}
+		else{
+			free(nodo);
+			log_error(LOGGERFS,"Resultado inesperado, alerta!!!");
+		}
+	}
+	else{
 		log_error(LOGGERFS,"Resultado inesperado, alerta!!!, resultado del selectf==NULL");
 	}
 	return EXIT_SUCCESS;

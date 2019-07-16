@@ -232,6 +232,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		int numeroDeParticionQueContieneLaKey = key%(metadataDeLaTabla.particiones);
 		log_info(LOGGERFS,"[Select]Numero de particion que contiene a la key es %d, ya que las particiones son %d, y la key vale %d",
 				numeroDeParticionQueContieneLaKey, metadataDeLaTabla.particiones, key);
+		if(metadataDeLaTabla.consistencia!=NULL)free(metadataDeLaTabla.consistencia);
 		t_list* keysObtenidas = escanearPorLaKeyDeseada(key, nombreDeLaTabla, numeroDeParticionQueContieneLaKey);
 		resultadoOriginal = obtenerKeyConTimeStampMasGrande(keysObtenidas);
 		resultado=malloc(sizeof(t_nodoDeLaTabla));
@@ -240,7 +241,9 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 			resultado->key=resultadoOriginal->key;
 			resultado->timeStamp=resultadoOriginal->timeStamp;
 			resultado->value=string_duplicate(resultadoOriginal->value);
+			free(resultadoOriginal->value);
 		}
+		free(resultadoOriginal);
 		//list_destroy(keysObtenidas);
 		vaciarListaDeKeys(keysObtenidas);
 	}
