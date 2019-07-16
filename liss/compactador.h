@@ -33,7 +33,7 @@
 #include "variablesGlobales.h"
 
 typedef struct TKV {
-	unsigned timeStamp;
+	double timeStamp;
 	uint16_t key;
 	char* value;
 } t_tkv;

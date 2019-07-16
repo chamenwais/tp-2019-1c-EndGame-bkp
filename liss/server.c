@@ -255,12 +255,12 @@ void procesarInsert(int cliente, t_cabecera cabecera){
 
 	tp_insert insercion = prot_recibir_insert(cabecera.tamanio, cliente);
 
-	//@@puedo llegar a recibir insert sin timestamp?
+	//recordar:nunca recibe insert sin timestamp
 	int result = insert(insercion->nom_tabla, insercion->key, insercion->value, insercion->timestamp);
 
 	if (result == EXIT_SUCCESS){
 		prot_enviar_respuesta_insert(cliente);
-		log_info(LOGGERFS,"[LissServer] Insert(cliente %d): tabla= [%s] , value= [%s] , timestamp = [%u]",cliente,insercion->nom_tabla,insercion->value,insercion->timestamp);
+		log_info(LOGGERFS,"[LissServer] Insert(cliente %d): tabla= [%s] , value= [%s] , timestamp = [%.0f]",cliente,insercion->nom_tabla,insercion->value,insercion->timestamp);
 	} else {
 		prot_enviar_error(TABLA_NO_EXISTIA,cliente);
 		log_info(LOGGERFS,"[LissServer] Error Insert(cliente %d): tabla= %s no existe",cliente,insercion->nom_tabla);
