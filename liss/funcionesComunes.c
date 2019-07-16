@@ -192,17 +192,9 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp){
 	}
 }
 
-double obtenerTimestampLocal(){
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
-	double a = result;
-	return a;
-}
-
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){
-	double timeStamp = obtenerTimestamp();
-	log_info(LOGGERFS,"Timestamo obtenido: %lf", timeStamp);
+	double timeStamp = obtenerTimestampLocal();
+	log_info(LOGGERFS,"Timestamo obtenido: %.0f", timeStamp);
 	//printf("\n\nTimeStamp obtenido: %lf\n\n\n", obtenerTimestamp());
 	insert(nombreDeLaTabla, key, value, timeStamp);
 	return EXIT_SUCCESS;
@@ -226,6 +218,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 
 	aplicarRetardo();
 
+	tp_nodoDeLaTabla resultadoOriginal = NULL;
 	tp_nodoDeLaTabla resultado = NULL;
 
 	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
@@ -239,8 +232,14 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		log_info(LOGGERFS,"[Select]Numero de particion que contiene a la key es %d, ya que las particiones son %d, y la key vale %d",
 				numeroDeParticionQueContieneLaKey, metadataDeLaTabla.particiones, key);
 		t_list* keysObtenidas = escanearPorLaKeyDeseada(key, nombreDeLaTabla, numeroDeParticionQueContieneLaKey);
-		resultado = obtenerKeyConTimeStampMasGrande(keysObtenidas);
-		vaciarListaDeKeys(keysObtenidas);
+		resultadoOriginal = obtenerKeyConTimeStampMasGrande(keysObtenidas);
+		resultado=malloc(sizeof(t_nodoDeLaTabla));
+		resultado->key=resultadoOriginal->key;
+		resultado->resultado=resultadoOriginal->resultado;
+		resultado->timeStamp=resultadoOriginal->timeStamp;
+		resultado->value=string_duplicate(resultadoOriginal->value);
+		list_destroy(keysObtenidas);
+		//vaciarListaDeKeys(keysObtenidas);
 		free(metadataDeLaTabla.consistencia);
 	}
 	else{

@@ -569,25 +569,30 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 		log_error(LOGGERFS,"Tabla %s no bloqueada porque no existe", nombreDeLaTabla);
 		return listadoDeKeys;
 	}
-	t_list* keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
+	t_list* keysTemporales;
+
+	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
+				numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
+	keysTemporales = escanearPorLaKeyDeseadaArchivosTemporalesC(key, nombreDeLaTabla);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
 
 	keysTemporales = escanearPorLaKeyDeseadaArchivosTemporales(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
-	//pthread_mutex_unlock(&mutexDeDump);
 
-	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
-			numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
+	keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
+	list_add_all(listadoDeKeys,keysTemporales);
+	list_destroy(keysTemporales);
+
+	//pthread_mutex_unlock(&mutexDeDump);
 
 	desbloquearSharedTablaFS(mutexTabla);
 	log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
-
-	list_add_all(listadoDeKeys,keysTemporales);
-	list_destroy(keysTemporales);
 
 	int sizeDeLaLista = list_size(listadoDeKeys);
 	log_info(LOGGERFS,"Keys obtenidas en total, son %d",sizeDeLaLista);
@@ -744,9 +749,8 @@ bool existeElArchivo(char* nombreDelArchivo){
 	}
 }
 
-t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
+t_list* escanearPorLaKeyDeseadaArchivosTem(uint16_t key, char* nombreDeLaTabla, char* terminacion){
 	t_list* listaResultante = list_create();
-	log_info(LOGGERFS,"Escaneando archivos temporales");
 	char* directorioDeLasTablas= string_new();
 	string_append(&directorioDeLasTablas,configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeLasTablas,"/Tables/");
@@ -762,7 +766,7 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		auxatoi=string_itoa(i);
 		string_append(&ubicacionDelTemp,auxatoi);
 		free(auxatoi);
-		string_append(&ubicacionDelTemp,".tmp");
+		string_append(&ubicacionDelTemp,terminacion);
 		if(existeElArchivo(ubicacionDelTemp)){
 			log_info(LOGGERFS,"Checkeando en el archivo temporal %s",ubicacionDelTemp);
 			t_list* listaAux=obtenerListaDeDatosDeArchivo(ubicacionDelTemp, nombreDeLaTabla, key);
@@ -775,8 +779,27 @@ t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLa
 		}
 	free(directorioDeLasTablas);
 	log_info(LOGGERFS,"Cantidad de keys obtenidas de los temporales: %d",list_size(listaResultante));
-	log_info(LOGGERFS,"Archivos temporales escaneados");
 	return listaResultante;
+}
+
+t_list* escanearPorLaKeyDeseadaArchivosTemporalesC(uint16_t key, char* nombreDeLaTabla){
+	char* terminacion = string_new();
+	string_append(&terminacion,".tmpc");
+	log_info(LOGGERFS,"Escaneando archivos temporales .tmpc");
+	t_list* lista = escanearPorLaKeyDeseadaArchivosTem(key,nombreDeLaTabla,terminacion);
+	free(terminacion);
+	log_info(LOGGERFS,"Archivos temporales .tmpc escaneados");
+	return lista;
+}
+
+t_list* escanearPorLaKeyDeseadaArchivosTemporales(uint16_t key, char* nombreDeLaTabla){
+	char* terminacion = string_new();
+	string_append(&terminacion,".tmp");
+	log_info(LOGGERFS,"Escaneando archivos temporales .tmp");
+	t_list* lista = escanearPorLaKeyDeseadaArchivosTem(key,nombreDeLaTabla,terminacion);
+	free(terminacion);
+	log_info(LOGGERFS,"Archivos temporales .tmp escaneados");
+	return lista;
 }
 
 t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
@@ -808,7 +831,7 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 
 tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 	tp_nodoDeLaTabla keyObtenida = NULL;
-	unsigned tiempo;
+	double tiempo;
 
 	bool esLaMayor(void* nodo){
 		bool sonTodosMenores(void* nodo2){
@@ -831,7 +854,7 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 		keyObtenida = list_find(keysObtenidas,esLaMayor);
 		list_remove_by_condition(keysObtenidas,esMiNodoMayor);
 		if(keyObtenida!=NULL){
-			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %d, con un value de: %s",
+			log_info(LOGGERFS,"El mayor timestamp para la key %d fue de: %.0f, con un value de: %s",
 				keyObtenida->key, keyObtenida->timeStamp, keyObtenida->value);
 			keyObtenida->resultado=KEY_OBTENIDA;
 		}else{
@@ -850,7 +873,7 @@ tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 
 int vaciarListaDeKeys(t_list* keysObtenidas){
 	void vaciarNodo(void* nodo){
-		log_info(LOGGERFS,"Liberando memoria de value: %s, key: %d, timestamp: %d",
+		log_info(LOGGERFS,"Liberando memoria de value: %s, key: %d, timestamp: %.0f",
 				((tp_nodoDeLaTabla)nodo)->value,
 				((tp_nodoDeLaTabla)nodo)->key,
 				((tp_nodoDeLaTabla)nodo)->timeStamp);
@@ -1014,4 +1037,12 @@ int aplicarRetardo(){
 	log_info(LOGGERFS,"Aplicando retardo de: %d milisegundos", retardo);
 	usleep(retardo*1000);
 	return EXIT_SUCCESS;
+}
+
+double obtenerTimestampLocal(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
+	double a = result;
+	return a;
 }

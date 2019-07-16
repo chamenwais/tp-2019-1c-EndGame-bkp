@@ -173,13 +173,13 @@ void funcionHiloDump(void *arg){
 	while(!obtenerEstadoDeFinalizacionDelSistema()){
 		tiempoDeSleep=obtenerTiempoDump();
 		usleep(tiempoDeSleep*1000);
-		log_trace(LOGGERFS,"Iniciando un dumpeo");
+		log_info(LOGGERFS,"Iniciando un dumpeo");
 		pthread_mutex_lock(&mutexDeDump);
 		list_iterate(memTable, dumpearAEseNodo);
 		vaciarMemTable();
 		memTable=list_create();
 		pthread_mutex_unlock(&mutexDeDump);
-		log_trace(LOGGERFS,"Dumpeo finalizado");
+		log_info(LOGGERFS,"Dumpeo finalizado");
 		}
 	log_info(LOGGERFS,"Finalizando hilo de dumpeo");
 	return;
