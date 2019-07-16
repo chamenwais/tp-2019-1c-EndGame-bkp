@@ -110,6 +110,7 @@ int cargarParticionATabla(char* nombreTabla,int numParticion,int size,t_list* bl
 	config_set_value(configuracion, "BLOCKS", lineaBloques);
 	config_save(configuracion);
 	config_destroy(configuracion);
+	free(lineaBloques);
 	free(nombreDelBinario);
 	return 1;
 }
@@ -296,28 +297,28 @@ int eliminarTemporales(char* nombreDeLaTabla){
 		if(encontrado==true){
 
 			////////////////////
-				t_config* configuracion = config_create(pathDelTemp);
-				char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
-				config_destroy(configuracion);
-				pthread_mutex_lock(&mutexBitmap);
-				char* ubicacionDelBloque;
-				for(int i=0;arrayDeBloques[i]!=NULL;i++){
-					ubicacionDelBloque=string_new();
-					log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
-					liberarBloqueDelBitmap(atoi(arrayDeBloques[i]));
-					string_append(&ubicacionDelBloque,directorioDeBloques);
-					string_append(&ubicacionDelBloque,arrayDeBloques[i]);
-					string_append(&ubicacionDelBloque,".bin");
-					log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
-					remove(ubicacionDelBloque);
-					free(ubicacionDelBloque);
-					free(arrayDeBloques[i]);
-					}
-				free(arrayDeBloques);
-				pthread_mutex_unlock(&mutexBitmap);
-				log_info(LOGGERFS,"Borrando el archivo %s", pathDelTemp);
-				remove(pathDelTemp);
-				free(pathDelTemp);
+			t_config* configuracion = config_create(pathDelTemp);
+			char** arrayDeBloques = config_get_array_value(configuracion,"BLOCKS");
+			config_destroy(configuracion);
+			pthread_mutex_lock(&mutexBitmap);
+			char* ubicacionDelBloque;
+			for(int i=0;arrayDeBloques[i]!=NULL;i++){
+				ubicacionDelBloque=string_new();
+				log_info(LOGGERFS,"Marcando como libre el bloque: %d", atoi(arrayDeBloques[i]));
+				liberarBloqueDelBitmap(atoi(arrayDeBloques[i]));
+				string_append(&ubicacionDelBloque,directorioDeBloques);
+				string_append(&ubicacionDelBloque,arrayDeBloques[i]);
+				string_append(&ubicacionDelBloque,".bin");
+				log_info(LOGGERFS,"Borrando el archivo %s", ubicacionDelBloque);
+				remove(ubicacionDelBloque);
+				free(ubicacionDelBloque);
+				free(arrayDeBloques[i]);
+				}
+			free(arrayDeBloques);
+			pthread_mutex_unlock(&mutexBitmap);
+			log_info(LOGGERFS,"Borrando el archivo %s", pathDelTemp);
+			remove(pathDelTemp);
+			free(pathDelTemp);
 
 			///////////////////
 
@@ -325,9 +326,11 @@ int eliminarTemporales(char* nombreDeLaTabla){
 			remove(pathDelTemp);
 
 		}else{
+			free(pathDelTemp);
 			log_info(LOGGERFS,"No hay mas archivos temporales para borrar");
 			}
 		}
+	free(directorioDeBloques);
 	free(aux);
 	return EXIT_SUCCESS;
 }
@@ -410,6 +413,7 @@ void liberarBloquesTmpc(char* pathCompletoTmpc){
 		liberarBloque(arrayDeBloques[i]);
 		free(arrayDeBloques[i]);
 	}
+	free(arrayDeBloques);
 }
 
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
@@ -900,6 +904,7 @@ t_list* obtenerTodosLosDescriptores(){
 				list_add(metadata_todos_los_descriptores,(void*)metadataEncodeada);
 				free(unaMetadata.consistencia);
 			}
+			free(path_nombre);
 			return FTW_SKIP_SUBTREE;
 			//return FTW_SKIP_SUBTREE;//salta a la proxima carpeta sin mirar los contenidos
 		}
