@@ -623,7 +623,7 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 		tp_nodoDeLaMemTable tabla = list_find(memTable, esMiTabla);
 		if(tabla!=NULL){
 			listaAux = list_filter(tabla->listaDeDatosDeLaTabla,esMiKey);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ liberar listaAux @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//MEM-LEAK@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ liberar listaAux @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			if(listaAux==NULL){
 				log_info(LOGGERFS,"La key %d no esta en la  tabla %s de la memtable",
 						key, nombreDeLaTabla);

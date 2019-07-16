@@ -24,6 +24,7 @@ int lanzarConsola(){
 }
 
 void *funcionHiloConsola(void *arg){
+//MEM-LEAK@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ creo q hay un mem leak de alguno de esos char @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	char * linea;
 	char *ret="Cerrando hilo";
 	char** instruccion;
