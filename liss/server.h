@@ -29,6 +29,6 @@ void procesarDrop(int,t_cabecera);
 void* procesarMensaje(void*);
 void* crearServerLissandra();
 int lanzarServer();
-int list_mayor_int(t_list *);
+int list_mayor_int(t_list*);
 
 #endif /* LISS_SERVER_H_ */
