@@ -77,13 +77,21 @@ void* crearCompactadorLissandra(){
 
 		compactarNuevasTablas();
 	}
+	bool finished=false;
+	while(!finished){
+		pthread_mutex_lock(&tablas_mutex);
+		if(tablas->elements_count==0) finished=true;
+		pthread_mutex_unlock(&tablas_mutex);
+		sleep(1);
+	}
 	pthread_mutex_lock(&tablas_mutex);
 	pthread_mutex_unlock(&tablas_mutex);
-	while(pthread_mutex_destroy(&tablas_mutex));
+	pthread_mutex_destroy(&tablas_mutex);
 	pthread_mutex_lock(&nextTmp);
 	pthread_mutex_unlock(&nextTmp);
-	while(pthread_mutex_destroy(&nextTmp));
-	log_info(LOGGERFS,"[Compactador]Finalizando compactador");
+	pthread_mutex_destroy(&nextTmp);
+	list_destroy(tablas);
+	log_info(LOGGERFS,"[Compactador]Finalizado");
 	pthread_exit(0);
 }
 
@@ -404,7 +412,11 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			log_info(LOGGERFS,"[Compactador %s]Compactacion realizada correctamente",tabla);
 
 		}else{
-			list_destroy(tmps);
+			if(tmps->elements_count==0)
+				list_destroy(tmps);
+			else
+				list_destroy_and_destroy_elements(tmps,free);
+
 			if(tmpcsViejos->elements_count==0)
 				list_destroy(tmpcsViejos);
 			else
@@ -414,6 +426,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 		usleep(tiempoCompactacion*1000);
 	}
 	//NO hacer free de tabla
+	log_info(LOGGERFS,"[Compactador %s]Finalizado",tabla);
 	eliminarDeTablas(tabla);
 	pthread_exit(0);
 }
