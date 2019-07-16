@@ -23,12 +23,12 @@ bool existeLaTabla(char* nombreDeLaTabla){
 
 	if(!esTablaNuevaFS(nombreDeLaTabla)){
 		log_info(LOGGERFS,"Tabla %s existe", nombreDeLaTabla);
-		printf("La Tabla %s existe", nombreDeLaTabla);
+		printf("La Tabla %s existe\n", nombreDeLaTabla);
 		return true;
 	}
 	else{
 		log_info(LOGGERFS,"Tabla %s no existe", nombreDeLaTabla);
-		printf("La Tabla %s no existe", nombreDeLaTabla);
+		printf("La Tabla %s no existe\n", nombreDeLaTabla);
 		return false;
 	}
 

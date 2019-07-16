@@ -111,6 +111,7 @@ int cargarParticionATabla(char* nombreTabla,int numParticion,int size,t_list* bl
 	config_set_value(configuracion, "BLOCKS", lineaBloques);
 	config_save(configuracion);
 	config_destroy(configuracion);
+	free(lineaBloques);
 	free(nombreDelBinario);
 	return 1;
 }
@@ -937,6 +938,7 @@ t_list* obtenerTodosLosDescriptores(){
 				list_add(metadata_todos_los_descriptores,(void*)metadataEncodeada);
 				free(unaMetadata.consistencia);
 			}
+			free(path_nombre);
 			return FTW_SKIP_SUBTREE;
 			//return FTW_SKIP_SUBTREE;//salta a la proxima carpeta sin mirar los contenidos
 		}

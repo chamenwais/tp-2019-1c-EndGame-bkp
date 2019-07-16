@@ -8,7 +8,7 @@
 #include "api.h"
 
 int lanzarConsola(){
-	sleep(2);
+	sleep(1);
 	log_info(LOGGERFS,"Iniciando hilo de consola");
 	int resultadoDeCrearHilo = pthread_create( &threadConsola, NULL,
 			funcionHiloConsola, "Hilo consola");
