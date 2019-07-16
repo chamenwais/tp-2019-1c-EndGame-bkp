@@ -66,4 +66,5 @@ int aplicarRetardo();
 t_list* insertarCadenaEnLosBloques(char* cadenaGigante);//retorna una lista de int 1,2, ..., o NULL si no quedan bloques(si ya tomo algun bloque lo libera)
 int cargarParticionATabla(char* nombreTabla,int numParticion,int size,t_list* bloques);
 t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante);
+double obtenerTimestampLocal();
 #endif /* FUNCIONESAUXILIARES_H_ */

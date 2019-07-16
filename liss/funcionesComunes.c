@@ -192,24 +192,17 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp){
 	}
 }
 
-
-double getCurrentTime() {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-}
-
-double obtenerTimestamp(){
+double obtenerTimestampLocal(){
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
 	double a = result;
-	log_info(LOGGERFS,"Timestamo obtenido: %lf", a);
 	return a;
 }
 
 int insertSinTime(char* nombreDeLaTabla, uint16_t key, char* value){
 	double timeStamp = obtenerTimestamp();
+	log_info(LOGGERFS,"Timestamo obtenido: %lf", timeStamp);
 	//printf("\n\nTimeStamp obtenido: %lf\n\n\n", obtenerTimestamp());
 	insert(nombreDeLaTabla, key, value, timeStamp);
 	return EXIT_SUCCESS;
