@@ -479,7 +479,7 @@ t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla){
 			nombreDeLaTabla, metadataDeLaTabla.particiones,
 			metadataDeLaTabla.consistencia, metadataDeLaTabla.tiempoDeCompactacion);
 
-	config_	destroy(configuracion);
+	config_destroy(configuracion);
 	free(nombreDelArchivoDeMetaData);
 	return metadataDeLaTabla;
 }

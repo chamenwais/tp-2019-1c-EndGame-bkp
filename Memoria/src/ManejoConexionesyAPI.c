@@ -269,8 +269,8 @@ tp_describe_particular_rta_a_kernel realizar_describe_para_tabla_particular(char
 
 }
 
-void loguear_value_por_pantalla(char * value){
-	logger(escribir_loguear, l_info, "El value de la key solicitada es '%s'", value);
+void loguear_value_por_pantalla(tp_select_rta rta){
+	logger(escribir_loguear, l_info, "\nEl value de la key %d es '%s', con timestamp %.0f\n", rta->key, rta->value, rta->timestamp);
 }
 
 enum MENSAJES realizar_create(char * nombre_tabla, char * tipo_consistencia, int numero_particiones, int tiempo_compactacion){
@@ -342,7 +342,7 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 	tp_select_rta_a_kernel rta_select_a_kernel;
 
 	if(rta_select_MP!=NULL && rta_select_MP->value != NULL){
-		loguear_value_por_pantalla(rta_select_MP->value);
+		loguear_value_por_pantalla(rta_select_MP);
 		rta_select_a_kernel = malloc(sizeof(t_select_rta_a_kernel));
 		convertir_respuesta_select(rta_select_a_kernel, rta_select_MP,
 				REQUEST_SUCCESS);
@@ -356,7 +356,7 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 		if(rta_select_a_kernel->value!=NULL){
 			int resultado_colocacion=colocar_value_en_MP(nombre_tabla
 					, rta_select_a_kernel->timestamp,(uint16_t)key,rta_select_a_kernel->value);
-			logger(escribir_loguear, l_info, "\nRecibi el value '%s', para la key %d, con timestamp %ld\n"
+			logger(escribir_loguear, l_info, "\nRecibi el value '%s', para la key %d, con timestamp %.0f\n"
 					,rta_select_a_kernel->value, rta_select_a_kernel->key, rta_select_a_kernel->timestamp);
 			if(resultado_colocacion<0){
 				rta_select_a_kernel->respuesta=NO_HAY_MAS_MARCOS_EN_LA_MEMORIA;
@@ -367,7 +367,7 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 	return rta_select_a_kernel;
 }
 
-int realizar_insert(char * nombre_tabla, long timestamp, uint16_t key, char * value){
+int realizar_insert(char * nombre_tabla, double timestamp, uint16_t key, char * value){
 	int resultado_insercion=1;
 	tp_select_rta rta_select = verificar_existencia_en_MP(nombre_tabla, key);
 

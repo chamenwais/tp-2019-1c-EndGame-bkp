@@ -16,6 +16,10 @@
 
 int correr_tests();
 
+int setup_timestamp();
+int clean_timestamp();
+void test_timestamp();
+
 int setup_gestion_seg_pag();
 int clean_gestion_seg_pag();
 void test_calcular_cantidad_marcos_MP();

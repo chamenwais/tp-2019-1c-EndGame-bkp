@@ -132,7 +132,7 @@ typedef struct entrada_tabla_paginas t_entrada_tabla_paginas;
 
 typedef struct struSelectRtaAKernel{
 	enum MENSAJES respuesta;
-	unsigned int timestamp;
+	double timestamp;
 	uint16_t key;
 	char* value;
 } t_select_rta_a_kernel;

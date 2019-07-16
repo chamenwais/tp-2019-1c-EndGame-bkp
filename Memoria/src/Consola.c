@@ -118,23 +118,23 @@ void consola_insert(char * comando_puro, char** comandos){
 				value, string_timestamp);
 		return;
 	}
-	long timestamp;
+	double timestamp;
 	if(string_contains(string_timestamp, "\"")){
 		free(string_timestamp);
 		string_timestamp="-1";
 	}
 	if(string_equals_ignore_case(string_timestamp, "-1")){
-		timestamp=(unsigned)time(NULL);
+		timestamp=obtenerTimestamp();
 	} else {
 		char* end_timestamp;
-		timestamp=strtol(string_timestamp, &end_timestamp, 10);
+		timestamp=strtod(string_timestamp, &end_timestamp);
 		if(*end_timestamp){
 			logeuar_param_err_limpiar_cuatro_restantes(string_timestamp, nombre_tabla,
 					value, string_key);
 			return;
 		}
 	}
-	logger(escribir_loguear, l_debug,"El timestamp fue '%d'",timestamp);
+	logger(escribir_loguear, l_debug,"El timestamp fue '%.0f'",timestamp);
 
 	if(strlen(value)>TAMANIO_VALUE){
 		logger(escribir_loguear, l_error,"El tamanio del value excede al permitido, volve a intentar");
