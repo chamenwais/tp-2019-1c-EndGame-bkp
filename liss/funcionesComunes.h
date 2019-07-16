@@ -15,6 +15,7 @@
 #include "variablesGlobales.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/time.h>
 
 bool existeLaTabla(char* nombreDeLaTabla);
 int create(char* nombreDeLaTabla, char* tipoDeConsistencia,

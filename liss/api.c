@@ -187,6 +187,7 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 	tp_nodoDeLaTabla nodo = selectf(nombreDeLaTabla, key);
 	if(nodo!=NULL){
 		if(nodo->resultado==KEY_NO_EXISTE ){
+			free(nodo);
 			log_info(LOGGERFS,"No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)",
 				key, nombreDeLaTabla);
 			printf("No hay ningun valor de esa key(%d) en la tabla seleccionada(%s)\n",
@@ -197,14 +198,22 @@ int consolaSelect(char* nombreDeLaTabla,uint16_t key){
 					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
 				printf("Resultado del select, Value: %s, Timpestamp: %d, para la key %d, de la tabla %s\n",
 					nodo->value, nodo->timeStamp, key, nombreDeLaTabla);
-			}else{
-				log_error(LOGGERFS,"Resultado insaperado, alerta!!!");
+				free(nodo->value);
+				free(nodo);
+			} else if (nodo->resultado==TABLA_NO_EXISTIA){
+				log_info(LOGGERFS,"La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
+				printf("La tabla %s pedida en el select con key %d no existe",nombreDeLaTabla,key);
+				free(nodo);
+			}
+			else{
+				free(nodo);
+				log_error(LOGGERFS,"Resultado inesperado, alerta!!!");
 			}
 		}
 		//free(nodo->value);
 		//free(nodo);
 	}else{
-		log_error(LOGGERFS,"Resultado insaperado, alerta!!!, resultado del selectf==NULL");
+		log_error(LOGGERFS,"Resultado inesperado, alerta!!!, resultado del selectf==NULL");
 	}
 	return EXIT_SUCCESS;
 }
@@ -255,13 +264,13 @@ int consolaDescribeDeTabla(char* nombreDeLaTabla){
 	if((metadataDeLaTabla.particiones!=-1)&&
 			(metadataDeLaTabla.tiempoDeCompactacion!=-1)&&
 			(metadataDeLaTabla.consistencia!=NULL)){
-		log_info(LOGGERFS,"Info de la tabla recuperada");
+		log_info(LOGGERFS,"Info de la tabla %s recuperada",nombreDeLaTabla);
 		printf("Info de la tabla: %s\n",nombreDeLaTabla);
 		printf("Numero de particiones: %d\n",metadataDeLaTabla.particiones);
 		printf("Tipo de consistencia: %s\n",metadataDeLaTabla.consistencia);
 		printf("Tiempo de compactacion: %d\n",metadataDeLaTabla.tiempoDeCompactacion);
-		}
-	free(metadataDeLaTabla.consistencia);
+		free(metadataDeLaTabla.consistencia);
+	}
 	return EXIT_SUCCESS;
 }
 

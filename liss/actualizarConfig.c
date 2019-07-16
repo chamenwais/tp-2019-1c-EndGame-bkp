@@ -67,6 +67,7 @@ int funcionMonitorDeArchivos(){
 		}
 	inotify_rm_watch(file_descriptor, watch_descriptor);
 	close(file_descriptor);
+	//@@falta free a directorioDeConfig ??
 	log_info(LOGGERFS,"Finalizando funcion funcionMonitorDeArchivos");
 	return EXIT_SUCCESS;
 
