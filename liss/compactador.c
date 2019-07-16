@@ -530,6 +530,7 @@ t_list* cargarTimeStampKeyValue(char* path){//ya se q este path existe xq lo cre
 		linea_buf_size=0;
 		linea_size = getline(&aux, &linea_buf_size, archivo);
 	}
+	free(aux);//@@@@@@VER SI ESTO ESTA BIEN (dice el man de getline q tengo q hacer free tmb cuando falle)
 	fclose(archivo);
 	return listaResultante;
 }
