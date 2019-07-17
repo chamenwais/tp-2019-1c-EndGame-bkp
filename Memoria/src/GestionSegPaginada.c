@@ -22,6 +22,9 @@ void inicializar_bitmap_marcos(){
 	int tamanio_bitmap=obtener_cantidad_marcos_en_MP(obtener_tamanio_marco());
 	void * bits_bitmap = malloc(tamanio_bitmap);
 	bitmap_marcos=bitarray_create_with_mode(bits_bitmap, tamanio_bitmap,  LSB_FIRST);
+	for(int i=0;i<tamanio_bitmap;i++){
+		bitarray_clean_bit(bitmap_marcos,i);
+	}
 }
 
 void liberar_bitmap_marcos(){
@@ -273,7 +276,7 @@ void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos * segmento, int mar
 	entrada_pagina->ultimo_uso=(unsigned int)time(NULL);
 	list_add(segmento->base,entrada_pagina);
 	bitarray_clean_bit(bitmap_marcos,marco);
-	bitarray_set_bit(bitmap_marcos,marco);
+	ocupar_marco_en_el_bitmap(marco);
 }
 
 void liberar_segmento_de_MP(t_entrada_tabla_segmentos * segmento){
