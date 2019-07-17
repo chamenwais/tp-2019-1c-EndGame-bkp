@@ -234,7 +234,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 		FD_ZERO(&readset);
 		FD_ZERO(&writeset);
 		FD_ZERO(&exepset);
-		tv.tv_sec = 5;
+		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 		//Agrega el fd del socket servidor al set de lectura y excepciones
 		FD_SET(server_memoria, &readset);
@@ -254,7 +254,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 			}
 		}
 		int result = select(max_fd + 1, &readset, &writeset, &exepset, &tv);
-		logger(loguear, l_debug, "Resultado del select: %d\n", result); //Revisar rendimiento del CPU cuando select da > 1
+		logger(loguear, l_debug, "Resultado del select: %d\n", result);
 		if (result < 0) {
 			logger(escribir_loguear, l_error, "Error en select\n");
 			break;

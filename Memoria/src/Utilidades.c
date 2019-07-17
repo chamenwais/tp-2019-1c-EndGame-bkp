@@ -630,3 +630,11 @@ t_memo_del_pool* crear_memo_del_pool(char* ip, char* puerto) {
 	memoria_a_utilizar->socket = 0;
 	return memoria_a_utilizar;
 }
+
+double obtenerTimestamp(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
+	double a = result;
+	return a;
+}
