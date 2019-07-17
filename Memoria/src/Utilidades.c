@@ -593,9 +593,9 @@ void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list * memorias){
 enum MENSAJES notificar_escrituras_en_memoria_LFS(int socket_con_LFS){
 	enum MENSAJES* resultado_anterior = malloc(sizeof(enum MENSAJES));
 	*resultado_anterior=REQUEST_SUCCESS;
-	t_list* paginas_modificadas=recopilar_paginas_modificadas();
-
 	pthread_mutex_lock(&M_JOURNALING);
+
+	t_list* paginas_modificadas=recopilar_paginas_modificadas();
 
 	insertar_cada_registro_modificado_en_LFS(resultado_anterior, paginas_modificadas, socket_con_LFS);
 	limpiar_tablas_de_segmentos_y_paginas();

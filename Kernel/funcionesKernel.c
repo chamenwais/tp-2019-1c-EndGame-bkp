@@ -482,7 +482,7 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 			tp_select_rta seleccion = prot_recibir_respuesta_select(rta_pedido.tamanio, socket_memoria);
 
 			logger(escribir_loguear, l_info, "Esta es la informacion recibida:");
-			logger(escribir_loguear, l_info, "Value: %s", seleccion->value);
+			logger(escribir_loguear, l_info, "\nValue: %s\n", seleccion->value);
 
 
 			//Libero la estructura que recibi

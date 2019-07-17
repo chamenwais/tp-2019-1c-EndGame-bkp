@@ -339,7 +339,7 @@ void *funcionHiloConsola(void *arg){
 						}
 				}else{
 					if((strcmp(instruccion[0],"journal")==0) || (strcmp(instruccion[0], "JOURNAL")==0)){
-						printf("Voy a enviar journal a todas las memorias");
+						printf("Voy a enviar journal a todas las memorias\n");
 						journalConsola();
 				}else{
 					if(strcmp(instruccion[0],"man")==0){
