@@ -939,7 +939,7 @@ void* funcionHiloRequest(void* pcb){
 	list_add(listaExit, pcb);
 	pthread_mutex_unlock(&mutex_Exit);
 	logger(escribir_loguear, l_warning, "El LQL %s pasa a Exit\n", ((tp_lql_pcb) pcb)->path);
-	//sem_post(&NEW);
+	sem_post(&READY);
 	pthread_exit(ret);
 	return EXIT_SUCCESS;
 }
