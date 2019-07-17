@@ -148,9 +148,10 @@ int dump(char* nombreDeLaTabla){
 	}
 }
 
-int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo){
+int liberarMemoriaDelNodo(char* nombreDeLaTabla){
 	//implementar
 	//no hace falta, al final borro toda la memtable
+	eliminarDeLaMemtable(nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
