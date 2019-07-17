@@ -17,10 +17,14 @@
 #include "api.h"
 #include "variablesGlobales.h"
 #include "funcionesComunes.h"
+#include "funcionesAuxiliares.h"
+#include <signal.h> //para detectar señal de cierre del programa
 #include "fs.h"
 #include "dump.h"
 #include "server.h"
 #include "compactador.h"
 
+void captura_signal(int signo);
+void configurar_signals(void);
 
 #endif /* LISSANDRA_H_ */

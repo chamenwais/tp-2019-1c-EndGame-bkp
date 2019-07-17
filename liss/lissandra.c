@@ -15,6 +15,7 @@ int main(int argc,char** argv) {
 	if(inicializarVariablesGlobales()==EXIT_SUCCESS){
 	inicializarLogDelFS();
 	obtenerPathDeMontajeDelPrograma(argc,argv);
+	configurar_signals();
 	if(levantarConfiguracionInicialDelFS()==EXIT_SUCCESS){
 	if(levantarMetadataDelFS()==EXIT_SUCCESS){
 	if(levantarBitMap()==EXIT_SUCCESS){
@@ -29,3 +30,26 @@ int main(int argc,char** argv) {
 	}}}}}}}}}}
 	return EXIT_SUCCESS;
 }
+
+void configurar_signals(void) {
+	struct sigaction signal_struct;
+	signal_struct.sa_handler = captura_signal;
+	signal_struct.sa_flags = 0;
+
+	sigemptyset(&signal_struct.sa_mask);
+
+	sigaddset(&signal_struct.sa_mask, SIGINT);
+	if (sigaction(SIGINT, &signal_struct, NULL) < 0) {
+		log_error(LOGGERFS, "SIGACTION error");
+	}
+}
+
+void captura_signal(int signo){
+
+    if(signo == SIGINT)
+    {
+    	log_info(LOGGERFS,"[Finalizando liss]");
+		setearEstadoDeFinalizacionDelSistema(true);
+    }
+}
+

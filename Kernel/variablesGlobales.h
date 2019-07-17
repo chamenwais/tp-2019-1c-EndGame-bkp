@@ -174,6 +174,9 @@ extern int retardo;
 extern int path_api;
 extern int ultima_memoria_EC;
 extern int socket_primera_memoria;
+t_path_archivo_conf *ruta_archivo_conf;
+int watch_descriptor,conf_fd;
+char * path_archivo_configuracion;
 
 int inicializarVariablesGlobales();
 void terminar_programa(int codigo_finalizacion);
@@ -184,5 +187,8 @@ void escribir_por_pantalla(int tipo_esc, int tipo_log, char* console_buffer,
 char* log_colors[8], char* msj_salida);
 void definir_nivel_y_loguear(int tipo_esc, int tipo_log, char* msj_salida);
 void apagar_semaforos();
+void destructor_pcb(void* pcb);
+void destruirListas();
+void destructor_memoria_del_pool_kernel(void * memo_del_pool);
 
 #endif /* VARIABLESGLOBALES_H_ */

@@ -520,7 +520,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 		double timestamp;
 		timestamp=obtenerTimestamp();
-		logger(escribir_loguear, l_info,"El timestamp fue '%d'",timestamp);
+		logger(escribir_loguear, l_info,"El timestamp fue '%.0f'",timestamp);
 
 		prot_enviar_insert(nombre_tabla, key, value, timestamp, socket_memoria);
 

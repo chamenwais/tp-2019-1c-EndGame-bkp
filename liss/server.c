@@ -62,7 +62,7 @@ void* crearServerLissandra(){
 	list_add(fd_conocidos.lista,(void*)escuchador);//agrego el fd escuchador, que es el que va a escuchar nuevas solicitudes de conexion
 
 	struct timeval tiempo_espera;
-	tiempo_espera.tv_sec=10;//@Cuanto es un buen tiempo?
+	tiempo_espera.tv_sec=1;//@Cuanto es un buen tiempo?
 	tiempo_espera.tv_usec=0;
 
 	fd_set copia_maestro;

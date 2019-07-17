@@ -28,7 +28,7 @@ t_list* dumpTables;
 pthread_mutex_t mutexListaTablasFS;
 t_list* tablasFS;
 //
-bool estadoDeFinalizacionDelSistema;
+bool estadoDeFinalizacionDelSistema=false;
 
 pthread_t threadServer;//thread para el server de lissandra
 
