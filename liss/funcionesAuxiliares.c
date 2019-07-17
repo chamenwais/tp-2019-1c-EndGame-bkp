@@ -212,6 +212,16 @@ int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
 
 int eliminarDeLaMemtable(char* nombreDeLaTabla){
 	//implementar
+	bool esMiNodo(void* nodo) {
+		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla, nombreDeLaTabla);
+		}
+	log_info(LOGGERFS,"Sacando a la tabla %s de la memtable", nombreDeLaTabla);
+	tp_nodoDeLaMemTable nodoABorrar = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+	list_remove_by_condition(memTable,esMiNodo);
+	vaciarListaDeKeys(nodoABorrar->listaDeDatosDeLaTabla);
+	free(nodoABorrar->nombreDeLaTabla);
+	free(nodoABorrar);
+	log_info(LOGGERFS,"Tabla %s eliminada de la memtable", nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
