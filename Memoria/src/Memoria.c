@@ -310,33 +310,53 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 }
 
 void clasificar_y_atender_cabecera(int socket_cliente, enum MENSAJES tipoDeMensaje, int tamanio){
-	pthread_mutex_lock(&M_JOURNALING);
 	switch(tipoDeMensaje){
-		case CREATE: atender_create(socket_cliente, tamanio);
+		case CREATE:
+			pthread_mutex_lock(&M_JOURNALING);
+			atender_create(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case SELECT:
+			pthread_mutex_lock(&M_JOURNALING);
 			atender_select(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case INSERT:
+			pthread_mutex_lock(&M_JOURNALING);
 			atender_insert(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		case DROP:
+			pthread_mutex_lock(&M_JOURNALING);
 			atender_drop(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
-		case DESCRIBE: atender_describe(socket_cliente, tamanio);
+		case DESCRIBE:
+			pthread_mutex_lock(&M_JOURNALING);
+			atender_describe(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
-		case JOURNAL: atender_journal(socket_cliente);
+		case JOURNAL:
+			atender_journal(socket_cliente);
 			break;
-		case RECIBIR_GOSSIPING: recibir_tabla_de_gossip(socket_cliente, tamanio);
+		case RECIBIR_GOSSIPING:
+			pthread_mutex_lock(&M_JOURNALING);
+			recibir_tabla_de_gossip(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
-		case ENVIAR_Y_RECIBIR_GOSSIPING: recibir_y_enviar_tabla_de_gossip(socket_cliente, tamanio);
+		case ENVIAR_Y_RECIBIR_GOSSIPING:
+			pthread_mutex_lock(&M_JOURNALING);
+			recibir_y_enviar_tabla_de_gossip(socket_cliente, tamanio);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
-		case PEDIDO_KERNEL_GOSSIP: atender_gossiping_kernel(socket_cliente);
+		case PEDIDO_KERNEL_GOSSIP:
+			pthread_mutex_lock(&M_JOURNALING);
+			atender_gossiping_kernel(socket_cliente);
+			pthread_mutex_unlock(&M_JOURNALING);
 			break;
 		default:
 			break;
 	}
-	pthread_mutex_unlock(&M_JOURNALING);
 }
 
 int clasificar_conexion_cerrada(int socket_cerrado, int sock_lfs){
