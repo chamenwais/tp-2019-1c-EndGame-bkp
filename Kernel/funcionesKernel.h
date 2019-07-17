@@ -69,6 +69,7 @@ void iniciar_pedido_gossip();
 void conectarse_a_memorias_gossip(t_list* lista_gossip);
 bool tablaFueBorrada(char* tabla, t_list* lista);
 int abrir_socket_memoria(char*, char*);
+double obtenerTimestamp();
 
 
 
