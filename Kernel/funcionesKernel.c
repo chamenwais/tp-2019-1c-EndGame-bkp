@@ -513,6 +513,14 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 
 }
 
+double obtenerTimestamp(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
+	double a = result;
+	return a;
+}
+
 void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, int socket_memoria){
 
 	if(existeTabla(nombre_tabla)){
@@ -520,7 +528,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 		double timestamp;
 		timestamp=obtenerTimestamp();
-		logger(escribir_loguear, l_info,"El timestamp fue '%d'",timestamp);
+		logger(escribir_loguear, l_info,"El timestamp fue '%.0f'",timestamp);
 
 		prot_enviar_insert(nombre_tabla, key, value, timestamp, socket_memoria);
 

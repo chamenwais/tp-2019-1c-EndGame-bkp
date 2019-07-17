@@ -13,7 +13,7 @@
 int lanzarMonitoreadorDeArchivo(){
 	log_info(LOGGERFS,"Iniciando hilo de monitoreador de archivo");
 	int resultadoDeCrearHilo = pthread_create( &threadMonitoreadorDeArchivos, NULL,
-			funcionMonitorDeArchivos, "Hilo monitor de archivos");
+			funcionMonitorDeArchivos, (void*)NULL);//"Hilo monitor de archivos");
 	if(resultadoDeCrearHilo){
 		log_error(LOGGERFS,"Error al crear el hilo monitor de archivos, return code: %d",
 				resultadoDeCrearHilo);
@@ -68,6 +68,7 @@ int funcionMonitorDeArchivos(){
 	inotify_rm_watch(file_descriptor, watch_descriptor);
 	close(file_descriptor);
 	//@@falta free a directorioDeConfig ??
+	free(directorioDeConfig);
 	log_info(LOGGERFS,"Finalizando funcion funcionMonitorDeArchivos");
 	return EXIT_SUCCESS;
 

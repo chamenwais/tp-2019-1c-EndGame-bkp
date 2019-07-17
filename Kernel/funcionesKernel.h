@@ -69,9 +69,8 @@ void iniciar_pedido_gossip();
 void conectarse_a_memorias_gossip(t_list* lista_gossip);
 bool tablaFueBorrada(char* tabla, t_list* lista);
 int abrir_socket_memoria(char*, char*);
+double obtenerTimestamp();
 
-t_path_archivo_conf *ruta_archivo_conf;
-int watch_descriptor,conf_fd;
-char * path_archivo_configuracion;
+
 
 #endif /* FUNCIONESKERNEL_H_ */
