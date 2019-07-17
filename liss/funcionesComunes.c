@@ -227,8 +227,6 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	if(mutexTabla!=NULL){
 		log_info(LOGGERFS,"[Select]Tabla %s bloqueada(lectura)",nombreDeLaTabla);
 		t_metadataDeLaTabla metadataDeLaTabla=obtenerMetadataDeLaTabla(nombreDeLaTabla);
-		desbloquearSharedTablaFS(mutexTabla);
-		log_info(LOGGERFS,"[Select]Tabla %s desbloqueada(lectura)",nombreDeLaTabla);
 		int numeroDeParticionQueContieneLaKey = key%(metadataDeLaTabla.particiones);
 		log_info(LOGGERFS,"[Select]Numero de particion que contiene a la key es %d, ya que las particiones son %d, y la key vale %d",
 				numeroDeParticionQueContieneLaKey, metadataDeLaTabla.particiones, key);
@@ -253,7 +251,8 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		resultado=malloc(sizeof(t_nodoDeLaTabla));
 		resultado->resultado=TABLA_NO_EXISTIA;
 	}
-
+	desbloquearSharedTablaFS(mutexTabla);
+	log_info(LOGGERFS,"[Select]Tabla %s desbloqueada(lectura)",nombreDeLaTabla);
 	return resultado;
 }
 
