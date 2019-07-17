@@ -216,12 +216,16 @@ int eliminarDeLaMemtable(char* nombreDeLaTabla){
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla, nombreDeLaTabla);
 		}
-	log_info(LOGGERFS,"Sacando a la tabla %s de la memtable", nombreDeLaTabla);
-	tp_nodoDeLaMemTable nodoABorrar = obtenerNodoDeLaMemtable(nombreDeLaTabla);
-	list_remove_by_condition(memTable,esMiNodo);
-	vaciarListaDeKeys(nodoABorrar->listaDeDatosDeLaTabla);
-	free(nodoABorrar->nombreDeLaTabla);
-	free(nodoABorrar);
+	if((memTable!=NULL)&&(list_size(memTable)>0)){
+		log_info(LOGGERFS,"Sacando a la tabla %s de la memtable", nombreDeLaTabla);
+		tp_nodoDeLaMemTable nodoABorrar = obtenerNodoDeLaMemtable(nombreDeLaTabla);
+		list_remove_by_condition(memTable,esMiNodo);
+		vaciarListaDeKeys(nodoABorrar->listaDeDatosDeLaTabla);
+		free(nodoABorrar->nombreDeLaTabla);
+		free(nodoABorrar);
+	}else{
+		log_info(LOGGERFS,"La memtable estaba vacia");
+		}
 	log_info(LOGGERFS,"Tabla %s eliminada de la memtable", nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
@@ -284,6 +288,19 @@ int eliminarArchivoDeMetada(char* nombreDeLaTabla){
 }
 
 int eliminarTemporales(char* nombreDeLaTabla){
+	char* extension;
+	extension = string_new();
+	string_append(&extension, ".tmp");
+	eliminarTemporalesDelTipo(nombreDeLaTabla,extension);
+	free(extension);
+	extension = string_new();
+	string_append(&extension, ".tmpc");
+	eliminarTemporalesDelTipo(nombreDeLaTabla,extension);
+	free(extension);
+	return EXIT_SUCCESS;
+}
+
+int eliminarTemporalesDelTipo(char* nombreDeLaTabla, char* extension){
 	char* aux=string_new();
 	string_append(&aux, configuracionDelFS.puntoDeMontaje);
 	string_append(&aux, "/Tables/");
@@ -302,7 +319,7 @@ int eliminarTemporales(char* nombreDeLaTabla){
 		char * auxitoa=string_itoa(i);
 		string_append(&pathDelTemp, auxitoa);
 		free(auxitoa);
-		string_append(&pathDelTemp, ".tmp");
+		string_append(&pathDelTemp, extension);
 		log_info(LOGGERFS,"Viendo si existe el archivo %s", pathDelTemp);
 		encontrado=existeElArchivo(pathDelTemp);
 		if(encontrado==true){

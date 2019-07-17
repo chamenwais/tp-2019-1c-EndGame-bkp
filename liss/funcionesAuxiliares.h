@@ -39,6 +39,7 @@ int setearEstadoDeFinalizacionDelSistema(bool estadoDeFinalizacion);
 bool obtenerEstadoDeFinalizacionDelSistema();
 int eliminarArchivoDeMetada(char* nombreDeLaTabla);
 int eliminarTemporales(char* nombreDeLaTabla);
+int eliminarTemporalesDelTipo(char* nombreDeLaTabla, char* extension);
 int liberarBloquesYParticiones(char* nombreDeLaTabla);
 t_metadataDeLaTabla obtenerMetadataDeLaTabla(char* nombreDeLaTabla);
 bool verSiExisteListaConDatosADumpear(char* nombreDeLaTabla);
