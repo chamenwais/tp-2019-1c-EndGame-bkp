@@ -94,11 +94,3 @@ char* conocer_ip_propia() {
 	strcpy(ip_address, inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
 	return ip_address;
 }
-
-double obtenerTimestamp(){
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	unsigned long long result = (((unsigned long long)tv.tv_sec)*1000+((unsigned long long)tv.tv_usec)/1000);
-	double a = result;
-	return a;
-}

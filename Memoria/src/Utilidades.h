@@ -62,6 +62,7 @@ t_memo_del_pool* crear_memo_del_pool(char*, char*);
 void agregar_memorias_no_existentes_en_mi_tabla_gossip(t_list *);
 void obtener_y_combinar_tablas_gossip(int, int);
 void recibir_y_enviar_tabla_de_gossip(int, int);
+double obtenerTimestamp();
 
 /*Globales inotify para liberar recursos*/
 int watch_descriptor,conf_fd;

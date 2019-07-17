@@ -25,6 +25,5 @@ char * obtener_value_a_insertar(char *);
 t_list * obtener_lista_lineas_desde_archivo(char *);
 t_list * obtener_lista_linea(char * linea_original);
 char* conocer_ip_propia();
-double obtenerTimestamp();
 
 #endif /* LQVG_UTILS_H_ */
