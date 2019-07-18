@@ -281,7 +281,7 @@ void destruirListas(){
 void terminar_programa(int codigo_finalizacion){
 	logger(escribir_loguear, l_warning,"Se va a finalizar el kernel.");
 	log_destroy(LOG_KERNEL);
-	config_destroy(k_config);
+	//config_destroy(k_config);
 
 	pthread_mutex_lock(&M_WATCH_DESCRIPTOR);
 	inotify_rm_watch(conf_fd, watch_descriptor);

@@ -781,6 +781,8 @@ void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int 
 		case JOURNAL:
 			operacion_journal(socket_memoria);
 			break;
+		default:
+			break;
 	}
 }
 
@@ -945,7 +947,7 @@ void* funcionHiloRequest(void* pcb){
 }
 
 char* obtenerTabla(t_operacion resultado_del_parseado){
-	char* tabla = string_new();
+	char* tabla;
 	switch(resultado_del_parseado.tipo_de_operacion){
 		case _SELECT:
 			tabla = string_duplicate(resultado_del_parseado.parametros.select.nombre_tabla);
@@ -965,6 +967,8 @@ char* obtenerTabla(t_operacion resultado_del_parseado){
 			break;
 		case _DROP:
 			tabla = string_duplicate(resultado_del_parseado.parametros.drop.nombre_tabla);
+			break;
+		default:
 			break;
 	}
 	return tabla;
@@ -1001,10 +1005,8 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	tp_memo_del_pool_kernel memoria = calloc(1, sizeof(t_memo_del_pool_kernel));
-	char* criterio = string_new();
+	char* criterio;
 	tp_entrada_tabla_creada entrada;
-
-	//memoria = list_get(listaSC, 0);
 
 	char* tabla = obtenerTabla(operacion);
 
