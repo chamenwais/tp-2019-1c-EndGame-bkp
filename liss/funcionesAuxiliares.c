@@ -582,15 +582,13 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	log_info(LOGGERFS,"Voy a escanear todo el FS a ver donde existe la key %d para la tabla %s",
 			key, nombreDeLaTabla);
 
-	//pthread_mutex_lock(&mutexDeDump);
-
-	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
+	/*pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
 	if(mutexTabla!=NULL)
 		log_info(LOGGERFS,"Tabla %s bloqueada", nombreDeLaTabla);
 	else{
 		log_error(LOGGERFS,"Tabla %s no bloqueada porque no existe", nombreDeLaTabla);
 		return listadoDeKeys;
-	}
+	}*/
 	t_list* keysTemporales;
 
 	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
@@ -611,9 +609,7 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
-	//pthread_mutex_unlock(&mutexDeDump);
-
-	desbloquearSharedTablaFS(mutexTabla);
+	//desbloquearSharedTablaFS(mutexTabla);
 	log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
 
 	int sizeDeLaLista = list_size(listadoDeKeys);
@@ -748,7 +744,7 @@ t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 			if(key==atoi(lineaParseada[1])){
 				nuevoNodo=malloc(sizeof(t_nodoDeLaTabla));
 				nuevoNodo->key=atoi(lineaParseada[1]);
-				nuevoNodo->timeStamp=atoi(lineaParseada[0]);
+				nuevoNodo->timeStamp=atof(lineaParseada[0]);
 				nuevoNodo->value=malloc(strlen(lineaParseada[2])+1);
 				strcpy(nuevoNodo->value,lineaParseada[2]);
 				list_add(listaResultante,nuevoNodo);
@@ -871,10 +867,11 @@ t_list* escanearPorLaKeyDeseadaParticionCorrespondiente(uint16_t key,
 
 tp_nodoDeLaTabla obtenerKeyConTimeStampMasGrande(t_list* keysObtenidas){
 	tp_nodoDeLaTabla keyObtenida = NULL;
-	double tiempo;
+	double tiempo=0.0;
 
 	bool esLaMayor(void* nodo){
 		bool sonTodosMenores(void* nodo2){
+			log_info(LOGGERFS,"Comparando time %.0f con el %.0f",tiempo,((tp_nodoDeLaTabla)nodo2)->timeStamp);
 			return (tiempo>=((tp_nodoDeLaTabla)nodo2)->timeStamp);
 			}
 		tiempo = ((tp_nodoDeLaTabla)nodo)->timeStamp;
