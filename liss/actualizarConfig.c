@@ -31,8 +31,9 @@ int funcionMonitorDeArchivos(){
 
 	int file_descriptor;
 	char* directorioDeConfig = string_new();
-	string_append(&directorioDeConfig, configuracionDelFS.puntoDeMontaje);
-	string_append(&directorioDeConfig, "/Configuracion/");
+	string_append(&directorioDeConfig, pathDeMontajeDelPrograma);
+	string_append(&directorioDeConfig, "Configuracion");
+
 	log_info(LOGGERFS,"El directorio sobre el que va a trabajar el inotify es %s", directorioDeConfig);
 
 	file_descriptor = inotify_init();

@@ -15,7 +15,7 @@ int main(int argc,char** argv) {
 	if(inicializarVariablesGlobales()==EXIT_SUCCESS){
 	inicializarLogDelFS();
 	obtenerPathDeMontajeDelPrograma(argc,argv);
-	configurar_signals();
+	//configurar_signals();
 	if(levantarConfiguracionInicialDelFS()==EXIT_SUCCESS){
 	if(levantarMetadataDelFS()==EXIT_SUCCESS){
 	if(levantarBitMap()==EXIT_SUCCESS){

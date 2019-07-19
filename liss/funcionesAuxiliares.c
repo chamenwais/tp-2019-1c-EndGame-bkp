@@ -216,17 +216,18 @@ int eliminarDeLaMemtable(char* nombreDeLaTabla){
 	bool esMiNodo(void* nodo) {
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla, nombreDeLaTabla);
 		}
+	tp_nodoDeLaMemTable nodoABorrar = NULL;
 	if((memTable!=NULL)&&(list_size(memTable)>0)){
 		log_info(LOGGERFS,"Sacando a la tabla %s de la memtable", nombreDeLaTabla);
 		tp_nodoDeLaMemTable nodoABorrar = obtenerNodoDeLaMemtable(nombreDeLaTabla);
 		list_remove_by_condition(memTable,esMiNodo);
 		vaciarListaDeKeys(nodoABorrar->listaDeDatosDeLaTabla);
-		free(nodoABorrar->nombreDeLaTabla);
 		free(nodoABorrar);
 	}else{
 		log_info(LOGGERFS,"La memtable estaba vacia");
 		}
 	log_info(LOGGERFS,"Tabla %s eliminada de la memtable", nombreDeLaTabla);
+	if(nodoABorrar!=NULL) free(nodoABorrar->nombreDeLaTabla);
 	return EXIT_SUCCESS;
 }
 
