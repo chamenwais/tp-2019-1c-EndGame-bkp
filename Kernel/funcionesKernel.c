@@ -598,17 +598,17 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla
 		tp_entrada_tabla_creada entrada_tabla = buscarTablaEnMetadata(nombre_tabla);
-		if(entrada_tabla->criterio == "SC"){
+		if(string_equals_ignore_case(entrada_tabla->criterio,"SC")){
 			pthread_mutex_lock(&mutex_metricsSC);
 			list_add(listaMetricsSC, nodo_metrica);
 			pthread_mutex_unlock(&mutex_metricsSC);
 
-		}else if(entrada_tabla->criterio == "SHC"){
+		}else if(string_equals_ignore_case(entrada_tabla->criterio,"SHC")){
 			pthread_mutex_lock(&mutex_metricsHC);
 			list_add(listaMetricsHC, nodo_metrica);
 			pthread_mutex_unlock(&mutex_metricsHC);
 
-		}else if(entrada_tabla->criterio == "EC"){
+		}else if(string_equals_ignore_case(entrada_tabla->criterio,"EC")){
 			pthread_mutex_lock(&mutex_metricsEC);
 			list_add(listaMetricsEC, nodo_metrica);
 			pthread_mutex_unlock(&mutex_metricsEC);
@@ -673,17 +673,17 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla
 		tp_entrada_tabla_creada entrada_tabla = buscarTablaEnMetadata(nombre_tabla);
-		if(entrada_tabla->criterio == "SC"){
+		if(string_equals_ignore_case(entrada_tabla->criterio,"SC")){
 			pthread_mutex_lock(&mutex_metricsSC);
 			list_add(listaMetricsSC, nodo_metrica);
 			pthread_mutex_unlock(&mutex_metricsSC);
 
-		}else if(entrada_tabla->criterio == "SHC"){
+		}else if(string_equals_ignore_case(entrada_tabla->criterio,"SHC")){
 			pthread_mutex_lock(&mutex_metricsHC);
 			list_add(listaMetricsHC, nodo_metrica);
 			pthread_mutex_unlock(&mutex_metricsHC);
 
-		}else if(entrada_tabla->criterio == "EC"){
+		}else if(string_equals_ignore_case(entrada_tabla->criterio,"EC")){
 			pthread_mutex_lock(&mutex_metricsEC);
 			list_add(listaMetricsEC, nodo_metrica);
 			pthread_mutex_unlock(&mutex_metricsEC);
@@ -1034,6 +1034,11 @@ return EXIT_SUCCESS;
 
 }
 
+void terminar_request(char* ret2) {
+	logger(escribir_loguear, l_error, "Se cierra el hilo del LQL");
+	pthread_exit(ret2);
+}
+
 void* funcionHiloRequest(void* pcb){
 	char *ret="Cerrando hilo Request";
 	char *ret2="No hay memoria asignada al criterio, se cierra el hilo";
@@ -1053,11 +1058,8 @@ void* funcionHiloRequest(void* pcb){
 
 				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(rdo_del_parseado);
 				if(memoria == NULL){
-					logger(escribir_loguear, l_error, "Se cierra el hilo del LQL");
-					pthread_exit(ret2);
+					terminar_request(ret2);
 				}
-
-				//TODO controlar estado de la memoria. FULL: forzar journal. JOURNALING: esperar.
 
 				usleep(retardo * 1000);
 
@@ -1065,14 +1067,13 @@ void* funcionHiloRequest(void* pcb){
 
 				if(sockMem > 0){
 					int res = realizar_operacion(rdo_del_parseado, pcb, sockMem);
-					if(res == -1){
-						pthread_exit(ret2);
-					}
 					close(sockMem);
 					logger(escribir_loguear, l_info, "Se cierra el socket %i con la memoria %i", sockMem, memoria->numero_memoria);
+					if(res == -1){
+						terminar_request(ret2);
+					}
 
 				}
-
 
 			}
 		}
@@ -1166,8 +1167,8 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	tp_memo_del_pool_kernel memoria;
-	char* criterio;
-	tp_entrada_tabla_creada entrada;
+	char* criterio=NULL;
+	tp_entrada_tabla_creada entrada=NULL;
 
 	char* tabla = obtenerTabla(operacion);
 
@@ -1194,7 +1195,9 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	//buscar las memorias que tengan ese criterio asignado y elegir
 	if((operacion.tipo_de_operacion == _CREATE) || (entrada != NULL)){
-		criterio = string_duplicate(entrada->criterio);
+		if(criterio==NULL && entrada != NULL){
+			criterio = string_duplicate(entrada->criterio);
+		}
 		if((string_equals_ignore_case(criterio, "SC")) && (!list_is_empty(listaSC))) {
 				pthread_mutex_lock(&mutex_SC);
 				memoria = list_get(listaSC, 0);
