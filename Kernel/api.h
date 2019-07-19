@@ -34,6 +34,8 @@ bool existeMemoria(int numero);
 tp_lql_pcb crear_PCB_sin_file(char* linea);
 void crear_proceso(char* linea);
 void mostrarMemoryLoad();
+void mostrarReads();
+void mostrarWrites();
 
 
 #endif /* API_H_ */

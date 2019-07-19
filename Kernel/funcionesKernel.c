@@ -364,6 +364,9 @@ int inicializarListas(){
 	listaEC = list_create();
 	listaHC = list_create();
 	listaSC = list_create();
+	listaMetricsEC = list_create();
+	listaMetricsHC = list_create();
+	listaMetricsSC = list_create();
 	return EXIT_SUCCESS;
 }
 
@@ -390,6 +393,9 @@ int inicializarSemaforos(){
 	pthread_mutex_init(&M_CONF_FD, NULL);
 	pthread_mutex_init(&M_WATCH_DESCRIPTOR, NULL);
 	pthread_mutex_init(&M_PATH_ARCHIVO_CONFIGURACION, NULL);
+	pthread_mutex_init(&mutex_metricsSC, NULL);
+	pthread_mutex_init(&mutex_metricsEC, NULL);
+	pthread_mutex_init(&mutex_metricsHC, NULL);
 	return EXIT_SUCCESS;
 }
 
@@ -547,10 +553,15 @@ void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
 
 void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria){
 
-	//crear estructura
-	//calculo el timestamp inicial
+
 
 	if(existeTabla(nombre_tabla)){
+
+		//crear estructura
+		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
+		nodo_metrica->operacion = m_SELECT;
+		//calculo el timestamp inicial
+		int t_inicial = time(NULL);
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion select");
 		prot_enviar_select(nombre_tabla, key, socket_memoria);
@@ -582,8 +593,26 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		}
 
 		//timestamp final
+		int t_fin = time(NULL);
 		//calculo diferencia y actualizo estructura
+		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla
+		tp_entrada_tabla_creada entrada_tabla = buscarTablaEnMetadata(nombre_tabla);
+		if(entrada_tabla->criterio == "SC"){
+			pthread_mutex_lock(&mutex_metricsSC);
+			list_add(listaMetricsSC, nodo_metrica);
+			pthread_mutex_unlock(&mutex_metricsSC);
+
+		}else if(entrada_tabla->criterio == "SHC"){
+			pthread_mutex_lock(&mutex_metricsHC);
+			list_add(listaMetricsHC, nodo_metrica);
+			pthread_mutex_unlock(&mutex_metricsHC);
+
+		}else if(entrada_tabla->criterio == "EC"){
+			pthread_mutex_lock(&mutex_metricsEC);
+			list_add(listaMetricsEC, nodo_metrica);
+			pthread_mutex_unlock(&mutex_metricsEC);
+		}
 
 
 
@@ -611,6 +640,13 @@ double obtenerTimestamp(){
 void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, int socket_memoria){
 
 	if(existeTabla(nombre_tabla)){
+
+		//crear estructura
+		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
+		nodo_metrica->operacion = m_SELECT;
+		//calculo el timestamp inicial
+		int t_inicial = time(NULL);
+
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
 
 		double timestamp;
@@ -630,6 +666,30 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 			logger(escribir_loguear, l_info, "Luego del JOURNAL se vuelve a enviar el INSERT");
 			operacion_insert(nombre_tabla, key, value, pcb, socket_memoria);
 		}
+
+		//timestamp final
+		int t_fin = time(NULL);
+		//calculo diferencia y actualizo estructura
+		nodo_metrica->tiempo = (t_fin - t_inicial);
+		//meter estructura en tabla
+		tp_entrada_tabla_creada entrada_tabla = buscarTablaEnMetadata(nombre_tabla);
+		if(entrada_tabla->criterio == "SC"){
+			pthread_mutex_lock(&mutex_metricsSC);
+			list_add(listaMetricsSC, nodo_metrica);
+			pthread_mutex_unlock(&mutex_metricsSC);
+
+		}else if(entrada_tabla->criterio == "SHC"){
+			pthread_mutex_lock(&mutex_metricsHC);
+			list_add(listaMetricsHC, nodo_metrica);
+			pthread_mutex_unlock(&mutex_metricsHC);
+
+		}else if(entrada_tabla->criterio == "EC"){
+			pthread_mutex_lock(&mutex_metricsEC);
+			list_add(listaMetricsEC, nodo_metrica);
+			pthread_mutex_unlock(&mutex_metricsEC);
+		}
+
+
 	}else{//terminar script
 		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
 		pthread_mutex_lock(&mutex_Exec);
@@ -644,7 +704,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 }
 
-void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
+int operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria){
 
 	if(!existeTabla(nombre_tabla)){
 		logger(escribir_loguear, l_info, "Se le solicita a la memoria crear la tabla: %s", nombre_tabla);
@@ -667,6 +727,7 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 		}
 		if(rta_creacion == TABLA_YA_EXISTIA){
 			logger(escribir_loguear, l_info, "Ya existe la tabla que queres crear");
+			return -1;
 		}
 
 	}else{//terminar script
@@ -679,8 +740,10 @@ void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_parti
 		list_add(listaExit, pcb);
 		pthread_mutex_unlock(&mutex_Exit);
 		logger(escribir_loguear, l_info, "El pcb %s fue terminado\n", pcb->path);
+		return -1;
 
 	}
+	return 0;
 }
 
 int obtener_pos_tabla(char* tabla){
@@ -846,7 +909,10 @@ void operacion_journal(int socket){
 }
 
 
-void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int socket_memoria){
+int realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int socket_memoria){
+
+	int res = 0;
+
 	switch(resultado_del_parseado.tipo_de_operacion){
 		case SELECT:
 			operacion_select(resultado_del_parseado.parametros.select.nombre_tabla, resultado_del_parseado.parametros.select.key, pcb, socket_memoria);
@@ -856,7 +922,7 @@ void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int 
 					resultado_del_parseado.parametros.insert.value, pcb, socket_memoria);
 			break;
 		case CREATE:
-			operacion_create(resultado_del_parseado.parametros.create.nombre_tabla, resultado_del_parseado.parametros.create.tipo_consistencia,
+			res = operacion_create(resultado_del_parseado.parametros.create.nombre_tabla, resultado_del_parseado.parametros.create.tipo_consistencia,
 					resultado_del_parseado.parametros.create.num_particiones, resultado_del_parseado.parametros.create.compaction_time, pcb, socket_memoria);
 			break;
 		case DESCRIBE:
@@ -871,6 +937,8 @@ void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int 
 		default:
 			break;
 	}
+
+	return res;
 }
 
 int lanzarPlanificador(){
@@ -996,7 +1064,10 @@ void* funcionHiloRequest(void* pcb){
 				int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto);
 
 				if(sockMem > 0){
-					realizar_operacion(rdo_del_parseado, pcb, sockMem);
+					int res = realizar_operacion(rdo_del_parseado, pcb, sockMem);
+					if(res == -1){
+						pthread_exit(ret2);
+					}
 					close(sockMem);
 					logger(escribir_loguear, l_info, "Se cierra el socket %i con la memoria %i", sockMem, memoria->numero_memoria);
 
@@ -1119,11 +1190,11 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 		entrada = buscarTablaEnMetadata(tabla);
 
 
-		criterio = string_duplicate(entrada->criterio);
 	}
 	logger(escribir_loguear, l_info, "Eligiendo memoria para la tabla %s\n", tabla);
 	//buscar las memorias que tengan ese criterio asignado y elegir
 	if((operacion.tipo_de_operacion == _CREATE) || (entrada != NULL)){
+		criterio = string_duplicate(entrada->criterio);
 		if((string_equals_ignore_case(criterio, "SC")) && (!list_is_empty(listaSC))) {
 				pthread_mutex_lock(&mutex_SC);
 				memoria = list_get(listaSC, 0);
@@ -1181,8 +1252,11 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio EC", memoria->numero_memoria);
 				return memoria;
 		}}
-
-	logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
+	if(entrada != NULL){
+		logger(escribir_loguear, l_error, "No hay ninguna memoria asignada al criterio %s\n", criterio);
+	}else{
+		logger(escribir_loguear, l_error, "La tabla no existe en metadata");
+	}
 	memoria = NULL;
 	//free(criterio);
 	//free(entrada);
@@ -1222,6 +1296,37 @@ tp_entrada_tabla_creada buscarTablaEnMetadata(char* tabla){
 	entrada = list_find(listaTablasCreadas, coincideNombre2);
 	return entrada;
 }
+
+void iniciar_metrics(){
+	pthread_t hiloMetrics;
+		int resultado_de_crear_el_hilo = pthread_create (&hiloMetrics, NULL, limpiarMetrics, NULL);
+		if(resultado_de_crear_el_hilo!=0){
+			logger(escribir_loguear,l_error
+					,"Error al crear el hilo de metrics, el kernel se suicida");
+			terminar_programa(EXIT_FAILURE);
+		}
+		pthread_detach(hiloMetrics);
+}
+
+void* limpiarMetrics(){
+	while(1){
+		sleep(30);
+		void limpiaListas(void* nodo){
+			free((tp_metrica)nodo);
+		}
+		pthread_mutex_lock(&mutex_metricsSC);
+		list_clean_and_destroy_elements(listaMetricsSC, limpiaListas);
+		pthread_mutex_unlock(&mutex_metricsSC);
+		pthread_mutex_lock(&mutex_metricsHC);
+		list_clean_and_destroy_elements(listaMetricsHC, limpiaListas);
+		pthread_mutex_unlock(&mutex_metricsHC);
+		pthread_mutex_lock(&mutex_metricsEC);
+		list_clean_and_destroy_elements(listaMetricsEC, limpiaListas);
+		pthread_mutex_unlock(&mutex_metricsEC);
+
+	}
+}
+
 
 void iniciar_proceso_describe_all(){
 	pthread_t hiloDescribeAll;
