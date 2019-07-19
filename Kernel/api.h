@@ -24,7 +24,6 @@ int createConsola(char* linea);
 int describeConsola(char* linea);
 int describeConsolaAll(char* linea);
 int dropConsola(char* linea);
-int reloadConfig();
 int man();
 void journalConsola();
 int runConsola(char* path);

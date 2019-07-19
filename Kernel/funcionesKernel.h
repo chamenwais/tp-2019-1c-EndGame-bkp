@@ -16,6 +16,7 @@
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
 #define BUF_LEN     ( 1024 * EVENT_SIZE )
+#define NO_COMMAND "NO_COMMAND"
 
 
 void inicializarLogKernel();
@@ -70,7 +71,7 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip);
 bool tablaFueBorrada(char* tabla, t_list* lista);
 int abrir_socket_memoria(char*, char*);
 double obtenerTimestamp();
-
+int reloadConfig();
 
 
 #endif /* FUNCIONESKERNEL_H_ */
