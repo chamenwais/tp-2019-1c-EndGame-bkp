@@ -8,7 +8,7 @@
 #include "funcionesKernel.h"
 
 void inicializarLogKernel(){
-	LOG_KERNEL = log_create("Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
+	LOG_KERNEL = log_create("../../Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
 	logger(escribir_loguear, l_debug,"Log del Kernel iniciado");
 	return;
 }
@@ -177,7 +177,7 @@ int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de co
 	int nuevoQuantum;
 	nuevoQuantum = config_get_int_value(configuracion,"QUANTUM");
 	actualizarQuantum(nuevoQuantum);
-	log_info(LOG_KERNEL,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
+	logger(escribir_loguear, l_trace,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
 			configKernel.quantum);
 	quantum = nuevoQuantum;
 
