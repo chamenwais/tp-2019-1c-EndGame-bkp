@@ -140,10 +140,10 @@ int addConsola(int memnum, char* criterio){
 			list_add(listaHC, memoria);
 			pthread_mutex_unlock(&mutex_HC);
 			printf("Se agrego la memoria %i al criterio HC\n", memnum);
-			printf("Se va a realizar un journal en todas las memorias del criterio HC");
+			printf("Se va a realizar un journal en todas las memorias del criterio HC\n");
 			journalConsola();
 		}else{
-			printf("Pifiaste el criterio amigue");
+			printf("Pifiaste el criterio amigue\n");
 		}
 	}else{
 		logger(escribir_loguear, l_error, "La memoria %i no esta conectada", memnum);
@@ -195,87 +195,6 @@ int man(){
 	printf("10) ADD MEMORY [NUMERO] TO [CRITERIO]\n");
 	return EXIT_SUCCESS;
 }
-
-int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de config
-	//Actualiza los datos Kernel con las modificaciones que se le hayan hecho a los achivos de configuracion
-	/* Solamente se pueden actualizar los valores:
-	 * quantum
-	 * retardo del ciclo
-	 * refresh metadata
-	 * tiempo de gossip
-	 * en tiempo de ejecucion*/
-
-		t_config* configuracion = config_create(path_archivo_configuracion);
-
-		if(configuracion!=NULL){
-			logger(escribir_loguear, l_info,"El archivo de configuracion existe");
-		}else{
-			log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",path_archivo_configuracion);
-			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
-			return EXIT_FAILURE;
-			}
-		logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
-
-	//Recupero el quantum
-	if(!config_has_property(configuracion,"QUANTUM")) {
-		log_error(LOG_KERNEL,"No esta el QUANTUM en el archivo de configuracion");
-		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
-		return EXIT_FAILURE;
-		}
-	int nuevoQuantum;
-	nuevoQuantum = config_get_int_value(configuracion,"QUANTUM");
-	actualizarQuantum(nuevoQuantum);
-	log_info(LOG_KERNEL,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
-			configKernel.quantum);
-	quantum = nuevoQuantum;
-
-	//Recupero el tiempo refresh metadata
-	if(!config_has_property(configuracion,"REFRESH_METADATA")) {
-		log_error(LOG_KERNEL,"No esta el REFRESH_METADATA en el archivo de configuracion");
-		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
-		return EXIT_FAILURE;
-		}
-	int refresh;
-	refresh = config_get_int_value(configuracion,"REFRESH_METADATA");
-	actualizarRefresh(refresh);
-	log_info(LOG_KERNEL,"Refresh metadata del archivo de configuracion del KERNEL recuperado: %d",
-			configKernel.refreshMetadata);
-
-	//Recupero el tiempo de retardo del ciclo
-	if(!config_has_property(configuracion,"RETARDO_CICLO")) {
-		log_error(LOG_KERNEL,"No esta el RETARDO_CICLO en el archivo de configuracion");
-		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
-		return EXIT_FAILURE;
-		}
-	int retardoNuevo;
-	retardoNuevo = config_get_int_value(configuracion,"RETARDO_CICLO");
-	actualizarRetardo(retardoNuevo);
-	log_info(LOG_KERNEL,"Retardo ciclo del archivo de configuracion del KERNEL recuperado: %d",
-			configKernel.retardoCiclo);
-	retardo = retardoNuevo;
-
-	//Recupero el tiempo de gossip
-	if(!config_has_property(configuracion,"GOSSIP_TIME")) {
-		log_error(LOG_KERNEL,"No esta el GOSSIP_TIME en el archivo de configuracion");
-		config_destroy(configuracion);
-		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
-		return EXIT_FAILURE;
-		}
-	int gossip;
-	gossip = config_get_int_value(configuracion, "GOSSIP_TIME");
-	actualizarGossip(gossip);
-	log_info(LOG_KERNEL,"Gossip time del archivo de configuracion del KERNEL recuperado: %d",
-				configKernel.gossip_time);
-
-	config_destroy(configuracion);
-	log_info(LOG_KERNEL,"Configuracion del KERNEL recuperada exitosamente");
-
-	return EXIT_SUCCESS;
-}
-
 
 void *funcionHiloConsola(void *arg){
 		char * linea;

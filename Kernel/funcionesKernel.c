@@ -7,8 +7,6 @@
 
 #include "funcionesKernel.h"
 
-
-
 void inicializarLogKernel(){
 	LOG_KERNEL = log_create("Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
 	logger(escribir_loguear, l_debug,"Log del Kernel iniciado");
@@ -145,6 +143,86 @@ void *escuchar_cambios_conf(void * estructura_path){
 			}
 		}
 	}
+
+	return EXIT_SUCCESS;
+}
+
+int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de config
+	//Actualiza los datos Kernel con las modificaciones que se le hayan hecho a los achivos de configuracion
+	/* Solamente se pueden actualizar los valores:
+	 * quantum
+	 * retardo del ciclo
+	 * refresh metadata
+	 * tiempo de gossip
+	 * en tiempo de ejecucion*/
+
+		t_config* configuracion = config_create(path_archivo_configuracion);
+
+		if(configuracion!=NULL){
+			logger(escribir_loguear, l_info,"El archivo de configuracion existe");
+		}else{
+			log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",path_archivo_configuracion);
+			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+			return EXIT_FAILURE;
+			}
+		logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
+
+	//Recupero el quantum
+	if(!config_has_property(configuracion,"QUANTUM")) {
+		log_error(LOG_KERNEL,"No esta el QUANTUM en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		return EXIT_FAILURE;
+		}
+	int nuevoQuantum;
+	nuevoQuantum = config_get_int_value(configuracion,"QUANTUM");
+	actualizarQuantum(nuevoQuantum);
+	log_info(LOG_KERNEL,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
+			configKernel.quantum);
+	quantum = nuevoQuantum;
+
+	//Recupero el tiempo refresh metadata
+	if(!config_has_property(configuracion,"REFRESH_METADATA")) {
+		log_error(LOG_KERNEL,"No esta el REFRESH_METADATA en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		return EXIT_FAILURE;
+		}
+	int refresh;
+	refresh = config_get_int_value(configuracion,"REFRESH_METADATA");
+	actualizarRefresh(refresh);
+	log_info(LOG_KERNEL,"Refresh metadata del archivo de configuracion del KERNEL recuperado: %d",
+			configKernel.refreshMetadata);
+
+	//Recupero el tiempo de retardo del ciclo
+	if(!config_has_property(configuracion,"RETARDO_CICLO")) {
+		log_error(LOG_KERNEL,"No esta el RETARDO_CICLO en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		return EXIT_FAILURE;
+		}
+	int retardoNuevo;
+	retardoNuevo = config_get_int_value(configuracion,"RETARDO_CICLO");
+	actualizarRetardo(retardoNuevo);
+	log_info(LOG_KERNEL,"Retardo ciclo del archivo de configuracion del KERNEL recuperado: %d",
+			configKernel.retardoCiclo);
+	retardo = retardoNuevo;
+
+	//Recupero el tiempo de gossip
+	if(!config_has_property(configuracion,"GOSSIP_TIME")) {
+		log_error(LOG_KERNEL,"No esta el GOSSIP_TIME en el archivo de configuracion");
+		config_destroy(configuracion);
+		log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+		return EXIT_FAILURE;
+		}
+	int gossip;
+	gossip = config_get_int_value(configuracion, "GOSSIP_TIME");
+	actualizarGossip(gossip);
+	log_info(LOG_KERNEL,"Gossip time del archivo de configuracion del KERNEL recuperado: %d",
+				configKernel.gossip_time);
+
+	config_destroy(configuracion);
+	log_info(LOG_KERNEL,"Configuracion del KERNEL recuperada exitosamente");
 
 	return EXIT_SUCCESS;
 }
@@ -978,6 +1056,9 @@ char* obtenerTabla(t_operacion resultado_del_parseado){
 			tabla = string_duplicate(resultado_del_parseado.parametros.drop.nombre_tabla);
 			break;
 		default:
+			tabla=string_new();
+			string_append(&tabla, NO_COMMAND);
+			logger(escribir_loguear, l_error, "No se pudo interpretar el comando");
 			break;
 	}
 	return tabla;
@@ -1024,6 +1105,10 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 		memoria = list_get(listaMemConectadas, 0);
 		return memoria;
 
+	}
+	if(string_equals_ignore_case(tabla,NO_COMMAND)){
+		free(tabla);
+		return NULL;
 	}
 	if(operacion.tipo_de_operacion == _CREATE){
 		criterio = string_duplicate(operacion.parametros.create.tipo_consistencia);
@@ -1236,7 +1321,7 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 	}
 
 		pthread_mutex_lock(&mutex_MemConectadas);
-		tp_memo_del_pool_kernel memoria_a_borrar = list_remove_by_condition(listaMemConectadas, verificar_si_memoria_no_existe_en_gossip());
+		tp_memo_del_pool_kernel memoria_a_borrar = list_remove_by_condition(listaMemConectadas, verificar_si_memoria_no_existe_en_gossip);
 		pthread_mutex_unlock(&mutex_MemConectadas);
 
 	bool es_memoria_a_borrar(void* memoria){
