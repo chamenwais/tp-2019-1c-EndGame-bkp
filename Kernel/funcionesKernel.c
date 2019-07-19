@@ -1070,6 +1070,7 @@ void* funcionHiloRequest(void* pcb){
 					close(sockMem);
 					logger(escribir_loguear, l_info, "Se cierra el socket %i con la memoria %i", sockMem, memoria->numero_memoria);
 					if(res == -1){
+						sem_post(&READY);
 						terminar_request(ret2);
 					}
 
