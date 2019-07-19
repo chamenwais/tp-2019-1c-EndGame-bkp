@@ -1013,14 +1013,19 @@ int insertarDatosEnElNuevoBloque(char* cadenaAInsertar,int bloqueActual){
 }
 
 t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista de int 1,2, ..., o NULL si no quedan bloques(si ya tomo algun bloque lo libera)
+	//@@@@@@@@@@ALGO ACA ADENTRO NO ESTA CALCULANDO BIEN LA SEPARACION DE BLOQUES POR metadataDelFs.blockSize!!!!!!!!
 	int bloqueActual;
 	//char* bloques=string_new();
 	//string_append(&bloques, "[");
 
-	int cantBloques = (int)ceil((double)strlen(cadenaGigante)/(double)metadataDelFS.blockSize);
+	if(strlen(cadenaGigante)==0)
+		log_info(LOGGERFS,"Recibi una cadena a guardar de tamanio 0, supongo que es para una particion que todavia no tiene datos");
+
+	int cantBloques = (int)ceil(((double)strlen(cadenaGigante))/((double)metadataDelFS.blockSize));
+
 	t_list* bloques = list_create();
 
-	if(cantBloques==0){
+	if(cantBloques==0 || cantBloques==1){
 		pthread_mutex_lock(&mutexBitmap);
 		bloqueActual=obtenerBloqueLibreDelBitMap();
 		ocuparBloqueDelBitmap(bloqueActual);
@@ -1031,10 +1036,11 @@ t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista d
 			return NULL;
 		}
 		list_add(bloques,bloqueActual);
-		insertarDatosEnElNuevoBloque("", bloqueActual);
+		insertarDatosEnElNuevoBloque(cadenaGigante, bloqueActual);
 		return bloques;
 	}
 
+	//a partir de aca necesito siempre 2 o + bloques
 	for(int i=0;i<cantBloques;i++){
 		pthread_mutex_lock(&mutexBitmap);
 		bloqueActual=obtenerBloqueLibreDelBitMap();
@@ -1049,14 +1055,21 @@ t_list* insertarCadenaEnNuevosBloques(char* cadenaGigante){//retorna una lista d
 			list_destroy(bloques);
 			return NULL;
 		}
-		else list_add(bloques,(void*)bloqueActual);//@@no toy seguro si puedo simplemente agregar un int sin que se destruya
+		else list_add(bloques,(void*)bloqueActual);
 	}
 
 	for(int i=0;i<cantBloques;i++){
 
-		char* data = string_substring(cadenaGigante,i*metadataDelFS.blockSize,
-				i==0 ? (int)fmin((float)strlen(cadenaGigante),(float)metadataDelFS.blockSize)
-						:strlen(cadenaGigante)-metadataDelFS.blockSize*i);
+		int lenght=metadataDelFS.blockSize;
+
+		if(i==(cantBloques-1))
+			lenght = strlen(cadenaGigante)-(i*metadataDelFS.blockSize);
+
+		char* data = string_substring(cadenaGigante,i*metadataDelFS.blockSize,lenght);//@@@@@@revisar si corta incluyendo el ultimo numero o no
+		//creo q va a quedar el ultimo caracter duplicado en cada corte
+
+				//(i==0 ? (int)fmin((float)strlen(cadenaGigante),(float)metadataDelFS.blockSize)
+				//		:strlen(cadenaGigante)-metadataDelFS.blockSize*(cantBloques-i)));
 		log_info(LOGGERFS,"Guardando:\n%s\n en el archivo de bloque %d",
 				data, list_get(bloques,i));
 		insertarDatosEnElNuevoBloque(data, (int)list_get(bloques,i));

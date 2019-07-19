@@ -104,8 +104,21 @@ int runConsola(char* path){
 	return EXIT_SUCCESS;
 }
 
+void mostrarMemoryLoad(){
+	void calcular_y_mostrar_ML(void* memo){
+		printf("Numero de Memoria: %i\n",((t_memo_del_pool_kernel *)memo)->numero_memoria);
+		printf("Memory Load %i\n",(((t_memo_del_pool_kernel *)memo)->cantRequests / requestTotales));
+		printf("\n");
+	}
+	list_iterate(listaMemConectadas, calcular_y_mostrar_ML);
+}
+
 void metricsConsola(){
-	//metrics
+	//mostrarReadLatency();
+	//mostrarWriteLatency();
+	//mostrarReads();
+	//mostrarWrites();
+	mostrarMemoryLoad();
 }
 
 int addConsola(int memnum, char* criterio){

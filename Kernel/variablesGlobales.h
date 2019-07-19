@@ -51,6 +51,7 @@ typedef struct memo_del_pool_kernel {
 	char * puerto;
 	int numero_memoria;
 	int socket;
+	int cantRequests;
 }t_memo_del_pool_kernel;
 typedef t_memo_del_pool_kernel* tp_memo_del_pool_kernel;
 
@@ -173,6 +174,7 @@ extern int quantum;
 extern int retardo;
 extern int path_api;
 extern int ultima_memoria_EC;
+extern int requestTotales;
 extern int socket_primera_memoria;
 t_path_archivo_conf *ruta_archivo_conf;
 int watch_descriptor,conf_fd;
