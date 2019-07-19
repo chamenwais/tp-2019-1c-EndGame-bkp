@@ -52,6 +52,7 @@ int retardo;
 int path_api = 0;
 int ultima_memoria_EC = 100;
 int socket_primera_memoria;
+int requestTotales = 0;
 
 void configurar_signals(void) {
 	struct sigaction signal_struct;
