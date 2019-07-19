@@ -128,9 +128,9 @@ int dump(char* nombreDeLaTabla){
 	string_append(&bloques, "]");
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada, en el temp %s",nombreDeLaTabla, nombreDelArchivoTemp);
-	free(nombreDelArchivoTemp);
 	//setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
 	liberarMemoriaDelNodo(nombreDeLaTabla);
+	free(nombreDelArchivoTemp);
 	free(bloques);
 	pthread_mutex_unlock(&mutexDeLaMemtable);
 
