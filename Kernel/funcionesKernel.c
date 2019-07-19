@@ -645,7 +645,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 		//crear estructura
 		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
-		nodo_metrica->operacion = m_SELECT;
+		nodo_metrica->operacion = m_INSERT;
 		//calculo el timestamp inicial
 		int t_inicial = time(NULL);
 
