@@ -254,7 +254,7 @@ void escuchar_clientes(int server_memoria, int socket_lfs) {
 			}
 		}
 		int result = select(max_fd + 1, &readset, &writeset, &exepset, &tv);
-		logger(loguear, l_debug, "Resultado del select: %d\n", result);
+		//logger(loguear, l_debug, "Resultado del select: %d\n", result);
 		if (result < 0) {
 			logger(escribir_loguear, l_error, "Error en select\n");
 			break;
