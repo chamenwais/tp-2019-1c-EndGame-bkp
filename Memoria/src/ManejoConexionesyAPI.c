@@ -310,9 +310,9 @@ tp_select_rta_a_kernel pedir_value_a_liss(char * nombre_tabla, uint16_t key){
 		rta_select_a_kernel->value=NULL;
 		rta_select_a_kernel->respuesta=rta_pedido.tipoDeMensaje;
 		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
-			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla");
+			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que no existe la tabla %s", nombre_tabla);
 		} else if(rta_pedido.tipoDeMensaje == KEY_NO_EXISTE){
-			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que la key no existe en la tabla");
+			logger(escribir_loguear, l_error, "Hubo un problema con el FS, parece que la key %d no existe en la tabla %s", key, nombre_tabla);
 		}
 	}
 
@@ -348,7 +348,7 @@ tp_select_rta_a_kernel realizar_select(char * nombre_tabla, int key){
 				REQUEST_SUCCESS);
 	}else{
 		liberar_rta_interna_select(rta_select_MP);
-		logger(escribir_loguear, l_info, "No contengo el valor de la key solicitada");
+		logger(escribir_loguear, l_info, "No contengo el valor de la key %d solicitada", key);
 		logger(escribir_loguear, l_info, "Se enviara una solicitud al FS para obtener dicho valor");
 
 		rta_select_a_kernel = pedir_value_a_liss(nombre_tabla, (uint16_t)key);
