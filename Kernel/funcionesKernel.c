@@ -1324,26 +1324,28 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 		tp_memo_del_pool_kernel memoria_a_borrar = list_remove_by_condition(listaMemConectadas, verificar_si_memoria_no_existe_en_gossip);
 		pthread_mutex_unlock(&mutex_MemConectadas);
 
-	bool es_memoria_a_borrar(void* memoria){
-		return memoria_a_borrar == (tp_memo_del_pool_kernel)memoria;
+	if(memoria_a_borrar != NULL){
+
+		bool es_memoria_a_borrar(void* memoria){
+			return memoria_a_borrar == (tp_memo_del_pool_kernel)memoria;
+		}
+
+			pthread_mutex_lock(&mutex_SC);
+			list_remove_by_condition(listaSC, es_memoria_a_borrar);
+			pthread_mutex_unlock(&mutex_SC);
+
+			pthread_mutex_lock(&mutex_EC);
+			list_remove_by_condition(listaEC, es_memoria_a_borrar);
+			pthread_mutex_unlock(&mutex_EC);
+
+			pthread_mutex_lock(&mutex_HC);
+			list_remove_by_condition(listaHC, es_memoria_a_borrar);
+			pthread_mutex_unlock(&mutex_HC);
+
+		free(memoria_a_borrar->ip);
+		free(memoria_a_borrar->puerto);
+		free(memoria_a_borrar);
 	}
-
-		pthread_mutex_lock(&mutex_SC);
-		list_remove_by_condition(listaSC, es_memoria_a_borrar);
-		pthread_mutex_unlock(&mutex_SC);
-
-		pthread_mutex_lock(&mutex_EC);
-		list_remove_by_condition(listaEC, es_memoria_a_borrar);
-		pthread_mutex_unlock(&mutex_EC);
-
-		pthread_mutex_lock(&mutex_HC);
-		list_remove_by_condition(listaHC, es_memoria_a_borrar);
-		pthread_mutex_unlock(&mutex_HC);
-
-	free(memoria_a_borrar->ip);
-	free(memoria_a_borrar->puerto);
-	free(memoria_a_borrar);
-
 }
 
 
