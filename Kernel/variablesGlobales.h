@@ -36,6 +36,11 @@ enum tipo_logueo {
 	l_error
 };
 
+enum tipo_metrica {
+	m_SELECT,
+	m_INSERT
+};
+
 typedef struct definicionConfiguracionDelKernel {
 	char * ipMemoria; //de la primera memoria q se conecta
 	char * puertoMemoria;
