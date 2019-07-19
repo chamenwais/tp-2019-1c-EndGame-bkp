@@ -86,7 +86,7 @@ extern char* pathDeMontajeDelPrograma;
 extern char* nombreArchivoInfoMsBloqueada;
 extern pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 extern pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
-	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump,nextTempfuncionesAux;
 extern t_bitarray *bitmap;
 extern int sizeDelBitmap;
 extern char * srcMmap;

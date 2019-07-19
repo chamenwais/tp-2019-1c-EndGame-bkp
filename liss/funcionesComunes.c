@@ -233,6 +233,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		if(metadataDeLaTabla.consistencia!=NULL)free(metadataDeLaTabla.consistencia);
 		t_list* keysObtenidas = escanearPorLaKeyDeseada(key, nombreDeLaTabla, numeroDeParticionQueContieneLaKey);
 		resultadoOriginal = obtenerKeyConTimeStampMasGrande(keysObtenidas);
+		desbloquearSharedTablaFS(mutexTabla);
 		resultado=malloc(sizeof(t_nodoDeLaTabla));
 		resultado->resultado=resultadoOriginal->resultado;
 		if(resultado->resultado==KEY_OBTENIDA){
@@ -251,7 +252,6 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		resultado=malloc(sizeof(t_nodoDeLaTabla));
 		resultado->resultado=TABLA_NO_EXISTIA;
 	}
-	desbloquearSharedTablaFS(mutexTabla);
 	log_info(LOGGERFS,"[Select]Tabla %s desbloqueada(lectura)",nombreDeLaTabla);
 	return resultado;
 }
