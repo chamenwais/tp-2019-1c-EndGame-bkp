@@ -563,7 +563,7 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		//calculo el timestamp inicial
 		int t_inicial = time(NULL);
 
-		logger(escribir_loguear, l_info, "Voy a realizar la operacion select");
+		logger(escribir_loguear, l_info, "Voy a realizar la operacion select de la key %d", key);
 		prot_enviar_select(nombre_tabla, key, socket_memoria);
 
 		logger(escribir_loguear, l_info, "Espero la rta de memoria...");
@@ -584,8 +584,10 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		}
 
 		if(rta_pedido.tipoDeMensaje == TABLA_NO_EXISTIA){
-			logger(escribir_loguear, l_error, "No existe la tabla en el FS");
-		}else if(rta_pedido.tipoDeMensaje == NO_HAY_MAS_MARCOS_EN_LA_MEMORIA){
+			logger(escribir_loguear, l_error, "No existe la tabla %s en el FS", nombre_tabla);
+		} else if(rta_pedido.tipoDeMensaje == KEY_NO_EXISTE){
+			logger(escribir_loguear, l_error, "No existe la key %d en la tabla %s en el FS", key, nombre_tabla);
+		} else if(rta_pedido.tipoDeMensaje == NO_HAY_MAS_MARCOS_EN_LA_MEMORIA){
 			logger(escribir_loguear, l_info, "La memoria esta llena, procedo a pedir un Journal");
 			operacion_journal(socket_memoria);
 			logger(escribir_loguear, l_info, "Luego del JOURNAL se vuelve a enviar el SELECT");

@@ -558,7 +558,7 @@ void obtener_y_combinar_tablas_gossip(int socket, int tamanio) {
 			socket);
 	tp_tabla_gossiping tabla_ajena = prot_recibir_tabla_gossiping(tamanio,
 			socket);
-	list_iterate(tabla_ajena->lista, imprimir_informacion_memoria_ajena);
+	//list_iterate(tabla_ajena->lista, imprimir_informacion_memoria_ajena);
 	agregar_memorias_no_existentes_en_mi_tabla_gossip(tabla_ajena->lista);
 	//Libero la lista
 	prot_free_tp_tabla_gossiping(tabla_ajena);
