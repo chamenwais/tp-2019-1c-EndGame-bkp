@@ -14,7 +14,6 @@
 
 int dump(char* nombreDeLaTabla);
 char* buscarNombreDelTempParaDumpear(char* nombreDeLaTabla);
-int liberarMemoriaDelNodo(char* liberarMemoriaDelNodo);
 void hiloDeDumpeo(char* nombreDeLaTabla);
 int lanzarHiloParaLaTablaDeDumpeo(char* nombreDeLaTabla);
 int insertarDatosEnElBloque(char* cadenaAInsertar,int bloqueActual);

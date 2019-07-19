@@ -173,12 +173,14 @@ int insert(char* nombreDeLaTabla, uint16_t key, char* value, double timeStamp){
 
 	if(mutexTabla!=NULL){
 		log_info(LOGGERFS,"[Insert]Tabla %s bloqueada(lectura)", nombreDeLaTabla);
+		log_info(LOGGERFS,"Bloqueando memtable");
 		pthread_mutex_lock(&mutexDeLaMemtable);
 		if(verSiExisteListaConDatosADumpear(nombreDeLaTabla)==false){
 			aLocarMemoriaParaLaTabla(nombreDeLaTabla);
 			//lanzarHiloParaLaTablaDeDumpeo(nombreDeLaTabla);
 		}
 		int resultadoDelInsert = hacerElInsertEnLaMemoriaTemporal(nombreDeLaTabla, key, value, timeStamp);
+		log_info(LOGGERFS,"Desbloqueando memtable");
 		pthread_mutex_unlock(&mutexDeLaMemtable);
 		desbloquearSharedTablaFS(mutexTabla);
 		log_info(LOGGERFS,"[Insert]Tabla %s desbloqueada(lectura)", nombreDeLaTabla);

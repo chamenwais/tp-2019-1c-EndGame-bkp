@@ -193,23 +193,31 @@ int crearArchivoDeBloque(int bloqueLibre){
 }
 
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla){
-	pthread_mutex_lock(&mutexDeDump);
+	//pthread_mutex_lock(&mutexDeDump);
 	if((liberarBloquesYParticiones(nombreDeLaTabla)==EXIT_SUCCESS) &&
 			(eliminarTemporales(nombreDeLaTabla)==EXIT_SUCCESS) &&
 			(eliminarArchivoDeMetada(nombreDeLaTabla)==EXIT_SUCCESS) &&
 			(eliminarDirectorio(nombreDeLaTabla)==EXIT_SUCCESS)&&
-			(eliminarDeLaMemtable(nombreDeLaTabla)==EXIT_SUCCESS)
+			(liberarMemoriaDelNodo(nombreDeLaTabla)==EXIT_SUCCESS)
 			){
 		log_info(LOGGERFS,"La tabla %s se borro correctamente", nombreDeLaTabla);
-		pthread_mutex_unlock(&mutexDeDump);
+		//pthread_mutex_unlock(&mutexDeDump);
 		return EXIT_SUCCESS;
 	}else{
 		log_error(LOGGERFS,"Hubo algun error al borrar la tabla %s", nombreDeLaTabla);
-		pthread_mutex_unlock(&mutexDeDump);
+		//pthread_mutex_unlock(&mutexDeDump);
 		return EXIT_FAILURE;
 		}
 }
 
+int liberarMemoriaDelNodo(char* nombreDeLaTabla){
+	log_info(LOGGERFS,"Bloqueando memtable");
+	pthread_mutex_lock(&mutexDeLaMemtable);
+	eliminarDeLaMemtable(nombreDeLaTabla);
+	log_info(LOGGERFS,"Desbloqueando memtable");
+	pthread_mutex_unlock(&mutexDeLaMemtable);
+	return EXIT_SUCCESS;
+}
 
 int eliminarDeLaMemtable(char* nombreDeLaTabla){
 	//implementar
@@ -217,6 +225,8 @@ int eliminarDeLaMemtable(char* nombreDeLaTabla){
 		return !strcmp(((tp_nodoDeLaMemTable) nodo)->nombreDeLaTabla, nombreDeLaTabla);
 		}
 	tp_nodoDeLaMemTable nodoABorrar = NULL;
+	//log_info(LOGGERFS,"Bloqueando memtable");
+	//pthread_mutex_lock(&mutexDeLaMemtable);
 	if((memTable!=NULL)&&(list_size(memTable)>0)){
 		log_info(LOGGERFS,"Sacando a la tabla %s de la memtable", nombreDeLaTabla);
 		tp_nodoDeLaMemTable nodoABorrar = obtenerNodoDeLaMemtable(nombreDeLaTabla);
@@ -228,6 +238,8 @@ int eliminarDeLaMemtable(char* nombreDeLaTabla){
 		}
 	log_info(LOGGERFS,"Tabla %s eliminada de la memtable", nombreDeLaTabla);
 	if(nodoABorrar!=NULL) free(nodoABorrar->nombreDeLaTabla);
+	//log_info(LOGGERFS,"Desbloqueando memtable");
+	//pthread_mutex_unlock(&mutexDeLaMemtable);
 	return EXIT_SUCCESS;
 }
 
@@ -605,10 +617,13 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
 
-
+	log_info(LOGGERFS,"Bloqueando memtable");
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	keysTemporales = escanearPorLaKeyDeseadaMemTable(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
+	log_info(LOGGERFS,"Desbloqueando memtable");
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 
 	//desbloquearSharedTablaFS(mutexTabla);
 	log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
