@@ -36,6 +36,8 @@ void crear_proceso(char* linea);
 void mostrarMemoryLoad();
 void mostrarReads();
 void mostrarWrites();
+void mostrarWriteLatency();
+void mostrarReadLatency();
 
 
 #endif /* API_H_ */

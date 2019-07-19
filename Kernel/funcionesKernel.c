@@ -494,7 +494,7 @@ t_operacion parsear(char * linea){
 	char* tipo_de_operacion = split[0];
 
 	if(linea == NULL || string_equals_ignore_case(linea, "")){
-		//TODO ver que hacer aca
+
 	}
 
 	if(string_equals_ignore_case(tipo_de_operacion, "select")){

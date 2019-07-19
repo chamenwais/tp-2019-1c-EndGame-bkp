@@ -132,7 +132,7 @@ void mostrarReads(){
 	printf("Cantidad de SELECT para EC: %i\n", cant);
 	cant = 0;
 	list_iterate(listaMetricsHC, contar_cantidad_reads);
-	printf("Cantidad de SELECT para HC %i\n", cant);
+	printf("Cantidad de SELECT para SHC %i\n", cant);
 }
 
 void mostrarWrites(){
@@ -149,12 +149,57 @@ void mostrarWrites(){
 	printf("Cantidad de INSERT para EC: %i\n", cant);
 	cant = 0;
 	list_iterate(listaMetricsHC, contar_cantidad_writes);
-	printf("Cantidad de INSERT para HC %i\n", cant);
+	printf("Cantidad de INSERT para SHC %i\n", cant);
 }
 
+void mostrarReadLatency(){
+	int cant = 0;
+	int tiempoTotal =0;
+	void contar_cantidad_reads(void* nodo){
+		if(((tp_metrica)nodo)->operacion == m_SELECT){
+			++cant;
+			tiempoTotal = tiempoTotal + ((tp_metrica)nodo)->tiempo;
+		}
+	list_iterate(listaMetricsSC, contar_cantidad_reads);
+	printf("Tiempo promedio de SELECT para SC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal = 0;
+	list_iterate(listaMetricsEC, contar_cantidad_reads);
+	printf("Tiempo promedio de SELECT para EC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal =0;
+	list_iterate(listaMetricsHC, contar_cantidad_reads);
+	printf("Tiempo promedio de SELECT para SHC %i segundos\n", tiempoTotal / cant);
+
+	}
+}
+
+void mostrarWriteLatency(){
+	int cant = 0;
+	int tiempoTotal =0;
+	void contar_cantidad_writes(void* nodo){
+		if(((tp_metrica)nodo)->operacion == m_INSERT){
+			++cant;
+			tiempoTotal = tiempoTotal + ((tp_metrica)nodo)->tiempo;
+		}
+	list_iterate(listaMetricsSC, contar_cantidad_writes);
+	printf("Tiempo promedio de INSERT para SC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal = 0;
+	list_iterate(listaMetricsEC, contar_cantidad_writes);
+	printf("Tiempo promedio de INSERT para EC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal =0;
+	list_iterate(listaMetricsHC, contar_cantidad_writes);
+	printf("Tiempo promedio de INSERT para SHC %i segundos\n", tiempoTotal / cant);
+
+	}
+}
+
+
 void metricsConsola(){
-	//mostrarReadLatency();
-	//mostrarWriteLatency();
+	mostrarReadLatency();
+	mostrarWriteLatency();
 	mostrarReads();
 	mostrarWrites();
 	mostrarMemoryLoad();
