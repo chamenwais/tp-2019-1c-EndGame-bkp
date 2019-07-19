@@ -95,6 +95,11 @@ void journalConsola(){
 int runConsola(char* path){
 	logger(escribir_loguear, l_info, "Ingresa al Kernel un archivo LQL en el path %s", path);
 	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
+	if(nuevo_LQL == NULL){
+		free(nuevo_LQL);
+		logger(escribir_loguear, l_error, "El Path ingresado no existe");
+		return EXIT_SUCCESS;
+	}
 	pthread_mutex_lock(&mutex_New);
 	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
 	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
@@ -201,6 +206,10 @@ tp_lql_pcb crear_PCB(char* path){
 	nuevo_LQL->path = malloc(strlen(path)+1);
 	strcpy(nuevo_LQL->path, path);
 	nuevo_LQL->lista = obtener_lista_lineas_desde_archivo(nuevo_LQL->path);
+	if(nuevo_LQL->lista == NULL){
+		free(nuevo_LQL->path);
+		return NULL;
+	}
 	return nuevo_LQL;
 }
 
