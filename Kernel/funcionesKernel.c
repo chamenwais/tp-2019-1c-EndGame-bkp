@@ -326,6 +326,7 @@ int conectarse_con_primera_memoria(char* ip, char * puerto){
 	entrada_tabla_memorias->puerto = puerto;
 	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
+	entrada_tabla_memorias->cantRequests = 0;
 
 	list_add(listaMemConectadas, entrada_tabla_memorias);
 
@@ -359,12 +360,11 @@ int conectarse_con_memoria(char* ip, char * puerto){
 	entrada_tabla_memorias->puerto = puerto;
 	entrada_tabla_memorias->numero_memoria = numero_de_memoria;
 	entrada_tabla_memorias->socket = socket_mem;
+	entrada_tabla_memorias->cantRequests = 0;
 
 	pthread_mutex_lock(&mutex_MemConectadas);
 	list_add(listaMemConectadas, entrada_tabla_memorias);
 	pthread_mutex_unlock(&mutex_MemConectadas);
-
-	describeAll(socket_mem);
 
 	return EXIT_SUCCESS;
 }
@@ -469,6 +469,9 @@ void remover_pcb_de_lista(t_list* lista, tp_lql_pcb pcb){
 
 void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria){
 
+	//crear estructura
+	//calculo el timestamp inicial
+
 	if(existeTabla(nombre_tabla)){
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion select");
@@ -499,6 +502,12 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 			logger(escribir_loguear, l_info, "Luego del JOURNAL se vuelve a enviar el SELECT");
 			operacion_select(nombre_tabla, key, pcb, socket_memoria);
 		}
+
+		//timestamp final
+		//calculo diferencia y actualizo estructura
+		//meter estructura en tabla
+
+
 
 	}else{//termino el script
 		logger(escribir_loguear, l_error, "No existe la tabla %s\n", nombre_tabla);
@@ -1004,7 +1013,7 @@ bool pcbEstaEnLista(t_list* lista, tp_lql_pcb pcb){
 }
 
 tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
-	tp_memo_del_pool_kernel memoria = calloc(1, sizeof(t_memo_del_pool_kernel));
+	tp_memo_del_pool_kernel memoria;
 	char* criterio;
 	tp_entrada_tabla_creada entrada;
 
@@ -1033,6 +1042,10 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 		if((string_equals_ignore_case(criterio, "SC")) && (!list_is_empty(listaSC))) {
 				pthread_mutex_lock(&mutex_SC);
 				memoria = list_get(listaSC, 0);
+				if((operacion.tipo_de_operacion == _SELECT) || (operacion.tipo_de_operacion == _INSERT)){
+					memoria->cantRequests = memoria->cantRequests + 1;
+					++requestTotales;//metrics
+				}
 				pthread_mutex_unlock(&mutex_SC);
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
 				//free(criterio);
@@ -1042,6 +1055,8 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 					int numHash = calcularHash(operacion.parametros.select.key);
 					pthread_mutex_lock(&mutex_HC);
 					memoria = list_get(listaHC, numHash);
+					memoria->cantRequests = memoria->cantRequests + 1;
+					++requestTotales; //metrics
 					pthread_mutex_unlock(&mutex_HC);
 					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
 					return memoria;
@@ -1049,6 +1064,8 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 					int numHash = calcularHash(operacion.parametros.insert.key);
 					pthread_mutex_lock(&mutex_HC);
 					memoria = list_get(listaHC, numHash);
+					memoria->cantRequests = memoria->cantRequests + 1;
+					++requestTotales;//metrics
 					pthread_mutex_unlock(&mutex_HC);
 					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
 					return memoria;
@@ -1066,6 +1083,10 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				int num = (rand() % list_size(listaEC)); // calcula un random entre 0 y list size
 				pthread_mutex_lock(&mutex_EC);
 				memoria = list_get(listaEC, num);
+				if((operacion.tipo_de_operacion == _SELECT) || (operacion.tipo_de_operacion == _INSERT)){
+					memoria->cantRequests = memoria->cantRequests + 1;
+					++requestTotales;//metrics
+				}
 				pthread_mutex_unlock(&mutex_EC);
 				if(memoria->numero_memoria != ultima_memoria_EC){
 					ultima_memoria_EC = memoria->numero_memoria;
@@ -1205,6 +1226,38 @@ void conectarse_a_memorias_gossip(t_list* lista_gossip){
 			}
 		}
 		list_iterate(lista_gossip, verificar_si_memoria_existe_en_mi_tabla_para_agregarla);
+
+	bool verificar_si_memoria_no_existe_en_gossip(void* memoria_propia){
+		bool memoria_existe_en_mi_lista(void * memoria){
+			return string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_propia)->ip,((tp_memo_del_pool)memoria)->ip)
+				&& string_equals_ignore_case(((tp_memo_del_pool_kernel)memoria_propia)->puerto,((tp_memo_del_pool)memoria)->puerto);
+		}
+		return !list_any_satisfy(lista_gossip, memoria_existe_en_mi_lista);
+	}
+
+		pthread_mutex_lock(&mutex_MemConectadas);
+		tp_memo_del_pool_kernel memoria_a_borrar = list_remove_by_condition(listaMemConectadas, verificar_si_memoria_no_existe_en_gossip());
+		pthread_mutex_unlock(&mutex_MemConectadas);
+
+	bool es_memoria_a_borrar(void* memoria){
+		return memoria_a_borrar == (tp_memo_del_pool_kernel)memoria;
+	}
+
+		pthread_mutex_lock(&mutex_SC);
+		list_remove_by_condition(listaSC, es_memoria_a_borrar);
+		pthread_mutex_unlock(&mutex_SC);
+
+		pthread_mutex_lock(&mutex_EC);
+		list_remove_by_condition(listaEC, es_memoria_a_borrar);
+		pthread_mutex_unlock(&mutex_EC);
+
+		pthread_mutex_lock(&mutex_HC);
+		list_remove_by_condition(listaHC, es_memoria_a_borrar);
+		pthread_mutex_unlock(&mutex_HC);
+
+	free(memoria_a_borrar->ip);
+	free(memoria_a_borrar->puerto);
+	free(memoria_a_borrar);
 
 }
 
