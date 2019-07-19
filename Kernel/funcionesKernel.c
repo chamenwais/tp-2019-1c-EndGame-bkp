@@ -1135,7 +1135,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio SC", memoria->numero_memoria);
 				//free(criterio);
 				return memoria;
-		}else if(string_equals_ignore_case(criterio, "HC") && (!list_is_empty(listaHC))){
+		}else if(string_equals_ignore_case(criterio, "SHC") && (!list_is_empty(listaHC))){
 				if((operacion.tipo_de_operacion == _SELECT)){
 					int numHash = calcularHash(operacion.parametros.select.key);
 					pthread_mutex_lock(&mutex_HC);

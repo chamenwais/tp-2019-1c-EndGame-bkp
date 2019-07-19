@@ -135,12 +135,12 @@ int addConsola(int memnum, char* criterio){
 			list_add(listaEC, memoria);
 			pthread_mutex_unlock(&mutex_EC);
 			printf("Se agrego la memoria %i al criterio EC\n", memnum);
-		}else if((strcmp(criterio, "HC"))==0){
+		}else if((strcmp(criterio, "SHC"))==0){
 			pthread_mutex_lock(&mutex_HC);
 			list_add(listaHC, memoria);
 			pthread_mutex_unlock(&mutex_HC);
-			printf("Se agrego la memoria %i al criterio HC\n", memnum);
-			printf("Se va a realizar un journal en todas las memorias del criterio HC\n");
+			printf("Se agrego la memoria %i al criterio SHC\n", memnum);
+			printf("Se va a realizar un journal en todas las memorias del criterio SHC\n");
 			journalConsola();
 		}else{
 			printf("Pifiaste el criterio amigue\n");

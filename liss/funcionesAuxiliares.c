@@ -671,6 +671,21 @@ t_list* escanearPorLaKeyDeseadaMemTable(uint16_t key, char* nombreDeLaTabla){
 	return listaResultante;
 }
 
+char* getNextTempfuncionesAux(){
+	static int tempfuncionesAux;
+	int length;
+	char* nextTemp=string_new();
+	pthread_mutex_lock(&nextTempfuncionesAux);
+	tempfuncionesAux++;
+	length = snprintf( NULL, 0, "%d", tempfuncionesAux );
+	char* str = malloc( length + 1 );
+	snprintf( str, length + 1, "%d", tempfuncionesAux );
+	pthread_mutex_unlock(&nextTempfuncionesAux);
+	string_append(&nextTemp,str);
+	free(str);
+	return nextTemp;
+}
+
 t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTabla, uint16_t key){
 	t_list* listaResultante;// = list_create();
 	char* ubicacionDelBloque;
@@ -682,7 +697,9 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 	string_append(&directorioDeTrabajo,configuracionDelFS.puntoDeMontaje);
 	string_append(&directorioDeTrabajo,"/Blocks/");
 	string_append(&archivoTempUbicacion,directorioDeTrabajo);
-	string_append(&archivoTempUbicacion,"archTemp");
+	char* archTemp = getNextTempfuncionesAux();
+	string_append(&archivoTempUbicacion,archTemp);
+	free(archTemp);
 	FILE* archivoTemp=fopen(archivoTempUbicacion,"w");
 
 	for(int i=0;arrayDeBloques[i]!=NULL;i++){
@@ -710,7 +727,6 @@ t_list* obtenerListaDeDatosDeArchivo(char* nombreDelArchivo, char* nombreDeLaTab
 	log_info(LOGGERFS,"Keys rescatadas de los bloques: %d",list_size(listaResultante));
 	return listaResultante;
 }
-
 
 t_list* recuperarKeysDelArchivoFinal(char* nombreDelArchivo, uint16_t key){
 	/*Dada la ubicacion de un archivo con datos como:

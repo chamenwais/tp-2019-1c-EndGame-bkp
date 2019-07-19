@@ -17,7 +17,7 @@ char* pathDeMontajeDelPrograma;
 char* nombreArchivoInfoMsBloqueada;
 pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
-	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump;
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump,nextTempfuncionesAux;
 t_bitarray *bitmap;
 int sizeDelBitmap;
 char * srcMmap;
@@ -212,6 +212,11 @@ int inicializarVariablesGlobales(){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexListaTablasFS");
 		return EXIT_FAILURE;
 		}
+	if(pthread_mutex_init(&nextTempfuncionesAux, NULL) != 0) {
+		log_error(LOGGERFS,"No se pudo inicializar el semaforo nextTempfuncionesAux");
+		return EXIT_FAILURE;
+		}
+
 
 	bitmap=NULL;
 	sizeDelBitmap=-1;
@@ -253,6 +258,8 @@ void liberarRecursos(){
 	list_destroy_and_destroy_elements(tablasFS,liberarTablaFS);
 	pthread_mutex_unlock(&mutexListaTablasFS);
 	pthread_mutex_destroy(&mutexListaTablasFS);
+
+	pthread_mutex_destroy(&nextTempfuncionesAux);
 	printf("Memoria liberada\nPROGRAMA FINALIZADO CORRECTAMENTE\n");
 	return;
 }
