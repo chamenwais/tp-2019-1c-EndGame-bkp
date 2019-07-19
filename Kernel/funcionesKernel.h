@@ -36,10 +36,10 @@ void enviar_handshake(int socket);
 void* funcionHiloRequest(void* pcb);
 int lanzarPlanificador();
 int inicializarSemaforos();
-void realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int socket_memoria);
+int realizar_operacion(t_operacion resultado_del_parseado, tp_lql_pcb pcb, int socket_memoria);
 void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int socket_memoria);
 void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, int socket_memoria);
-void operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria);
+int operacion_create(char* nombre_tabla, char* tipo_consistencia, int num_particiones, int compaction_time, tp_lql_pcb pcb, int socket_memoria);
 void operacion_describe(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria);
 void operacion_drop(char* nombre_tabla, tp_lql_pcb pcb, int socket_memoria);
 void operacion_journal(int socket);
@@ -72,6 +72,8 @@ bool tablaFueBorrada(char* tabla, t_list* lista);
 int abrir_socket_memoria(char*, char*);
 double obtenerTimestamp();
 int reloadConfig();
+void iniciarMetrics();
+void* limpiarMetrics();
 
 
 #endif /* FUNCIONESKERNEL_H_ */

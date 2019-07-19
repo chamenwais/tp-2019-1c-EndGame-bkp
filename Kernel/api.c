@@ -113,11 +113,45 @@ void mostrarMemoryLoad(){
 	list_iterate(listaMemConectadas, calcular_y_mostrar_ML);
 }
 
+void mostrarReads(){
+	int cant = 0;
+	void contar_cantidad_reads(void* nodo){
+		if(((tp_metrica)nodo)->operacion == m_SELECT){
+			++cant;
+		}
+	}
+	list_iterate(listaMetricsSC, contar_cantidad_reads);
+	printf("Cantidad de SELECT para SC: %i\n", cant);
+	cant = 0;
+	list_iterate(listaMetricsEC, contar_cantidad_reads);
+	printf("Cantidad de SELECT para EC: %i\n", cant);
+	cant = 0;
+	list_iterate(listaMetricsHC, contar_cantidad_reads);
+	printf("Cantidad de SELECT para HC %i\n", cant);
+}
+
+void mostrarWrites(){
+	int cant = 0;
+	void contar_cantidad_writes(void* nodo){
+		if(((tp_metrica)nodo)->operacion == m_INSERT){
+			++cant;
+		}
+	}
+	list_iterate(listaMetricsSC, contar_cantidad_writes);
+	printf("Cantidad de INSERT para SC: %i\n", cant);
+	cant = 0;
+	list_iterate(listaMetricsEC, contar_cantidad_writes);
+	printf("Cantidad de INSERT para EC: %i\n", cant);
+	cant = 0;
+	list_iterate(listaMetricsHC, contar_cantidad_writes);
+	printf("Cantidad de INSERT para HC %i\n", cant);
+}
+
 void metricsConsola(){
 	//mostrarReadLatency();
 	//mostrarWriteLatency();
-	//mostrarReads();
-	//mostrarWrites();
+	mostrarReads();
+	mostrarWrites();
 	mostrarMemoryLoad();
 }
 

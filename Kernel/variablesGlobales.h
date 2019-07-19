@@ -41,6 +41,12 @@ enum tipo_metrica {
 	m_INSERT
 };
 
+typedef struct metrica_kernel {
+	int operacion;
+	int tiempo;
+}t_metrica;
+typedef t_metrica* tp_metrica;
+
 typedef struct definicionConfiguracionDelKernel {
 	char * ipMemoria; //de la primera memoria q se conecta
 	char * puertoMemoria;
@@ -146,6 +152,7 @@ extern pthread_t threadPCP;
 extern pthread_t hiloDescribeAll;
 extern pthread_t threadMonitoreadorDeArchivos;
 extern pthread_t hiloGossip;
+extern pthread_t hiloMetrics;
 extern t_list* listaNew;
 extern t_list* listaReady;
 extern t_list* listaExec;
@@ -175,6 +182,9 @@ extern pthread_mutex_t M_RUTA_ARCHIVO_CONF;
 extern pthread_mutex_t M_CONF_FD;
 extern pthread_mutex_t M_WATCH_DESCRIPTOR;
 extern pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
+extern pthread_mutex_t mutex_metricsEC;
+extern pthread_mutex_t mutex_metricsHC;
+extern pthread_mutex_t mutex_metricsSC;
 
 extern sem_t NEW;
 extern sem_t READY;

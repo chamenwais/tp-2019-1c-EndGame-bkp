@@ -17,6 +17,7 @@ pthread_t threadPCP;
 pthread_t hiloDescribeAll;
 pthread_t threadMonitoreadorDeArchivos;
 pthread_t hiloGossip;
+pthread_t hiloMetrics;
 t_list* listaNew;
 t_list* listaReady;
 t_list* listaExec;
@@ -46,6 +47,9 @@ pthread_mutex_t M_RUTA_ARCHIVO_CONF;
 pthread_mutex_t M_CONF_FD;
 pthread_mutex_t M_WATCH_DESCRIPTOR;
 pthread_mutex_t M_PATH_ARCHIVO_CONFIGURACION;
+pthread_mutex_t mutex_metricsEC;
+pthread_mutex_t mutex_metricsHC;
+pthread_mutex_t mutex_metricsSC;
 
 sem_t NEW;
 sem_t READY;
