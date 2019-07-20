@@ -95,6 +95,11 @@ void journalConsola(){
 int runConsola(char* path){
 	logger(escribir_loguear, l_info, "Ingresa al Kernel un archivo LQL en el path %s", path);
 	tp_lql_pcb nuevo_LQL = crear_PCB(path); //crea el PCB con path y ultima linea parseada
+	if(nuevo_LQL == NULL){
+		free(nuevo_LQL);
+		logger(escribir_loguear, l_error, "El Path ingresado no existe");
+		return EXIT_SUCCESS;
+	}
 	pthread_mutex_lock(&mutex_New);
 	list_add(listaNew, nuevo_LQL);//agregar LQL a cola de NEW
 	logger(escribir_loguear, l_debug, "Se agrega el nuevo LQL a la cola de NEW");
@@ -127,7 +132,7 @@ void mostrarReads(){
 	printf("Cantidad de SELECT para EC: %i\n", cant);
 	cant = 0;
 	list_iterate(listaMetricsHC, contar_cantidad_reads);
-	printf("Cantidad de SELECT para HC %i\n", cant);
+	printf("Cantidad de SELECT para SHC %i\n", cant);
 }
 
 void mostrarWrites(){
@@ -144,12 +149,57 @@ void mostrarWrites(){
 	printf("Cantidad de INSERT para EC: %i\n", cant);
 	cant = 0;
 	list_iterate(listaMetricsHC, contar_cantidad_writes);
-	printf("Cantidad de INSERT para HC %i\n", cant);
+	printf("Cantidad de INSERT para SHC %i\n", cant);
 }
 
+void mostrarReadLatency(){
+	int cant = 0;
+	int tiempoTotal =0;
+	void contar_cantidad_reads(void* nodo){
+		if(((tp_metrica)nodo)->operacion == m_SELECT){
+			++cant;
+			tiempoTotal = tiempoTotal + ((tp_metrica)nodo)->tiempo;
+		}
+	list_iterate(listaMetricsSC, contar_cantidad_reads);
+	printf("Tiempo promedio de SELECT para SC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal = 0;
+	list_iterate(listaMetricsEC, contar_cantidad_reads);
+	printf("Tiempo promedio de SELECT para EC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal =0;
+	list_iterate(listaMetricsHC, contar_cantidad_reads);
+	printf("Tiempo promedio de SELECT para SHC %i segundos\n", tiempoTotal / cant);
+
+	}
+}
+
+void mostrarWriteLatency(){
+	int cant = 0;
+	int tiempoTotal =0;
+	void contar_cantidad_writes(void* nodo){
+		if(((tp_metrica)nodo)->operacion == m_INSERT){
+			++cant;
+			tiempoTotal = tiempoTotal + ((tp_metrica)nodo)->tiempo;
+		}
+	list_iterate(listaMetricsSC, contar_cantidad_writes);
+	printf("Tiempo promedio de INSERT para SC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal = 0;
+	list_iterate(listaMetricsEC, contar_cantidad_writes);
+	printf("Tiempo promedio de INSERT para EC: %i segundos\n", tiempoTotal / cant);
+	cant = 0;
+	tiempoTotal =0;
+	list_iterate(listaMetricsHC, contar_cantidad_writes);
+	printf("Tiempo promedio de INSERT para SHC %i segundos\n", tiempoTotal / cant);
+
+	}
+}
+
+
 void metricsConsola(){
-	//mostrarReadLatency();
-	//mostrarWriteLatency();
+	mostrarReadLatency();
+	mostrarWriteLatency();
 	mostrarReads();
 	mostrarWrites();
 	mostrarMemoryLoad();
@@ -201,6 +251,10 @@ tp_lql_pcb crear_PCB(char* path){
 	nuevo_LQL->path = malloc(strlen(path)+1);
 	strcpy(nuevo_LQL->path, path);
 	nuevo_LQL->lista = obtener_lista_lineas_desde_archivo(nuevo_LQL->path);
+	if(nuevo_LQL->lista == NULL){
+		free(nuevo_LQL->path);
+		return NULL;
+	}
 	return nuevo_LQL;
 }
 

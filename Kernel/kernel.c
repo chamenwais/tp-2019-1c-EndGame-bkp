@@ -18,6 +18,7 @@ int main(int argc,char** argv) {
 	if(conectarse_con_primera_memoria(configKernel.ipMemoria, configKernel.puertoMemoria)==EXIT_SUCCESS){
 		iniciar_proceso_describe_all();
 		iniciar_pedido_gossip();
+		iniciar_metrics();
 		if(lanzarConsola()==EXIT_SUCCESS){
 			if(lanzarPlanificador()==EXIT_SUCCESS){
 			if(lanzarPCP()==EXIT_SUCCESS){
