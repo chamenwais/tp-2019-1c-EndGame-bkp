@@ -440,7 +440,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 			//clock_t tiempoBloqueada = clock() - inicio;
 			//int msec = tiempoBloqueada * 1000 / CLOCKS_PER_SEC;
 			cantidadDeCompactaciones++;
-			if(cantidadDeCompactaciones>10)cantidadDeCompactaciones=0;
+			if(cantidadDeCompactaciones>100)cantidadDeCompactaciones=0;
 			guardarMilisegundosBloqueada(tabla,tiempoBloqueada,!cantidadDeCompactaciones);
 			desbloquearExclusiveTablaFS(mutexTabla);
 			log_info(LOGGERFS,"[Compactador %s]Tabla desbloqueada, guardo el tiempo de bloqueo en su archivo correspondiente",tabla);
