@@ -246,7 +246,7 @@ int obtenerBloqueLibreDelBitMap(){
 			log_info(LOGGERFS,"El bloque %d esta libre", i);
 			return i;
 			}
-		log_info(LOGGERFS,"El bloque: %d esta ocupado",i);
+		//log_info(LOGGERFS,"El bloque: %d esta ocupado",i);
 		}
 	log_info(LOGGERFS,"No hay mas bloques libres");
 	return -1;

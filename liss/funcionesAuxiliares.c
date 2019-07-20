@@ -604,6 +604,14 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	}*/
 	t_list* keysTemporales;
 
+	pthread_rwlock_t* mutexTabla = bloquearExclusiveTablaFS(nombreDeLaTabla);
+	if(mutexTabla!=NULL)
+		log_info(LOGGERFS,"[SELECT]Nueva tabla %s bloqueada, procedo a crear sus archivos", nombreDeLaTabla);
+	else{
+		log_error(LOGGERFS,"[SELECT]Nueva tabla %s no bloqueada, no se pudieron crear sus archivos!", nombreDeLaTabla);
+		return EXIT_FAILURE;
+		}
+
 	keysTemporales = escanearPorLaKeyDeseadaParticionCorrespondiente(key,
 				numeroDeParticionQueContieneLaKey, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
@@ -616,6 +624,11 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	keysTemporales = escanearPorLaKeyDeseadaArchivosTemporales(key, nombreDeLaTabla);
 	list_add_all(listadoDeKeys,keysTemporales);
 	list_destroy(keysTemporales);
+
+	if(mutexTabla!=NULL){
+		desbloquearExclusiveTablaFS(mutexTabla);
+		log_info(LOGGERFS,"[SELECT]Tabla %s desbloqueada", nombreDeLaTabla);
+		}
 
 	log_info(LOGGERFS,"Bloqueando memtable");
 	pthread_mutex_lock(&mutexDeLaMemtable);
