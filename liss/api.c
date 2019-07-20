@@ -137,11 +137,11 @@ void *funcionHiloConsola(void *arg){
 					imprimirMemtableEnPantalla();
 			}else{
 				if((strcmp(instruccion[0],"dumpear")==0)&&(instruccion[1]!=NULL)){
-					pthread_mutex_lock(&mutexDeDump);
+					//pthread_mutex_lock(&mutexDeDump);
 					list_iterate(memTable, dumpearAEseNodo);
 					vaciarMemTable();
 					memTable=list_create();
-					pthread_mutex_unlock(&mutexDeDump);
+					//pthread_mutex_unlock(&mutexDeDump);
 			}else{
 				printf("Comando desconocido\n");
 				}}}}}}}}}}}}}
@@ -392,10 +392,12 @@ int imprimirMemtableEnPantalla(){
 				imprimirValores);
 			}
 	}
+	log_info(LOGGERFS,"Bloqueando memtable");
 	pthread_mutex_lock(&mutexDeLaMemtable);
 	if(!list_is_empty(memTable)){
 		list_iterate(memTable,imprimirTabla);
 		}
+	log_info(LOGGERFS,"Desbloqueando memtable");
 	pthread_mutex_unlock(&mutexDeLaMemtable);
 	return EXIT_SUCCESS;
 }

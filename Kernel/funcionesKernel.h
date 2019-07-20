@@ -72,7 +72,7 @@ bool tablaFueBorrada(char* tabla, t_list* lista);
 int abrir_socket_memoria(char*, char*);
 double obtenerTimestamp();
 int reloadConfig();
-void iniciarMetrics();
+void iniciar_metrics();
 void* limpiarMetrics();
 
 

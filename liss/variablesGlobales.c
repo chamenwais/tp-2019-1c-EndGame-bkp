@@ -17,7 +17,7 @@ char* pathDeMontajeDelPrograma;
 char* nombreArchivoInfoMsBloqueada;
 pthread_t threadConsola, threadCompactador, threadDumps, threadMonitoreadorDeArchivos;
 pthread_mutex_t mutexVariableTiempoDump, mutexVariableRetardo, mutexBitmap,
-	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, mutexDeDump,nextTempfuncionesAux;
+	mutexEstadoDeFinalizacionDelSistema, mutexDeLaMemtable, /*mutexDeDump,*/nextTempfuncionesAux;
 t_bitarray *bitmap;
 int sizeDelBitmap;
 char * srcMmap;
@@ -109,8 +109,10 @@ bool eliminarDeListaDeTablasFS(char* tablaABorrar){
 		if(result)eliminada=true;
 		return result;
 	}
+	log_info(LOGGERFS,"Bloqueando tabla", tablaABorrar);
 	pthread_mutex_lock(&mutexListaTablasFS);
 	list_remove_and_destroy_by_condition(tablasFS,_stringCompare,liberarTablaFS);
+	log_info(LOGGERFS,"Desbloqueando tabla", tablaABorrar);
 	pthread_mutex_unlock(&mutexListaTablasFS);
 	return eliminada;
 }
@@ -204,10 +206,12 @@ int inicializarVariablesGlobales(){
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeLaMemtable");
 		return EXIT_FAILURE;
 		}
+	/*
 	if(pthread_mutex_init(&mutexDeDump, NULL) != 0) {
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexDeOperacionCritica");
 		return EXIT_FAILURE;
 		}
+		*/
 	if(pthread_mutex_init(&mutexListaTablasFS, NULL) != 0) {
 		log_error(LOGGERFS,"No se pudo inicializar el semaforo mutexListaTablasFS");
 		return EXIT_FAILURE;
@@ -251,7 +255,7 @@ void liberarRecursos(){
 	pthread_mutex_destroy(&mutexVariableTiempoDump);
 	pthread_mutex_destroy(&mutexDeLaMemtable);
 	pthread_mutex_destroy(&mutexBitmap);
-	pthread_mutex_destroy(&mutexDeDump);
+	//pthread_mutex_destroy(&mutexDeDump);
 	pthread_mutex_destroy(&mutexEstadoDeFinalizacionDelSistema);
 
 	pthread_mutex_lock(&mutexListaTablasFS);

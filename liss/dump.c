@@ -102,6 +102,7 @@ int dump(char* nombreDeLaTabla){
 	else
 		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
 
+	log_info(LOGGERFS,"Bloqueando memtable");
 	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMem = list_find(memTable,esMiNodo);
 	if(nodoDeLaMem==NULL){
@@ -110,6 +111,8 @@ int dump(char* nombreDeLaTabla){
 			desbloquearExclusiveTablaFS(mutexTabla);
 			log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
 			}
+		log_info(LOGGERFS,"Desbloqueando memtable");
+		pthread_mutex_unlock(&mutexDeLaMemtable);
 		return DUMP_CORRECTO;
 		}
 	bloques = string_new(); //va a tener el formato: [2,3,7,10]
@@ -129,9 +132,10 @@ int dump(char* nombreDeLaTabla){
 	crearElTemp(nombreDelArchivoTemp, bloques, sizeDelTemporal);
 	log_info(LOGGERFS,"Tabla %s dumpeada, en el temp %s",nombreDeLaTabla, nombreDelArchivoTemp);
 	//setearEstadoDeFinalizacionDeDumpeo(nombreDeLaTabla, true);
-	liberarMemoriaDelNodo(nombreDeLaTabla);
+	eliminarDeLaMemtable(nombreDeLaTabla);
 	free(nombreDelArchivoTemp);
 	free(bloques);
+	log_info(LOGGERFS,"Desbloqueando memtable");
 	pthread_mutex_unlock(&mutexDeLaMemtable);
 
 	if(mutexTabla!=NULL){
@@ -146,13 +150,6 @@ int dump(char* nombreDeLaTabla){
 		log_error(LOGGERFS,"Se hizo el dump pero en em medio del proceso se acabaron los bloques libres, no se puede asegurar la consistencia de los datos");
 		return NO_HAY_MAS_BLOQUES_EN_EL_FS;
 	}
-}
-
-int liberarMemoriaDelNodo(char* nombreDeLaTabla){
-	//implementar
-	//no hace falta, al final borro toda la memtable
-	eliminarDeLaMemtable(nombreDeLaTabla);
-	return EXIT_SUCCESS;
 }
 
 int lanzarDumps(){
@@ -181,11 +178,11 @@ void funcionHiloDump(void *arg){
 		tiempoDeSleep=obtenerTiempoDump();
 		usleep(tiempoDeSleep*1000);
 		log_info(LOGGERFS,"Iniciando un dumpeo");
-		pthread_mutex_lock(&mutexDeDump);
+		//pthread_mutex_lock(&mutexDeDump);
 		list_iterate(memTable, dumpearAEseNodo);
 		vaciarMemTable();
 		memTable=list_create();
-		pthread_mutex_unlock(&mutexDeDump);
+		//pthread_mutex_unlock(&mutexDeDump);
 		log_info(LOGGERFS,"Dumpeo finalizado");
 		}
 	log_info(LOGGERFS,"Finalizando hilo de dumpeo");

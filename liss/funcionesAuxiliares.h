@@ -34,6 +34,7 @@ int crearArchivosBinariosYAsignarBloques(char* nombreDeLaTabla,
 int eliminarDirectorioYArchivosDeLaTabla(char* nombreDeLaTabla);
 int crearArchivoDeBloque(int bloqueLibre);
 int eliminarDeLaMemtable(char* nombreDeLaTabla);
+int liberarMemoriaDelNodo(char* nombreDeLaTabla);
 int eliminarDirectorio(char* nombreDeLaTabla);
 int setearEstadoDeFinalizacionDelSistema(bool estadoDeFinalizacion);
 bool obtenerEstadoDeFinalizacionDelSistema();

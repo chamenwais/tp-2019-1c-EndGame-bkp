@@ -8,7 +8,7 @@
 #include "funcionesKernel.h"
 
 void inicializarLogKernel(){
-	LOG_KERNEL = log_create("Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
+	LOG_KERNEL = log_create("../../Kernel.log","Kernel",false,LOG_LEVEL_DEBUG);
 	logger(escribir_loguear, l_debug,"Log del Kernel iniciado");
 	return;
 }
@@ -177,7 +177,7 @@ int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de co
 	int nuevoQuantum;
 	nuevoQuantum = config_get_int_value(configuracion,"QUANTUM");
 	actualizarQuantum(nuevoQuantum);
-	log_info(LOG_KERNEL,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
+	logger(escribir_loguear, l_trace,"Quantum del archivo de configuracion del KERNEL recuperado: %d",
 			configKernel.quantum);
 	quantum = nuevoQuantum;
 
@@ -494,7 +494,7 @@ t_operacion parsear(char * linea){
 	char* tipo_de_operacion = split[0];
 
 	if(linea == NULL || string_equals_ignore_case(linea, "")){
-		//TODO ver que hacer aca
+
 	}
 
 	if(string_equals_ignore_case(tipo_de_operacion, "select")){
@@ -561,7 +561,7 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
 		nodo_metrica->operacion = m_SELECT;
 		//calculo el timestamp inicial
-		int t_inicial = time(NULL);
+		time_t t_inicial = time(NULL);
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion select de la key %d", key);
 		prot_enviar_select(nombre_tabla, key, socket_memoria);
@@ -595,7 +595,7 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		}
 
 		//timestamp final
-		int t_fin = time(NULL);
+		time_t t_fin = time(NULL);
 		//calculo diferencia y actualizo estructura
 		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla
@@ -645,9 +645,9 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 
 		//crear estructura
 		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
-		nodo_metrica->operacion = m_SELECT;
+		nodo_metrica->operacion = m_INSERT;
 		//calculo el timestamp inicial
-		int t_inicial = time(NULL);
+		time_t t_inicial = time(NULL);
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
 
@@ -670,7 +670,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		}
 
 		//timestamp final
-		int t_fin = time(NULL);
+		time_t t_fin = time(NULL);
 		//calculo diferencia y actualizo estructura
 		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla
