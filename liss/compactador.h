@@ -39,7 +39,7 @@ typedef struct TKV {
 } t_tkv;
 typedef t_tkv* tp_tkv;
 
-void guardarMilisegundosBloqueada(char*,int,bool);
+void guardarMilisegundosBloqueada(char*,double,bool);
 char* getNextTemp();
 char* convertirTKVsAString(t_list*);
 void liberarTKV(tp_tkv);

@@ -225,12 +225,12 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	tp_nodoDeLaTabla resultado = NULL;
 
 	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
-	if(mutexTabla!=NULL)
-			log_info(LOGGERFS,"[SELECT]Nueva tabla %s bloqueada, procedo a crear sus archivos", nombreDeLaTabla);
-		else{
-			log_error(LOGGERFS,"[SELECT]Nueva tabla %s no bloqueada, no se pudieron crear sus archivos!", nombreDeLaTabla);
-			return EXIT_FAILURE;
-			}
+//	if(mutexTabla!=NULL)
+//			log_info(LOGGERFS,"[SELECT]Nueva tabla %s bloqueada, procedo a crear sus archivos", nombreDeLaTabla);
+//	else{
+//		log_error(LOGGERFS,"[SELECT]Nueva tabla %s no bloqueada, no se pudieron crear sus archivos!", nombreDeLaTabla);
+//		return EXIT_FAILURE;
+//	}
 
 	if(mutexTabla!=NULL){
 		log_info(LOGGERFS,"[Select]Tabla %s bloqueada(lectura)",nombreDeLaTabla);
@@ -253,6 +253,7 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		free(resultadoOriginal);
 		//list_destroy(keysObtenidas);
 		vaciarListaDeKeys(keysObtenidas);
+		log_info(LOGGERFS,"[Select]Tabla %s desbloqueada(lectura)",nombreDeLaTabla);
 	}
 	else{
 		log_error(LOGGERFS,"[Select]Se esta intentando hace un select de una tabla que no existe %s", nombreDeLaTabla);
@@ -260,7 +261,6 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 		resultado=malloc(sizeof(t_nodoDeLaTabla));
 		resultado->resultado=TABLA_NO_EXISTIA;
 	}
-	log_info(LOGGERFS,"[Select]Tabla %s desbloqueada(lectura)",nombreDeLaTabla);
 	return resultado;
 }
 

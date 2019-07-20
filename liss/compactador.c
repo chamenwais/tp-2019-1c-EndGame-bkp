@@ -379,7 +379,8 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				pthread_exit(0);
 			}
 			log_info(LOGGERFS,"[Compactador %s]Bloquee la tabla",tabla);
-			clock_t inicio = clock();
+			//clock_t inicio = clock();
+			double inicio = obtenerTimestampLocal();
 
 			//2.liberar bloques tmpc
 			log_info(LOGGERFS,"[Compactador %s]Libero tmpcs",tabla);
@@ -435,11 +436,12 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 				free(superString[j]);
 			free(superString);
 			//6.desbloquear tabla y dejar registro tiempo q la tabla tuvo bloqueada
-			clock_t tiempoBloqueada = clock() - inicio;
-			int msec = tiempoBloqueada * 1000 / CLOCKS_PER_SEC;
+			double tiempoBloqueada = obtenerTimestampLocal() - inicio;
+			//clock_t tiempoBloqueada = clock() - inicio;
+			//int msec = tiempoBloqueada * 1000 / CLOCKS_PER_SEC;
 			cantidadDeCompactaciones++;
 			if(cantidadDeCompactaciones>10)cantidadDeCompactaciones=0;
-			guardarMilisegundosBloqueada(tabla,msec,!cantidadDeCompactaciones);
+			guardarMilisegundosBloqueada(tabla,tiempoBloqueada,!cantidadDeCompactaciones);
 			desbloquearExclusiveTablaFS(mutexTabla);
 			log_info(LOGGERFS,"[Compactador %s]Tabla desbloqueada, guardo el tiempo de bloqueo en su archivo correspondiente",tabla);
 
@@ -465,7 +467,7 @@ void* compactadorTabla(char* tabla){//solo recibe el nombre, necesita configurac
 	pthread_exit(0);
 }
 
-void guardarMilisegundosBloqueada(char* nombreTabla,int milisegundos,bool resetFile){
+void guardarMilisegundosBloqueada(char* nombreTabla,double milisegundos,bool resetFile){
 	char* archivoMSBloqueada=string_new();
 	string_append(&archivoMSBloqueada,configuracionDelFS.puntoDeMontaje);
 	string_append(&archivoMSBloqueada, "/Tables/");
@@ -476,7 +478,7 @@ void guardarMilisegundosBloqueada(char* nombreTabla,int milisegundos,bool resetF
 	if(resetFile) archivo = fopen(archivoMSBloqueada,"w");
 	else archivo = fopen(archivoMSBloqueada,"a");
 	if(archivo!=NULL){
-		fprintf(archivo,"MILLISECONDS=%d\n",milisegundos);
+		fprintf(archivo,"MILLISECONDS=%.0f\n",milisegundos);
 		fclose (archivo);
 	}
 	free(archivoMSBloqueada);
