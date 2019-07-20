@@ -434,7 +434,12 @@ int abrir_socket_memoria(char* ip, char* puerto) {
 int conectarse_con_memoria(char* ip, char * puerto){
 	logger(escribir_loguear, l_info, "Conectandose a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int socket_mem = abrir_socket_memoria(ip, puerto);
+	int socket_mem = conectarseA(ip, atoi(puerto));
+	if (socket_mem < 0) {
+		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s y puerto %s", ip, puerto);
+		return socket_mem;
+	}
+	enviar_handshake(socket_mem);
 	int numero_de_memoria = prot_recibir_int(socket_mem);
 	logger(escribir_loguear, l_info, "Me conecte a la memoria numero %d", numero_de_memoria);
 
@@ -1278,6 +1283,7 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 					logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio HC", memoria->numero_memoria);
 					return memoria;
 				}else{
+					srand(time(NULL));
 					int num = (rand() % list_size(listaHC));
 					pthread_mutex_lock(&mutex_HC);
 					memoria = list_get(listaHC, num);
@@ -1288,18 +1294,19 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 		}else if(string_equals_ignore_case(criterio, "EC") && (!list_is_empty(listaEC))){
 				bool entra = true;
 				while(entra){
-				int num = (rand() % list_size(listaEC)); // calcula un random entre 0 y list size
-				pthread_mutex_lock(&mutex_EC);
-				memoria = list_get(listaEC, num);
-				if((operacion.tipo_de_operacion == _SELECT) || (operacion.tipo_de_operacion == _INSERT)){
-					memoria->cantRequests = memoria->cantRequests + 1;
-					++requestTotales;//metrics
-				}
-				pthread_mutex_unlock(&mutex_EC);
-				if(memoria->numero_memoria != ultima_memoria_EC){
-					ultima_memoria_EC = memoria->numero_memoria;
-					entra = false;
-				}
+					srand(time(NULL));
+					int num = (rand() % list_size(listaEC)); // calcula un random entre 0 y list size
+					pthread_mutex_lock(&mutex_EC);
+					memoria = list_get(listaEC, num);
+					if((operacion.tipo_de_operacion == _SELECT) || (operacion.tipo_de_operacion == _INSERT)){
+						memoria->cantRequests = memoria->cantRequests + 1;
+						++requestTotales;//metrics
+					}
+					pthread_mutex_unlock(&mutex_EC);
+					if(memoria->numero_memoria != ultima_memoria_EC){
+						ultima_memoria_EC = memoria->numero_memoria;
+						entra = false;
+					}
 				}
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio EC", memoria->numero_memoria);
 				return memoria;
@@ -1397,8 +1404,18 @@ void* hacer_describe(){
 		if(list_is_empty(listaMemConectadas)){
 			continue;
 		}
+		srand(time(NULL));
+		int num_mem=rand()%list_size(listaMemConectadas);
+		tp_memo_del_pool_kernel memoria_elegida=list_get(listaMemConectadas,num_mem);
 		logger(escribir_loguear, l_debug, "Se le solicita la memoria de conf un describe all");
-		int socket_mem = abrir_socket_memoria(configKernel.ipMemoria, configKernel.puertoMemoria);
+		int socket_mem = conectarseA(memoria_elegida->ip, atoi(memoria_elegida->puerto));
+		if (socket_mem < 0) {
+			logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s y puerto %s", memoria_elegida->ip, memoria_elegida->puerto);
+			continue;
+		}
+		enviar_handshake(socket_mem);
+		int numero_de_memoria = prot_recibir_int(socket_mem);
+		logger(escribir_loguear, l_info, "Me conecte a la memoria numero %d", numero_de_memoria);
 		prot_recibir_int(socket_mem);
 		describeAll(socket_mem);
 		close(socket_mem);
