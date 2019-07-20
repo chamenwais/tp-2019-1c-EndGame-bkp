@@ -225,6 +225,12 @@ tp_nodoDeLaTabla selectf(char* nombreDeLaTabla, uint16_t key){
 	tp_nodoDeLaTabla resultado = NULL;
 
 	pthread_rwlock_t* mutexTabla = bloquearSharedTablaFS(nombreDeLaTabla);
+	if(mutexTabla!=NULL)
+			log_info(LOGGERFS,"[SELECT]Nueva tabla %s bloqueada, procedo a crear sus archivos", nombreDeLaTabla);
+		else{
+			log_error(LOGGERFS,"[SELECT]Nueva tabla %s no bloqueada, no se pudieron crear sus archivos!", nombreDeLaTabla);
+			return EXIT_FAILURE;
+			}
 
 	if(mutexTabla!=NULL){
 		log_info(LOGGERFS,"[Select]Tabla %s bloqueada(lectura)",nombreDeLaTabla);
