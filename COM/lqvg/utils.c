@@ -84,7 +84,7 @@ char* conocer_ip_propia() {
 	ifr.ifr_addr.sa_family = AF_INET;
 	/*docker0 - define the ifr_name - port name
 	 where network attached.*/
-	memcpy(ifr.ifr_name, "docker0", IFNAMSIZ - 1);
+	memcpy(ifr.ifr_name, "enp0s3", IFNAMSIZ - 1);
 	/*Accessing network interface information by
 	 passing address using ioctl.*/
 	ioctl(fd, SIOCGIFADDR, &ifr);
