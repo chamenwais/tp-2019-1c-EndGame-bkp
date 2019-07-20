@@ -1066,6 +1066,14 @@ void* funcionHiloRequest(void* pcb){
 
 				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(rdo_del_parseado);
 				if(memoria == NULL){
+					pthread_mutex_lock(&mutex_Exec);
+					remover_pcb_de_lista(listaExec, pcb);
+					pthread_mutex_unlock(&mutex_Exec);
+					pthread_mutex_lock(&mutex_Exit);
+					list_add(listaExit, pcb);
+					pthread_mutex_unlock(&mutex_Exit);
+					logger(escribir_loguear, l_warning, "El LQL %s pasa a Exit\n", ((tp_lql_pcb) pcb)->path);
+					sem_post(&READY);
 					terminar_request(ret2);
 				}
 
@@ -1110,6 +1118,14 @@ void* funcionHiloRequest(void* pcb){
 
 				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(rdo_del_parseado);
 						if(memoria == NULL){
+						pthread_mutex_lock(&mutex_Exec);
+						remover_pcb_de_lista(listaExec, pcb);
+						pthread_mutex_unlock(&mutex_Exec);
+						pthread_mutex_lock(&mutex_Exit);
+						list_add(listaExit, pcb);
+						pthread_mutex_unlock(&mutex_Exit);
+						logger(escribir_loguear, l_warning, "El LQL %s pasa a Exit\n", ((tp_lql_pcb) pcb)->path);
+						sem_post(&READY);
 						terminar_request(ret2);
 						}
 						usleep(retardo * 1000);
