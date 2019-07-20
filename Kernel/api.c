@@ -316,7 +316,7 @@ void *funcionHiloConsola(void *arg){
 		char** instruccion;
 		char* ubicacionDelPunteroDeLaConsola;
 		logger(escribir_loguear, l_warning,"Consola o Sinsola... aqui vamos!");
-		//printf("Si necesita saber las funciones que hay disponibles llame a la funcion \"man\"\n");
+		printf("Si necesita saber las funciones que hay disponibles llame a la funcion \"man\"\n");
 		while(1){
 			ubicacionDelPunteroDeLaConsola=string_new();
 			string_append(&ubicacionDelPunteroDeLaConsola,"$ ");
@@ -406,7 +406,7 @@ void *funcionHiloConsola(void *arg){
 						metricsConsola();
 				}else{
 					if((strcmp(instruccion[0],"add")==0) || (strcmp(instruccion[0], "ADD")==0)){
-						if((strcmp(instruccion[1], "MEMORY")==0)&&(instruccion[2]!=NULL)&&((strcmp(instruccion[3], "TO"))==0)
+						if((instruccion[1] != NULL)&&(strcmp(instruccion[1], "MEMORY")==0)&&(instruccion[2]!=NULL)&&((strcmp(instruccion[3], "TO"))==0)
 							&&(instruccion[4]!=NULL)){
 						printf("Voy a hacer ADD a la memoria %i, en el criterio %s\n",
 								atoi(instruccion[2]),instruccion[4]);
