@@ -154,46 +154,72 @@ void mostrarWrites(){
 
 void mostrarReadLatency(){
 	int cant = 0;
-	int tiempoTotal =0;
+	time_t tiempoTotal =0;
 	void contar_cantidad_reads(void* nodo){
 		if(((tp_metrica)nodo)->operacion == m_SELECT){
 			++cant;
 			tiempoTotal = tiempoTotal + ((tp_metrica)nodo)->tiempo;
 		}
+	}
 	list_iterate(listaMetricsSC, contar_cantidad_reads);
-	printf("Tiempo promedio de SELECT para SC: %i segundos\n", tiempoTotal / cant);
+	if(cant > 0){
+	printf("Tiempo promedio de SELECT para SC: %ld milisegundos\n", tiempoTotal*1000 / cant);
+	}else{
+	printf("Tiempo promedio de SELECT para SC: N/A\n");
+	}
 	cant = 0;
 	tiempoTotal = 0;
 	list_iterate(listaMetricsEC, contar_cantidad_reads);
-	printf("Tiempo promedio de SELECT para EC: %i segundos\n", tiempoTotal / cant);
+	if(cant > 0){
+	printf("Tiempo promedio de SELECT para EC: %ld milisegundos\n", tiempoTotal*1000 / cant);
+	}else{
+	printf("Tiempo promedio de SELECT para EC: N/A\n");
+	}
 	cant = 0;
 	tiempoTotal =0;
 	list_iterate(listaMetricsHC, contar_cantidad_reads);
-	printf("Tiempo promedio de SELECT para SHC %i segundos\n", tiempoTotal / cant);
-
+	if(cant > 0){
+	printf("Tiempo promedio de SELECT para SHC %ld milisegundos\n", tiempoTotal*1000 / cant);
+	}else{
+	printf("Tiempo promedio de SELECT para SHC: N/A\n");
 	}
+
+
 }
 
 void mostrarWriteLatency(){
 	int cant = 0;
-	int tiempoTotal =0;
+	time_t tiempoTotal = 0;
 	void contar_cantidad_writes(void* nodo){
 		if(((tp_metrica)nodo)->operacion == m_INSERT){
 			++cant;
 			tiempoTotal = tiempoTotal + ((tp_metrica)nodo)->tiempo;
 		}
+	}
 	list_iterate(listaMetricsSC, contar_cantidad_writes);
-	printf("Tiempo promedio de INSERT para SC: %i segundos\n", tiempoTotal / cant);
+	if(cant > 0){
+	printf("Tiempo promedio de INSERT para SC: %ld milisegundos\n", tiempoTotal*1000 / cant);
+	}else{
+	printf("Tiempo promedio de INSERT para SC: N/A\n");
+	}
 	cant = 0;
 	tiempoTotal = 0;
 	list_iterate(listaMetricsEC, contar_cantidad_writes);
-	printf("Tiempo promedio de INSERT para EC: %i segundos\n", tiempoTotal / cant);
+	if(cant > 0){
+	printf("Tiempo promedio de INSERT para EC: %ld milisegundos\n", tiempoTotal*1000 / cant);
+	}else{
+	printf("Tiempo promedio de INSERT para EC: N/A\n");
+	}
 	cant = 0;
 	tiempoTotal =0;
 	list_iterate(listaMetricsHC, contar_cantidad_writes);
-	printf("Tiempo promedio de INSERT para SHC %i segundos\n", tiempoTotal / cant);
-
+	if(cant > 0){
+	printf("Tiempo promedio de INSERT para SHC %ld milisegundos\n", tiempoTotal*1000 / cant);
+	}else{
+	printf("Tiempo promedio de INSERT para SHC: N/A\n");
 	}
+
+
 }
 
 

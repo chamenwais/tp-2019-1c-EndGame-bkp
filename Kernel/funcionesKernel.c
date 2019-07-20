@@ -561,7 +561,7 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
 		nodo_metrica->operacion = m_SELECT;
 		//calculo el timestamp inicial
-		int t_inicial = time(NULL);
+		time_t t_inicial = time(NULL);
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion select de la key %d", key);
 		prot_enviar_select(nombre_tabla, key, socket_memoria);
@@ -595,7 +595,7 @@ void operacion_select(char* nombre_tabla, uint16_t key, tp_lql_pcb pcb, int sock
 		}
 
 		//timestamp final
-		int t_fin = time(NULL);
+		time_t t_fin = time(NULL);
 		//calculo diferencia y actualizo estructura
 		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla
@@ -647,7 +647,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		tp_metrica nodo_metrica = calloc(1, sizeof(t_metrica));
 		nodo_metrica->operacion = m_INSERT;
 		//calculo el timestamp inicial
-		int t_inicial = time(NULL);
+		time_t t_inicial = time(NULL);
 
 		logger(escribir_loguear, l_info, "Voy a realizar la operacion insert");
 
@@ -670,7 +670,7 @@ void operacion_insert(char* nombre_tabla, int key, char* value, tp_lql_pcb pcb, 
 		}
 
 		//timestamp final
-		int t_fin = time(NULL);
+		time_t t_fin = time(NULL);
 		//calculo diferencia y actualizo estructura
 		nodo_metrica->tiempo = (t_fin - t_inicial);
 		//meter estructura en tabla

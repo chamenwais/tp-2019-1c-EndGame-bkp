@@ -43,7 +43,7 @@ enum tipo_metrica {
 
 typedef struct metrica_kernel {
 	int operacion;
-	int tiempo;
+	time_t tiempo;
 }t_metrica;
 typedef t_metrica* tp_metrica;
 
