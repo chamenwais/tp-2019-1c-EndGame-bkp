@@ -180,9 +180,9 @@ void funcionHiloDump(void *arg){
 		log_info(LOGGERFS,"Iniciando un dumpeo");
 		pthread_mutex_lock(&mutexDeLaMemtable);
 		list_iterate(memTable, dumpearAEseNodo);
-		pthread_mutex_unlock(&mutexDeLaMemtable);
+		//pthread_mutex_unlock(&mutexDeLaMemtable);
 		vaciarMemTable();
-		pthread_mutex_lock(&mutexDeLaMemtable);
+		//pthread_mutex_lock(&mutexDeLaMemtable);
 		memTable=list_create();
 		pthread_mutex_unlock(&mutexDeLaMemtable);
 		log_info(LOGGERFS,"Dumpeo finalizado");
