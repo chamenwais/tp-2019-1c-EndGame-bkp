@@ -176,6 +176,8 @@ void actualizar_value_modificado_en_MP(char *nom_tabla, double timestamp, uint16
 	usleep(RETARDO_ACCESO_MEMORIA*1000);
 	insertar_registro_en_marco(timestamp, key, value, pagina_con_key->marco);
 	pagina_con_key->flag=FLAG_MODIFICADO;
+	logger(escribir_loguear, l_debug,"Se modifica el flag a MODIFICADO para la página que apunta el marco %d",
+			pagina_con_key->marco);
 }
 
 t_entrada_tabla_segmentos * buscar_segmento_de_tabla(char * nombre_tabla){
@@ -272,6 +274,13 @@ void crear_pagina_en_tabla_paginas(t_entrada_tabla_segmentos * segmento, int mar
 	t_entrada_tabla_paginas * entrada_pagina=malloc(sizeof(t_entrada_tabla_paginas));
 	entrada_pagina->pagina=list_size(segmento->base);
 	entrada_pagina->marco=marco;
+	if(flag==FLAG_MODIFICADO){
+		logger(escribir_loguear, l_debug,"Se modifica el flag a MODIFICADO para la página que apunta el marco %d",
+				marco);
+	} else if (flag==FLAG_NO_MODIFICADO){
+		logger(escribir_loguear, l_debug,"Se modifica el flag a NO modificado para la página que apunta el marco %d",
+						marco);
+	}
 	entrada_pagina->flag=flag;
 	entrada_pagina->ultimo_uso=(unsigned int)time(NULL);
 	list_add(segmento->base,entrada_pagina);
