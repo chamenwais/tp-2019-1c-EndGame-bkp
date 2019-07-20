@@ -158,11 +158,13 @@ int reloadConfig(){ //actualiza quantum, sleep y metadata_refresh del arch de co
 
 		t_config* configuracion = config_create(path_archivo_configuracion);
 
+		printf("entre a reloadconfig\n\n");
+
 		if(configuracion!=NULL){
 			logger(escribir_loguear, l_info,"El archivo de configuracion existe");
 		}else{
-			log_error(LOG_KERNEL,"No existe el archivo de configuracion en: %s",path_archivo_configuracion);
-			log_error(LOG_KERNEL,"No se pudo levantar la configuracion del Kernel, abortando");
+			logger(escribir_loguear, l_error,"No existe el archivo de configuracion en: %s",path_archivo_configuracion);
+			logger(escribir_loguear, l_error,"No se pudo levantar la configuracion del Kernel, abortando");
 			return EXIT_FAILURE;
 			}
 		logger(escribir_loguear, l_info,"Abriendo el archivo de configuracion del Kernel");
@@ -1053,14 +1055,15 @@ void* funcionHiloRequest(void* pcb){
 	int i;
 	char* linea_a_ejecutar;
 
-	while(!list_is_empty((*(tp_lql_pcb) pcb).lista)){//mientras no sea fin de archivo
+	if(!list_is_empty((*(tp_lql_pcb) pcb).lista)){//mientras no sea fin de archivo
 		for (i = 0; i < quantum; ++i) {
-
+		printf("EJECUTANDO ANDO ANDO ANDO ANDO ANDO\n");
 		linea_a_ejecutar = list_remove((*(tp_lql_pcb) pcb).lista, 0); //lo saca de la lista y lo devuelve, de esta manera controlamos la prox linea a ejecutar
 
 			if(linea_a_ejecutar!=NULL){
 				//Parsear la linea
 				t_operacion rdo_del_parseado = parsear(linea_a_ejecutar);
+				free(linea_a_ejecutar);
 
 				//Elegir memoria de acuerdo a la tabla
 
@@ -1308,8 +1311,8 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 					return memoria;
 				}
 		}else if(string_equals_ignore_case(criterio, "EC") && (!list_is_empty(listaEC))){
-				bool entra = true;
-				while(entra){
+				//bool entra = true;
+				//while(entra){
 					srand(time(NULL));
 					int num = (rand() % list_size(listaEC)); // calcula un random entre 0 y list size
 					pthread_mutex_lock(&mutex_EC);
@@ -1319,11 +1322,11 @@ tp_memo_del_pool_kernel decidir_memoria_a_utilizar(t_operacion operacion){
 						++requestTotales;//metrics
 					}
 					pthread_mutex_unlock(&mutex_EC);
-					if(memoria->numero_memoria != ultima_memoria_EC){
-						ultima_memoria_EC = memoria->numero_memoria;
-						entra = false;
-					}
-				}
+				//	if(memoria->numero_memoria != ultima_memoria_EC){
+					//	ultima_memoria_EC = memoria->numero_memoria;
+					//	entra = false;
+					//}
+				//}
 				logger(escribir_loguear, l_info, "Se eligio la memoria %i para el criterio EC", memoria->numero_memoria);
 				return memoria;
 		}}
