@@ -231,21 +231,27 @@ void metricsConsola(){
 	mostrarMemoryLoad();
 }
 
+
+
 int addConsola(int memnum, char* criterio){
 	logger(escribir_loguear, l_info, "Se va a agregar el criterio %s a la memoria %i", criterio, memnum);
 	if(existeMemoria(memnum)){
 		tp_memo_del_pool_kernel memoria = buscar_memorias_segun_numero(listaMemConectadas, memnum);
-		if((strcmp(criterio, "SC"))==0) {
+		bool memoria_existe_en_mi_lista(void * memoria_criterio){
+				return ((tp_memo_del_pool_kernel)memoria_criterio == memoria);
+			}
+
+		if(((strcmp(criterio, "SC")) ==0) && (!list_any_satisfy(listaSC, memoria_existe_en_mi_lista))){
 			pthread_mutex_lock(&mutex_SC);
 			list_add(listaSC, memoria);
 			pthread_mutex_unlock(&mutex_SC);
 			printf("Se agrego la memoria %i al criterio SC\n", memnum);
-		}else if((strcmp(criterio, "EC"))==0){
+		}else if(((strcmp(criterio, "EC"))==0) && (!list_any_satisfy(listaEC, memoria_existe_en_mi_lista))){
 			pthread_mutex_lock(&mutex_EC);
 			list_add(listaEC, memoria);
 			pthread_mutex_unlock(&mutex_EC);
 			printf("Se agrego la memoria %i al criterio EC\n", memnum);
-		}else if((strcmp(criterio, "SHC"))==0){
+		}else if(((strcmp(criterio, "SHC"))==0)&&(!list_any_satisfy(listaHC, memoria_existe_en_mi_lista))){
 			pthread_mutex_lock(&mutex_HC);
 			list_add(listaHC, memoria);
 			pthread_mutex_unlock(&mutex_HC);

@@ -175,6 +175,9 @@ void apagar_semaforos(){
 		pthread_mutex_destroy(&M_CONF_FD);
 		pthread_mutex_destroy(&M_WATCH_DESCRIPTOR);
 		pthread_mutex_destroy(&M_PATH_ARCHIVO_CONFIGURACION);
+		pthread_mutex_destroy(&mutex_metricsEC);
+		pthread_mutex_destroy(&mutex_metricsHC);
+		pthread_mutex_destroy(&mutex_metricsSC);
 
 }
 
@@ -246,33 +249,17 @@ void destruirListas(){
 		list_destroy(listaMemConectadas);
 		pthread_mutex_unlock(&mutex_MemConectadas);
 	}
-	if(!list_is_empty(listaSC)){
-		pthread_mutex_lock(&mutex_SC);
-		list_destroy_and_destroy_elements(listaSC, destructor_memoria_del_pool_kernel);
-		pthread_mutex_unlock(&mutex_SC);
-	}else{
 		pthread_mutex_lock(&mutex_SC);
 		list_destroy(listaSC);
 		pthread_mutex_unlock(&mutex_SC);
-	}
-	if(!list_is_empty(listaEC)){
-		pthread_mutex_lock(&mutex_EC);
-		list_destroy_and_destroy_elements(listaEC, destructor_memoria_del_pool_kernel);
-		pthread_mutex_unlock(&mutex_EC);
-	}else{
+
 		pthread_mutex_lock(&mutex_EC);
 		list_destroy(listaEC);
 		pthread_mutex_unlock(&mutex_EC);
-	}
-	if(!list_is_empty(listaHC)){
-		pthread_mutex_lock(&mutex_HC);
-		list_destroy_and_destroy_elements(listaHC, destructor_memoria_del_pool_kernel);
-		pthread_mutex_unlock(&mutex_HC);
-	}else{
+
 		pthread_mutex_lock(&mutex_HC);
 		list_destroy(listaHC);
 		pthread_mutex_unlock(&mutex_HC);
-	}
 
 	void destructor_tablas(void * tabla){
 			free(((t_entrada_tabla_creada*) tabla)->nombre_tabla);
