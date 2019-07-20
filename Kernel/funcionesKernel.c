@@ -456,10 +456,10 @@ int conectarse_con_memoria(char* ip, char * puerto){
 int conectar_con_memoria(char* ip, char * puerto){
 	logger(escribir_loguear, l_info, "Conectando request a la memoria en ip %s y puerto %s",
 			ip, puerto);
-	int sock = 0;
 	int socket_mem = conectarseA(ip, atoi(puerto));
 	if(socket_mem < 0){
 		logger(escribir_loguear, l_error, "No se puede conectar con la memoria de ip %s", ip);
+		return socket_mem;
 	}
 	enviar_handshake(socket_mem);
 
@@ -471,7 +471,8 @@ int conectar_con_memoria(char* ip, char * puerto){
 		return socket_mem;
 	}
 
-	return sock;
+return socket_mem;
+
 }
 
 void enviar_handshake(int socket){
@@ -1076,6 +1077,51 @@ void* funcionHiloRequest(void* pcb){
 						terminar_request(ret2);
 					}
 
+				}else if(sockMem < 0){
+
+					bool es_memoria_a_borrar(void* memo){
+					return memoria == (tp_memo_del_pool_kernel)memo;
+						}
+
+							pthread_mutex_lock(&mutex_MemConectadas);
+							list_remove_by_condition(listaMemConectadas, es_memoria_a_borrar);
+							pthread_mutex_unlock(&mutex_MemConectadas);
+
+							pthread_mutex_lock(&mutex_SC);
+							list_remove_by_condition(listaSC, es_memoria_a_borrar);
+							pthread_mutex_unlock(&mutex_SC);
+
+							pthread_mutex_lock(&mutex_EC);
+							list_remove_by_condition(listaEC, es_memoria_a_borrar);
+							pthread_mutex_unlock(&mutex_EC);
+
+							pthread_mutex_lock(&mutex_HC);
+							list_remove_by_condition(listaHC, es_memoria_a_borrar);
+							pthread_mutex_unlock(&mutex_HC);
+
+						free(memoria->ip);
+						free(memoria->puerto);
+						free(memoria);
+
+				tp_memo_del_pool_kernel memoria = decidir_memoria_a_utilizar(rdo_del_parseado);
+						if(memoria == NULL){
+						terminar_request(ret2);
+						}
+						usleep(retardo * 1000);
+
+						int sockMem = conectar_con_memoria(memoria->ip, memoria->puerto);
+
+						if(sockMem > 0){
+							int res = realizar_operacion(rdo_del_parseado, pcb, sockMem);
+							close(sockMem);
+							logger(escribir_loguear, l_info, "Se cierra el socket %i con la memoria %i", sockMem, memoria->numero_memoria);
+							if(res == -1){
+								sem_post(&READY);
+								terminar_request(ret2);
+							}
+
+
+						}
 				}
 
 			}
