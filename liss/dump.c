@@ -103,7 +103,7 @@ int dump(char* nombreDeLaTabla){
 		log_error(LOGGERFS,"Tabla %s no bloqueada", nombreDeLaTabla);
 
 	log_info(LOGGERFS,"Bloqueando memtable");
-	//pthread_mutex_lock(&mutexDeLaMemtable);
+	pthread_mutex_lock(&mutexDeLaMemtable);
 	tp_nodoDeLaMemTable nodoDeLaMem = list_find(memTable,esMiNodo);
 	if(nodoDeLaMem==NULL){
 		log_info(LOGGERFS,"No hay nada para dumpear en %s", nombreDeLaTabla);
@@ -136,7 +136,7 @@ int dump(char* nombreDeLaTabla){
 	free(nombreDelArchivoTemp);
 	free(bloques);
 	log_info(LOGGERFS,"Desbloqueando memtable");
-	//pthread_mutex_unlock(&mutexDeLaMemtable);
+	pthread_mutex_unlock(&mutexDeLaMemtable);
 
 	if(mutexTabla!=NULL){
 		desbloquearExclusiveTablaFS(mutexTabla);
@@ -178,9 +178,9 @@ void funcionHiloDump(void *arg){
 		tiempoDeSleep=obtenerTiempoDump();
 		usleep(tiempoDeSleep*1000);
 		log_info(LOGGERFS,"Iniciando un dumpeo");
-		pthread_mutex_lock(&mutexDeLaMemtable);
+		//pthread_mutex_lock(&mutexDeLaMemtable);
 		list_iterate(memTable, dumpearAEseNodo);
-		pthread_mutex_unlock(&mutexDeLaMemtable);
+		//pthread_mutex_unlock(&mutexDeLaMemtable);
 		pthread_mutex_lock(&mutexDeLaMemtable);
 		vaciarMemTable();
 		memTable=list_create();
