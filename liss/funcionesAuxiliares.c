@@ -618,7 +618,6 @@ t_list* escanearPorLaKeyDeseada(uint16_t key, char* nombreDeLaTabla, int numeroD
 	log_info(LOGGERFS,"Desbloqueando memtable");
 	pthread_mutex_unlock(&mutexDeLaMemtable);
 
-	//desbloquearSharedTablaFS(mutexTabla);
 	log_info(LOGGERFS,"Tabla %s desbloqueada", nombreDeLaTabla);
 
 	int sizeDeLaLista = list_size(listadoDeKeys);
